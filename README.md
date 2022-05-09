@@ -1,20 +1,21 @@
-# Typescript Library Starter
+# Typescript Service Starter
 
-![NPM](https://img.shields.io/npm/l/@gjuchault/typescript-library-starter)
-![NPM](https://img.shields.io/npm/v/@gjuchault/typescript-library-starter)
-![GitHub Workflow Status](https://github.com/gjuchault/typescript-library-starter/actions/workflows/typescript-library-starter.yml/badge.svg?branch=main)
+![NPM](https://img.shields.io/npm/l/@gjuchault/typescript-service-starter)
+![NPM](https://img.shields.io/npm/v/@gjuchault/typescript-service-starter)
+![GitHub Workflow Status](https://github.com/gjuchault/typescript-service-starter/actions/workflows/typescript-service-starter.yml/badge.svg?branch=main)
 
-Yet another (opinionated) typescript library starter template.
+Yet another (opinionated) typescript service starter template.
 
 ## Opinions and limitations
 
-1. Relies as much as possible on each included library's defaults
-2. Only rely on GitHub Actions
-3. Do not include documentation generation
+1. Tries to follow Domain Driven Development
+2. Relies as much as possible on each included library's defaults
+3. Only rely on GitHub Actions
+4. Do not include documentation generation
 
 ## Getting started
 
-1. `git clone git@github.com:gjuchault/typescript-library-starter.git my-project`
+1. `git clone git@github.com:gjuchault/typescript-service-starter.git my-project`
 2. `cd my-project`
 3. `npm install`
 4. `npm run setup`
@@ -25,7 +26,7 @@ Or click on `Use this template` button on GitHub!
 
 ### Node.js, npm version
 
-Typescript Library Starter relies on [volta](https://volta.sh/) to ensure node version to be consistent across developers. It's also used in the GitHub workflow file.
+Typescript Service Starter relies on [volta](https://volta.sh/) to ensure node version to be consistent across developers. It's also used in the GitHub workflow file.
 
 ### Typescript
 
@@ -42,7 +43,7 @@ Commands:
 
 ### Tests
 
-typescript-library-starter uses [ava](https://github.com/avajs/ava) and [esbuild-register](https://github.com/egoist/esbuild-register) so that there is no need to compile before the tests start running. The coverage is done through [nyc](https://github.com/istanbuljs/nyc).
+typescript-service-starter uses [ava](https://github.com/avajs/ava) and [esbuild-register](https://github.com/egoist/esbuild-register) so that there is no need to compile before the tests start running. The coverage is done through [nyc](https://github.com/istanbuljs/nyc).
 
 Commands:
 
@@ -64,7 +65,7 @@ Commands:
 
 ### Releasing
 
-Under the hood, this library uses [semantic-release](https://github.com/semantic-release/semantic-release) and [commitizen](https://github.com/commitizen/cz-cli).
+Under the hood, this service uses [semantic-release](https://github.com/semantic-release/semantic-release) and [commitizen](https://github.com/commitizen/cz-cli).
 The goal is to avoid manual release process. Using `semantic-release` will automatically create a github release (hence tags) as well as an npm release.
 Based on your commit history, `semantic-release` will automatically create a patch, feature or breaking release.
 

@@ -16,7 +16,7 @@ const setupPath = __filename;
 const testSetupPath = path.join(rootPath, "scripts/testSetup.ts");
 const workflowPath = path.join(
   rootPath,
-  ".github/workflows/typescript-library-starter.yml"
+  ".github/workflows/typescript-service-starter.yml"
 );
 const issueConfigPath = path.join(
   rootPath,
@@ -79,7 +79,7 @@ export async function run({
 
   await cleanup({ packageName });
 
-  await commitAll("chore: typescript-library-startup");
+  await commitAll("chore: typescript-service-starter");
 
   await removeOrigin();
 
@@ -102,8 +102,8 @@ async function applyPackageName({
     replaceInFile(
       workflowPath,
       new Map([
-        [/Typescript Library Starter/, packageName],
-        [/typescript-library-starter/, packageSlug],
+        [/Typescript Service Starter/, packageName],
+        [/typescript-service-starter/, packageSlug],
         [/\s+- name: Setup test\s+run:[\w :]+/i, ""],
       ])
     )
@@ -115,7 +115,7 @@ async function applyPackageName({
       issueConfigPath,
       new Map([
         [
-          "gjuchault/typescript-library-starter",
+          "gjuchault/typescript-service-starter",
           `${githubUserName}/${packageName}`,
         ],
       ])
@@ -128,7 +128,7 @@ async function applyPackageName({
       contributingPath,
       new Map([
         [
-          /gjuchault\/typescript-library-starter/g,
+          /gjuchault\/typescript-service-starter/g,
           `${githubUserName}/${packageName}`,
         ],
       ])
@@ -149,7 +149,7 @@ async function applyPackageName({
       releaseRcPath,
       new Map([
         [
-          "gjuchault/typescript-library-starter",
+          "gjuchault/typescript-service-starter",
           `${githubUserName}/${packageName}`,
         ],
       ])
@@ -170,7 +170,7 @@ async function applyPackageName({
     replaceInFile(
       packageJsonPath,
       new Map<string | RegExp, string>([
-        ["@gjuchault/typescript-library-starter", packageName],
+        ["@gjuchault/typescript-service-starter", packageName],
         [/[^\n]+"description[^\n]+\n/, ""],
         [/[^\n]+"keywords[^\]]+\],\n/, ""],
         [/[^\n]+"homepage[^\n]+\n/, ""],
@@ -222,7 +222,7 @@ async function commitAll(message: string) {
 
 async function removeOrigin() {
   const { stdout: origin } = await exec(`git remote get-url origin`);
-  if (origin.includes("gjuchault/typescript-library-starter")) {
+  if (origin.includes("gjuchault/typescript-service-starter")) {
     await logAsyncTask(`Removing git origin`, exec(`git remote rm origin`));
   }
 }
