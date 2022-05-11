@@ -9,9 +9,13 @@ Yet another (opinionated) typescript service starter template.
 ## Opinions and limitations
 
 1. Tries to follow Domain Driven Development
-2. Relies as much as possible on each included library's defaults
-3. Only rely on GitHub Actions
-4. Do not include documentation generation
+2. Config should not default to either development or production ([link](https://softwareengineering.stackexchange.com/a/375843))
+
+And extends the ones from [typescript-library-starter]()
+
+1. Relies as much as possible on each included library's defaults
+2. Only rely on GitHub Actions
+3. Do not include documentation generation
 
 ## Getting started
 

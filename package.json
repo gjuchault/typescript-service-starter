@@ -22,9 +22,15 @@
   "publishConfig": {
     "access": "public"
   },
+  "volta": {
+    "node": "16.15.0",
+    "npm": "8.9.0"
+  },
   "scripts": {
     "setup": "node -r ./esbuild-hook ./scripts/setup",
-    "build": "yarn clean && yarn type:dts && yarn type:build",
+    "build": "npm run clean && npm run type:dts && npm run type:build",
+    "start": "node ./build",
+    "dev": "npm run build && npm run start | pino-pretty",
     "clean": "node -r ./esbuild-hook ./scripts/clean",
     "type:dts": "tsc --emitDeclarationOnly",
     "type:check": "tsc --noEmit",
@@ -60,6 +66,7 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.26.0",
     "nyc": "^15.1.0",
+    "pino-pretty": "^7.6.1",
     "prettier": "^2.6.2",
     "prompts": "^2.4.1",
     "semantic-release": "^19.0.2",
@@ -67,8 +74,15 @@
     "source-map-support": "^0.5.21",
     "typescript": "^4.6.4"
   },
-  "volta": {
-    "node": "16.15.0",
-    "npm": "8.9.0"
+  "dependencies": {
+    "@opentelemetry/api": "^1.0.4",
+    "@opentelemetry/resources": "^1.2.0",
+    "@opentelemetry/sdk-node": "^0.28.0",
+    "@opentelemetry/sdk-trace-base": "^1.2.0",
+    "@opentelemetry/semantic-conventions": "^1.2.0",
+    "dotenv": "^16.0.0",
+    "pino": "^7.11.0",
+    "slonik": "^28.1.0",
+    "zod": "^3.15.1"
   }
 }
