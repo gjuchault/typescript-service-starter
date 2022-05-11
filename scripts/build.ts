@@ -7,20 +7,15 @@ const baseConfig = {
   format: "cjs" as const,
   nodePaths: [path.join(__dirname, "../src")],
   sourcemap: true,
-  external: [],
+  external: ["pg-native"],
 };
 
 async function main() {
   await esbuild({
     ...baseConfig,
-    outdir: path.join(__dirname, "../build/cjs"),
-    entryPoints: [path.join(__dirname, "../src/index.ts")],
-  });
-
-  await esbuild({
-    ...baseConfig,
-    format: "esm",
-    outdir: path.join(__dirname, "../build/esm"),
+    format: "cjs",
+    bundle: true,
+    outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
   });
 }
