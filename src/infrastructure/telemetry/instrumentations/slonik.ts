@@ -1,11 +1,11 @@
-import { SpanKind, Span, SpanStatusCode } from "@opentelemetry/api";
+import { SpanKind, Span } from "@opentelemetry/api";
 import {
   DbSystemValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
 import { Interceptor, DatabasePool, QueryContext } from "slonik";
-import type { Metrics } from "..";
-import * as config from "../../config";
+import type { Telemetry } from "..";
+import * as config from "../../../config";
 
 export const PG_VALUES = "db.postgresql.values";
 export const IDLE_TIMEOUT_MILLIS = "db.postgresql.idle.timeout.millis";
@@ -22,16 +22,16 @@ export function getSpanOptions({ pool }: { pool: DatabasePool }) {
   };
 }
 
-export function buildSlonikMetricsInterceptor({
-  metrics,
+export function buildSlonikTelemetryInterceptor({
+  telemetry,
 }: {
-  metrics: Metrics;
+  telemetry: Telemetry;
 }): Interceptor {
   const spanByQueryId: Map<string, Span> = new Map();
 
   return {
     async beforeQueryExecution(queryContext, query) {
-      const span = metrics.getTracer().startSpan("database.query", {
+      const span = telemetry.getTracer().startSpan("database.query", {
         kind: SpanKind.CLIENT,
         attributes: {
           ...getCommonSpanOptions(),

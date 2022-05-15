@@ -1,6 +1,8 @@
 import pino, { Logger } from "pino";
-import { pinoMixin } from "./metrics/instrumentations/pino";
-import * as config from "./config";
+import { pinoMixin } from "../telemetry/instrumentations/pino";
+import * as config from "../../config";
+
+export { Logger };
 
 export const logger = pino({
   name: "app",

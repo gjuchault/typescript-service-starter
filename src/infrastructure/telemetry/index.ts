@@ -1,14 +1,12 @@
 import * as opentelemetry from "@opentelemetry/sdk-node";
 import { Resource } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
-import {
-  ConsoleSpanExporter,
-  InMemorySpanExporter,
-} from "@opentelemetry/sdk-trace-base";
-import { context, trace } from "@opentelemetry/api";
-import * as config from "../config";
+import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
+import { context, SpanStatusCode, trace } from "@opentelemetry/api";
+import * as config from "../../config";
+import { pinoSpanExporter } from "./pinoExporter";
 
-export interface Metrics {
+export interface Telemetry {
   getTracer(): opentelemetry.api.Tracer;
   startSpan<TResolved>(
     name: string,
@@ -21,12 +19,12 @@ type StartSpanCallback<TResolved> = (
   span: opentelemetry.api.Span
 ) => Promise<TResolved> | TResolved;
 
-export async function startMetrics(): Promise<Metrics> {
+export async function startTelemetry(): Promise<Telemetry> {
   let traceExporter: opentelemetry.tracing.SpanExporter =
     new InMemorySpanExporter();
 
   if (config.env === "production") {
-    traceExporter = new ConsoleSpanExporter();
+    traceExporter = pinoSpanExporter;
   }
 
   const sdk = new opentelemetry.NodeSDK({
@@ -58,11 +56,21 @@ export async function startMetrics(): Promise<Metrics> {
         try {
           const result: TResolved = await callback(span);
 
-          span.end();
+          span.setStatus({ code: SpanStatusCode.OK });
 
           resolve(result);
-        } catch (err) {
-          reject(err);
+        } catch (error) {
+          if (error instanceof Error) {
+            span.recordException(error);
+          }
+
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: getErrorMessage(error),
+          });
+          reject(error);
+        } finally {
+          span.end();
         }
       });
     });
@@ -72,14 +80,16 @@ export async function startMetrics(): Promise<Metrics> {
     getTracer,
     startSpan,
   };
+}
 
-  // registerInstrumentations({
-  //   instrumentations: [
-  //     new PinoInstrumentation(),
-  //     new PgInstrumentation(),
+function getErrorMessage(error: unknown): string {
+  if (typeof error === "string") {
+    return error;
+  }
 
-  //     new HttpInstrumentation(),
-  //     new FastifyInstrumentation(),
-  //   ],
-  // });
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "telemetry: unkwown error";
 }

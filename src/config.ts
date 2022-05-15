@@ -19,6 +19,13 @@ export const logLevel = z
   ])
   .parse(process.env.LOG_LEVEL);
 
+export const address = z.string().parse(process.env.ADDRESS);
+
+/**
+ * Used for cookie signing
+ */
+export const secret = z.string().uuid().parse(process.env.SECRET);
+
 export const port = z
   .string()
   .refine((portAsString) => {
@@ -30,3 +37,5 @@ export const port = z
   .parse(process.env.PORT);
 
 export const databaseUrl = z.string().parse(process.env.DATABASE_URL);
+
+export const redisUrl = z.string().parse(process.env.REDIS_URL);
