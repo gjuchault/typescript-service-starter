@@ -1,31 +1,33 @@
 import "dotenv/config";
-import { sql } from "slonik";
-import x from "timers/promises";
-import { startMetrics } from "./metrics";
-import { logger } from "./logger";
 import * as config from "./config";
-import { createDatabasePool } from "./database";
+import { createHttpServer } from "./presentation/http";
+import { startTelemetry } from "./infrastructure/telemetry";
+import { logger } from "./infrastructure/logger";
+import { createCacheStorage } from "./infrastructure/cache";
+import { createDatabasePool } from "./infrastructure/database";
 
 export async function main() {
-  const metrics = await startMetrics();
+  const telemetry = await startTelemetry();
 
-  const { database, httpServer } = await metrics.startSpan(
+  const { database, cache, httpServer } = await telemetry.startSpan(
     "app.startup",
     undefined,
     async () => {
-      logger.info(`starting service ${config.name}...`, {
+      logger.info(`Starting service ${config.name}...`, {
         version: config.version,
         nodeVersion: process.version,
         arch: process.arch,
         platform: process.platform,
       });
 
-      const database = await createDatabasePool({ metrics });
+      const cache = await createCacheStorage({ telemetry });
+      const database = await createDatabasePool({ telemetry });
 
-      const httpServer = {};
+      const httpServer = createHttpServer();
 
       return {
         database,
+        cache,
         httpServer,
       };
     }

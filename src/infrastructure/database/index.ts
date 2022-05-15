@@ -1,35 +1,35 @@
 import { sql, createPool, DatabasePool } from "slonik";
-import * as config from "./config";
-import { createLogger } from "./logger";
-import type { Metrics } from "./metrics";
+import * as config from "../../config";
+import { createLogger } from "../logger";
+import type { Telemetry } from "../telemetry";
 import {
   getSpanOptions,
-  buildSlonikMetricsInterceptor,
-} from "./metrics/instrumentations/slonik";
+  buildSlonikTelemetryInterceptor,
+} from "../telemetry/instrumentations/slonik";
 
 interface Dependencies {
-  metrics: Metrics;
+  telemetry: Telemetry;
 }
 
 export async function createDatabasePool({
-  metrics,
+  telemetry,
 }: Dependencies): Promise<DatabasePool> {
   const logger = createLogger("database");
 
   const pool = createPool(config.databaseUrl, {
     captureStackTrace: false,
-    interceptors: [buildSlonikMetricsInterceptor({ metrics })],
+    interceptors: [buildSlonikTelemetryInterceptor({ telemetry })],
   });
 
-  return metrics.startSpan(
+  return telemetry.startSpan(
     "database.connect",
     getSpanOptions({ pool }),
     async () => {
-      logger.debug(`connecting to database...`);
+      logger.debug(`Connecting to database...`);
 
       await pool.query(sql`select 1`);
 
-      logger.info(`connected to database`);
+      logger.info(`Connected to database`);
 
       return pool;
     }
