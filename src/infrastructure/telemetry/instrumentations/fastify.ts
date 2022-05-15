@@ -1,25 +1,31 @@
-import { context, trace, SpanKind } from "@opentelemetry/api";
 import {
   NetTransportValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
-import { FastifyInstance, FastifyRequest } from "fastify";
-import { Telemetry } from "..";
+import { OpenTelemetryPluginOptions } from "@autotelic/fastify-opentelemetry";
+import { FastifyRequest } from "fastify";
 import * as config from "../../../config";
 
-export function buildFastifyTracePlugin({
-  telemetry,
-}: {
-  telemetry: Telemetry;
-}) {
-  function fastifyTracePlugin(fastify: FastifyInstance) {
-    fastify.addHook("onRequest", (request, _reply, done) => {
+export const ATTRIBUTE_ERROR_NAME = "error.name";
+export const ATTRIBUTE_ERROR_MESSAGE = "error.message";
+export const ATTRIBUTE_ERROR_STACK = "error.stack";
+
+export const openTelemetryPluginOptions: OpenTelemetryPluginOptions = {
+  exposeApi: true,
+  wrapRoutes: true,
+  formatSpanName(request) {
+    const requestUrl = getAbsoluteUrl(request);
+    const target = requestUrl.pathname ?? "/";
+    const pathname = request.routerPath ?? target;
+    return `${request.method} ${pathname}`;
+  },
+  formatSpanAttributes: {
+    request(request) {
+      const requestUrl = getAbsoluteUrl(request);
       const headers = request.headers;
       const userAgent = headers["user-agent"];
       const ips = headers["x-forwarded-for"];
       const httpVersion = request.raw.httpVersion;
-      const requestUrl = new URL(request.url);
-      const requestId = getRequestId(request);
 
       const target = requestUrl.pathname ?? "/";
       const pathname = request.routerPath ?? target;
@@ -29,83 +35,62 @@ export function buildFastifyTracePlugin({
           ? NetTransportValues.IP_UDP
           : NetTransportValues.IP_TCP;
 
-      const tracer = telemetry.getTracer();
-      const span = tracer.startSpan(`${request.method} ${pathname}`, {
-        kind: SpanKind.SERVER,
-        root: true,
-        attributes: {
-          [SemanticAttributes.HTTP_URL]: requestUrl.toString(),
-          [SemanticAttributes.HTTP_HOST]: requestUrl.host,
-          [SemanticAttributes.NET_HOST_NAME]: requestUrl.hostname,
-          [SemanticAttributes.HTTP_METHOD]: request.method,
-          [SemanticAttributes.HTTP_ROUTE]: pathname,
-          [SemanticAttributes.HTTP_CLIENT_IP]: clientIp,
-          [SemanticAttributes.HTTP_TARGET]: target,
-          [SemanticAttributes.HTTP_USER_AGENT]: userAgent,
-          [SemanticAttributes.HTTP_FLAVOR]: httpVersion,
-          [SemanticAttributes.HTTP_SERVER_NAME]: config.name,
-          [SemanticAttributes.NET_TRANSPORT]: netTransport,
-          ...getRequestContentLength(request),
-        },
-      });
-      const spanContext = trace.getSpanContext(context.active());
-      if (spanContext) {
-        spanContext.traceId = requestId ?? spanContext.traceId;
-      }
+      return {
+        [SemanticAttributes.HTTP_URL]: requestUrl.toString(),
+        [SemanticAttributes.HTTP_HOST]: requestUrl.host,
+        [SemanticAttributes.NET_HOST_NAME]: requestUrl.hostname,
+        [SemanticAttributes.HTTP_METHOD]: request.method,
+        [SemanticAttributes.HTTP_ROUTE]: pathname,
+        [SemanticAttributes.HTTP_CLIENT_IP]: clientIp,
+        [SemanticAttributes.HTTP_TARGET]: target,
+        [SemanticAttributes.HTTP_USER_AGENT]: userAgent,
+        [SemanticAttributes.HTTP_FLAVOR]: httpVersion,
+        [SemanticAttributes.HTTP_SERVER_NAME]: config.name,
+        [SemanticAttributes.NET_TRANSPORT]: netTransport,
+        ...getRequestContentLength(request),
+      };
+    },
+    reply(reply) {
+      return {
+        [SemanticAttributes.HTTP_STATUS_CODE]: reply.statusCode,
+      };
+    },
+    error(error) {
+      return {
+        [ATTRIBUTE_ERROR_NAME]: error.name,
+        [ATTRIBUTE_ERROR_MESSAGE]: error.message,
+        [ATTRIBUTE_ERROR_STACK]: error.stack,
+      };
+    },
+  },
+};
 
-      const traceContext = trace.setSpan(context.active(), span);
+function getRequestContentLength(
+  request: FastifyRequest
+): Record<string, number> | undefined {
+  const length = Number(request.headers["content-length"]);
 
-      return context.with(traceContext, () => {
-        done();
-      });
-    });
+  if (length === undefined || !Number.isSafeInteger(length)) {
+    return;
   }
 
-  function getRequestContentLength(
-    request: FastifyRequest
-  ): Record<string, number> | undefined {
-    const length = Number(request.headers["content-length"]);
+  const isRequestCompressed =
+    request.headers["content-encoding"] !== undefined &&
+    request.headers["content-encoding"] !== "identity";
 
-    if (length === undefined || !Number.isSafeInteger(length)) {
-      return;
-    }
+  const attribute = isRequestCompressed
+    ? SemanticAttributes.HTTP_RESPONSE_CONTENT_LENGTH
+    : SemanticAttributes.HTTP_RESPONSE_CONTENT_LENGTH_UNCOMPRESSED;
 
-    const isRequestCompressed =
-      request.headers["content-encoding"] !== undefined &&
-      request.headers["content-encoding"] !== "identity";
-
-    const attribute = isRequestCompressed
-      ? SemanticAttributes.HTTP_RESPONSE_CONTENT_LENGTH
-      : SemanticAttributes.HTTP_RESPONSE_CONTENT_LENGTH_UNCOMPRESSED;
-
-    return {
-      [attribute]: length,
-    };
-  }
-
-  return fastifyTracePlugin;
+  return {
+    [attribute]: length,
+  };
 }
 
-function getRequestId(request: FastifyRequest): string | undefined {
-  const headerNames: string[] = [
-    "x-request-id",
-    "x-trace-id",
-    "x-correlation-id",
-    "request-id",
-    "trace-id",
-    "correlation-id",
-  ];
+export function getAbsoluteUrl(request: FastifyRequest): URL {
+  const protocol = request.protocol + ":";
+  const host = request.hostname;
+  const path = request.url;
 
-  for (const headerName of headerNames) {
-    const headerValue = request.headers[headerName];
-    if (headerValue !== undefined) {
-      if (typeof headerValue === "string") {
-        return headerValue;
-      } else {
-        return headerValue[0];
-      }
-    }
-  }
-
-  return undefined;
+  return new URL(protocol + "//" + host + path);
 }

@@ -20,7 +20,7 @@ type StartSpanCallback<TResolved> = (
   span: opentelemetry.api.Span
 ) => Promise<TResolved> | TResolved;
 
-export async function startTelemetry(): Promise<Telemetry> {
+export async function createTelemetry(): Promise<Telemetry> {
   let traceExporter: opentelemetry.tracing.SpanExporter =
     new InMemorySpanExporter();
 

@@ -64,6 +64,7 @@
     "esbuild": "^0.14.3",
     "eslint": "^8.15.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-typescript": "^2.7.1",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.26.0",
     "nyc": "^15.1.0",
@@ -76,6 +77,7 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
+    "@autotelic/fastify-opentelemetry": "^0.16.0",
     "@fastify/circuit-breaker": "^2.0.0",
     "@fastify/cookie": "^6.0.0",
     "@fastify/cors": "^7.0.0",

@@ -1,4 +1,5 @@
-import fastify from "fastify";
+import { randomUUID } from "node:crypto";
+import { fastify } from "fastify";
 import circuitBreaker from "@fastify/circuit-breaker";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
@@ -8,25 +9,27 @@ import formbody from "@fastify/formbody";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import underPressure from "under-pressure";
+import openTelemetryPlugin from "@autotelic/fastify-opentelemetry";
 import ms from "ms";
 import * as config from "../../config";
 import { createLogger } from "../../infrastructure/logger";
+import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 
 const requestTimeout = ms("120s");
 
-export async function createHttpServer() {
+export function createHttpServer() {
   const logger = createLogger("http");
 
   const httpServer = fastify({
     requestTimeout,
-    logger,
+    logger: undefined,
+    requestIdHeader: "x-request-id",
+    genReqId() {
+      return randomUUID();
+    },
   });
 
-  httpServer.listen(config.port, config.address, (error) => {
-    if (error !== null) {
-      throw error;
-    }
-  });
+  httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
 
   httpServer.register(circuitBreaker);
   httpServer.register(cookie, {
@@ -40,9 +43,50 @@ export async function createHttpServer() {
   httpServer.register(rateLimit);
   httpServer.register(underPressure);
 
-  httpServer.get("/healthcheck", async (_request, reply) => {
-    // reply.code(200).send("ok");
-    throw new Error("foo");
+  httpServer.addHook("onRequest", async (request) => {
+    logger.debug(`http request: ${request.method} ${request.url}`, {
+      requestId: request.id,
+      method: request.method,
+      url: request.url,
+      route: request.routerPath,
+      userAgent: request.headers["user-agent"],
+    });
+  });
+
+  httpServer.addHook("onResponse", async (request, reply) => {
+    logger.debug(
+      `http reply: ${request.method} ${request.url} ${reply.statusCode}`,
+      {
+        requestId: request.id,
+        method: request.method,
+        url: request.url,
+        route: request.routerPath,
+        userAgent: request.headers["user-agent"],
+        responseTime: Math.ceil(reply.getResponseTime()),
+        httpStatusCode: reply.statusCode,
+      }
+    );
+  });
+
+  httpServer.addHook("onError", async (request, reply, error) => {
+    logger.error(`http error: ${error}`, {
+      requestId: request.id,
+      error,
+      method: request.method,
+      url: request.url,
+      route: request.routerPath,
+      userAgent: request.headers["user-agent"],
+      responseTime: Math.ceil(reply.getResponseTime()),
+      httpStatusCode: reply.statusCode,
+    });
+  });
+
+  httpServer.listen(config.port, config.address, (error, address) => {
+    if (error !== null) {
+      throw error;
+    }
+
+    logger.info(`server listening on ${address}`);
   });
 
   return httpServer;

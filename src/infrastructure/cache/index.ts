@@ -1,4 +1,4 @@
-import Redis from "ioredis";
+import { default as Redis } from "ioredis";
 import * as config from "../../config";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
@@ -15,17 +15,13 @@ export async function createCacheStorage({
 
   const redis = new Redis(config.redisUrl, {});
 
-  return telemetry.startSpan(
-    "redis.connect",
-    getSpanOptions({ redis }),
-    async () => {
-      logger.debug(`Connecting to redis...`);
+  return telemetry.startSpan("redis.connect", getSpanOptions(), async () => {
+    logger.debug(`connecting to redis...`);
 
-      await redis.echo("1");
+    await redis.echo("1");
 
-      logger.info(`Connected to redis`);
+    logger.info(`connected to redis`);
 
-      return redis;
-    }
-  );
+    return redis;
+  });
 }
