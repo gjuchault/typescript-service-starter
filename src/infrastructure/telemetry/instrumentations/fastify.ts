@@ -1,8 +1,8 @@
+import { OpenTelemetryPluginOptions } from "@autotelic/fastify-opentelemetry";
 import {
   NetTransportValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
-import { OpenTelemetryPluginOptions } from "@autotelic/fastify-opentelemetry";
 import { FastifyRequest } from "fastify";
 import * as config from "../../../config";
 

@@ -1,9 +1,9 @@
-import * as opentelemetry from "@opentelemetry/sdk-node";
-import { Resource } from "@opentelemetry/resources";
-import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
-import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
-import { TraceIdRatioBasedSampler } from "@opentelemetry/core";
 import { context, SpanStatusCode, trace } from "@opentelemetry/api";
+import { TraceIdRatioBasedSampler } from "@opentelemetry/core";
+import { Resource } from "@opentelemetry/resources";
+import * as opentelemetry from "@opentelemetry/sdk-node";
+import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import * as config from "../../config";
 import { pinoSpanExporter } from "./pinoExporter";
 

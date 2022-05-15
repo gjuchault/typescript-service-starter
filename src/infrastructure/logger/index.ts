@@ -1,6 +1,6 @@
 import { pino, Logger } from "pino";
-import { pinoMixin } from "../telemetry/instrumentations/pino";
 import * as config from "../../config";
+import { pinoMixin } from "../telemetry/instrumentations/pino";
 
 export { Logger };
 
