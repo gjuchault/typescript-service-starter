@@ -8,12 +8,14 @@ import formbody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
-import { fastify } from "fastify";
+import { fastify, FastifyInstance } from "fastify";
 import ms from "ms";
 import underPressure from "under-pressure";
 import * as config from "../../config";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
+
+export type HttpServer = FastifyInstance;
 
 const requestTimeout = ms("120s");
 

@@ -4,6 +4,7 @@ import * as config from "./config";
 import { createCacheStorage } from "./infrastructure/cache";
 import { createDatabase } from "./infrastructure/database";
 import { logger } from "./infrastructure/logger";
+import { createShutdownManager } from "./infrastructure/shutdown";
 import { createTelemetry } from "./infrastructure/telemetry";
 import { createHttpServer } from "./presentation/http";
 import { bindHealthcheckRoutes } from "./presentation/http/routes/healthcheck";
@@ -46,6 +47,14 @@ export async function main() {
       };
     }
   );
+
+  createShutdownManager({
+    logger,
+    cache,
+    database,
+    httpServer,
+    telemetry,
+  });
 }
 
 main().catch((error) => {
