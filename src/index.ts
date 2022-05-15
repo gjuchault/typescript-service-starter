@@ -1,13 +1,13 @@
 import "dotenv/config";
+import { createHealthcheckApplication } from "./application/healthcheck";
 import * as config from "./config";
-import { createHttpServer } from "./presentation/http";
-import { createTelemetry } from "./infrastructure/telemetry";
-import { logger } from "./infrastructure/logger";
 import { createCacheStorage } from "./infrastructure/cache";
 import { createDatabase } from "./infrastructure/database";
-import { createHealthcheckApplication } from "./application/healthcheck";
-import { createRepository } from "./repository";
+import { logger } from "./infrastructure/logger";
+import { createTelemetry } from "./infrastructure/telemetry";
+import { createHttpServer } from "./presentation/http";
 import { bindHealthcheckRoutes } from "./presentation/http/routes/healthcheck";
+import { createRepository } from "./repository";
 
 export async function main() {
   const telemetry = await createTelemetry();
