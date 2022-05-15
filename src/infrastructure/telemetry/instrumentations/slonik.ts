@@ -22,7 +22,7 @@ export function getSpanOptions({ pool }: { pool: DatabasePool }) {
   };
 }
 
-export function buildSlonikTelemetryInterceptor({
+export function createSlonikTelemetryInterceptor({
   telemetry,
 }: {
   telemetry: Telemetry;

@@ -1,13 +1,11 @@
-import type { Redis } from "ioredis";
-import { SpanKind, Span } from "@opentelemetry/api";
+import { SpanKind } from "@opentelemetry/api";
 import {
   DbSystemValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
-import type { Telemetry } from "..";
 import * as config from "../../../config";
 
-export function getSpanOptions({ redis }: { redis: Redis }) {
+export function getSpanOptions() {
   return {
     kind: SpanKind.CLIENT,
     attributes: {

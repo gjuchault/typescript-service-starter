@@ -1,8 +1,8 @@
-import path from "path";
+import childProcess from "node:child_process";
+import path from "node:path";
+import fs from "node:fs/promises";
+import { promisify } from "node:util";
 import slugify from "slugify";
-import fs from "fs/promises";
-import childProcess from "child_process";
-import { promisify } from "util";
 import prompts from "prompts";
 
 const exec = promisify(childProcess.exec);

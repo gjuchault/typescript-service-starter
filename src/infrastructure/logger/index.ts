@@ -1,4 +1,4 @@
-import pino, { Logger } from "pino";
+import { pino, Logger } from "pino";
 import { pinoMixin } from "../telemetry/instrumentations/pino";
 import * as config from "../../config";
 
@@ -22,7 +22,7 @@ export const logger = pino({
         return method.apply(this, [arg2, arg1, ...inputArgs]);
       }
 
-      return method.apply(this, inputArgs as [string, ...any[]]);
+      return method.apply(this, inputArgs as [string, ...unknown[]]);
     },
   },
   mixin: pinoMixin,
