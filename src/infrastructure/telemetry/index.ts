@@ -2,6 +2,7 @@ import * as opentelemetry from "@opentelemetry/sdk-node";
 import { Resource } from "@opentelemetry/resources";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
+import { TraceIdRatioBasedSampler } from "@opentelemetry/core";
 import { context, SpanStatusCode, trace } from "@opentelemetry/api";
 import * as config from "../../config";
 import { pinoSpanExporter } from "./pinoExporter";
@@ -29,6 +30,7 @@ export async function startTelemetry(): Promise<Telemetry> {
 
   const sdk = new opentelemetry.NodeSDK({
     traceExporter,
+    sampler: new TraceIdRatioBasedSampler(1),
     resource: new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: config.name,
       [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: config.env,
