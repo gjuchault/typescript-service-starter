@@ -8,9 +8,11 @@ interface Dependencies {
   telemetry: Telemetry;
 }
 
+export type Cache = Redis;
+
 export async function createCacheStorage({
   telemetry,
-}: Dependencies): Promise<Redis> {
+}: Dependencies): Promise<Cache> {
   const logger = createLogger("redis");
 
   const redis = new Redis(config.redisUrl, {});

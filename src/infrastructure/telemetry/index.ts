@@ -14,6 +14,7 @@ export interface Telemetry {
     options: opentelemetry.api.SpanOptions | undefined,
     callback: StartSpanCallback<TResolved>
   ): Promise<TResolved>;
+  shutdown(): Promise<void>;
 }
 
 type StartSpanCallback<TResolved> = (
@@ -78,9 +79,14 @@ export async function createTelemetry(): Promise<Telemetry> {
     });
   }
 
+  async function shutdown() {
+    await sdk.shutdown();
+  }
+
   return {
     getTracer,
     startSpan,
+    shutdown,
   };
 }
 
