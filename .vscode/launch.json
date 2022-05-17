@@ -7,6 +7,15 @@
       "name": "Attach to server",
       "skipFiles": ["<node_internals>/**"],
       "port": 9229
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug test file",
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
+      "runtimeArgs": ["--serial", "${file}"],
+      "outputCapture": "std",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
