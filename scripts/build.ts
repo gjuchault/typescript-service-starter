@@ -1,19 +1,14 @@
 import path from "node:path";
 import { build as esbuild } from "esbuild";
 
-const baseConfig = {
-  platform: "node" as const,
-  target: "esnext" as const,
-  format: "cjs" as const,
-  nodePaths: [path.join(__dirname, "../src")],
-  sourcemap: true,
-  external: ["pg-native"],
-};
-
 async function main() {
   await esbuild({
-    ...baseConfig,
+    platform: "node",
+    target: "esnext",
     format: "cjs",
+    nodePaths: [path.join(__dirname, "../src")],
+    sourcemap: true,
+    external: ["pg-native"],
     bundle: true,
     outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
