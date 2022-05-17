@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "attach",
+      "name": "Attach to server",
+      "skipFiles": ["<node_internals>/**"],
+      "port": 9229
+    }
+  ]
+}

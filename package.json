@@ -31,6 +31,7 @@
     "build": "npm run clean && npm run type:dts && npm run build:main",
     "build:main": "node -r ./esbuild-hook ./scripts/build",
     "start": "node ./build",
+    "debug": "node --inspect ./build",
     "dev": "npm run build && npm run start | pino-pretty",
     "clean": "node -r ./esbuild-hook ./scripts/clean",
     "migrate:up": "node -r ./esbuild-hook ./scripts/migrate up",
