@@ -13,7 +13,32 @@ jobs:
       group: ${{ github.ref }}
       cancel-in-progress: true
 
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: tss
+          POSTGRES_PASSWORD: tss
+          POSTGRES_DB: tss
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
     steps:
+      - name: Build services urls
+        run: |
+          echo "DATABASE_URL=postgres://tss:tss@localhost:${{ job.services.postgres.ports[5432] }}/tss" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
+
       - uses: actions/checkout@v2
       - uses: volta-cli/action@v1
       - run: npm ci
@@ -32,6 +57,14 @@ jobs:
 
       - name: Test
         run: npm run test
+        env:
+          NODE_ENV: test
+          LOG_LEVEL: error
+          PORT: 8080
+          ADDRESS: 0.0.0.0
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          REDIS_URL: ${{ env.REDIS_URL }}
+          SECRET: 00000000-0000-0000-0000-000000000000
 
       - name: Setup test
         run: npm run test:setup
