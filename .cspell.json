@@ -1,7 +1,21 @@
 {
   "version": "0.1",
   "language": "en",
-  "words": ["esbuild", "rmrf", "gjuchault", "socio", "octocat"],
+  "words": [
+    "esbuild",
+    "rmrf",
+    "gjuchault",
+    "socio",
+    "octocat",
+    "healthcheck",
+    "slonik",
+    "fastify",
+    "formbody",
+    "opentelemetry",
+    "autotelic",
+    "pino",
+    "millis"
+  ],
   "flagWords": [],
   "ignorePaths": [
     "package.json",
