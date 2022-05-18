@@ -3,7 +3,7 @@ import {
   DbSystemValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
-import * as config from "../../../config";
+import { config } from "../../../config";
 
 export function getSpanOptions() {
   return {

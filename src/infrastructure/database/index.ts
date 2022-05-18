@@ -1,6 +1,6 @@
 import ms from "ms";
 import { sql, createPool, DatabasePool } from "slonik";
-import * as config from "../../config";
+import { config } from "../../config";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
 import {

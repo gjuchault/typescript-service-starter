@@ -4,7 +4,7 @@ import { Resource } from "@opentelemetry/resources";
 import * as opentelemetry from "@opentelemetry/sdk-node";
 import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
-import * as config from "../../config";
+import { config } from "../../config";
 import { pinoSpanExporter } from "./pinoExporter";
 
 export interface Telemetry {

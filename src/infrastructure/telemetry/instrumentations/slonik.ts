@@ -5,7 +5,7 @@ import {
 } from "@opentelemetry/semantic-conventions";
 import { Interceptor, DatabasePool, QueryContext } from "slonik";
 import type { Telemetry } from "..";
-import * as config from "../../../config";
+import { config } from "../../../config";
 
 export const PG_VALUES = "db.postgresql.values";
 export const IDLE_TIMEOUT_MILLIS = "db.postgresql.idle.timeout.millis";

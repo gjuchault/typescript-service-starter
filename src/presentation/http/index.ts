@@ -11,7 +11,7 @@ import rateLimit from "@fastify/rate-limit";
 import { fastify, FastifyInstance } from "fastify";
 import ms from "ms";
 import underPressure from "under-pressure";
-import * as config from "../../config";
+import { config } from "../../config";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 

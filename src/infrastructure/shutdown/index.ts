@@ -1,7 +1,7 @@
 import { setTimeout } from "node:timers/promises";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
-import * as config from "../../config";
+import { config } from "../../config";
 import type { HttpServer } from "../../presentation/http";
 import type { Cache } from "../cache";
 import type { Database } from "../database";
@@ -30,7 +30,7 @@ export function createShutdownManager({
 
   let isShuttingDown = false;
 
-  async function shutdown() {
+  async function shutdown(exit = true) {
     if (isShuttingDown) {
       return;
     }
@@ -70,7 +70,9 @@ export function createShutdownManager({
         }
       );
 
-      process.exit(1);
+      if (exit) {
+        process.exit(1);
+      }
     } else {
       logger.info(`gracefully shut down service ${config.name}`, {
         version: config.version,
@@ -82,10 +84,14 @@ export function createShutdownManager({
 
     logger.flush();
 
-    await setTimeout(ms("1s"));
-    process.exit(0);
+    if (exit) {
+      await setTimeout(ms("1s"));
+      process.exit(0);
+    }
   }
 
   process.addListener("SIGTERM", async () => shutdown());
   process.addListener("SIGINT", async () => shutdown());
+
+  return shutdown;
 }
