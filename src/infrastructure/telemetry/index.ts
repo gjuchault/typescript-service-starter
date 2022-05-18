@@ -99,5 +99,5 @@ function getErrorMessage(error: unknown): string {
     return error.message;
   }
 
-  return "telemetry: unkwown error";
+  return "telemetry: unknown error";
 }
