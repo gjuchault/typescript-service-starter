@@ -3,19 +3,18 @@ import {
   DbSystemValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
-import { config } from "../../../config";
 
-export function getSpanOptions() {
+export function getSpanOptions(url: string) {
   return {
     kind: SpanKind.CLIENT,
     attributes: {
-      ...getCommonSpanOptions(),
+      ...getCommonSpanOptions(url),
     },
   };
 }
 
-export function getCommonSpanOptions() {
-  const redisUrl = new URL(config.redisUrl);
+export function getCommonSpanOptions(url: string) {
+  const redisUrl = new URL(url);
   redisUrl.password = "";
 
   return {
