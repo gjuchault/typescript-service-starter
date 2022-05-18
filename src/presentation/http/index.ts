@@ -11,7 +11,6 @@ import rateLimit from "@fastify/rate-limit";
 import { fastify, FastifyInstance } from "fastify";
 import ms from "ms";
 import underPressure from "under-pressure";
-import { config } from "../../config";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 
@@ -19,7 +18,15 @@ export type HttpServer = FastifyInstance;
 
 const requestTimeout = ms("120s");
 
-export function createHttpServer() {
+export function createHttpServer({
+  address,
+  port,
+  secret,
+}: {
+  address: string;
+  port: number;
+  secret: string;
+}) {
   const logger = createLogger("http");
 
   const httpServer = fastify({
@@ -34,9 +41,7 @@ export function createHttpServer() {
   httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
 
   httpServer.register(circuitBreaker);
-  httpServer.register(cookie, {
-    secret: config.secret,
-  });
+  httpServer.register(cookie, { secret });
   httpServer.register(cors);
   httpServer.register(etag);
   httpServer.register(helmet);
@@ -83,7 +88,7 @@ export function createHttpServer() {
     });
   });
 
-  httpServer.listen(config.port, config.address, (error, address) => {
+  httpServer.listen(port, address, (error, address) => {
     if (error !== null) {
       throw error;
     }

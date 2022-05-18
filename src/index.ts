@@ -34,10 +34,20 @@ export async function main(
         platform: process.platform,
       });
 
-      const cache = await createCacheStorage({ telemetry });
-      const database = await createDatabase({ telemetry });
+      const cache = await createCacheStorage({
+        url: config.redisUrl,
+        telemetry,
+      });
+      const database = await createDatabase({
+        url: config.databaseUrl,
+        telemetry,
+      });
 
-      const httpServer = createHttpServer();
+      const httpServer = createHttpServer({
+        address: config.address,
+        port: config.port,
+        secret: config.secret,
+      });
 
       const repository = createRepository({
         database,
