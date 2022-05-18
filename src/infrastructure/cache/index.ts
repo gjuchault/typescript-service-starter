@@ -1,5 +1,5 @@
 import { default as Redis } from "ioredis";
-import * as config from "../../config";
+import { config } from "../../config";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
 import { getSpanOptions } from "../telemetry/instrumentations/ioredis";

@@ -1,17 +1,27 @@
 import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
-import * as config from "./config";
+import { config, Config, mergeConfig } from "./config";
 import { createCacheStorage } from "./infrastructure/cache";
 import { createDatabase } from "./infrastructure/database";
-import { logger } from "./infrastructure/logger";
+import { createLogger } from "./infrastructure/logger";
 import { createShutdownManager } from "./infrastructure/shutdown";
 import { createTelemetry } from "./infrastructure/telemetry";
 import { createHttpServer } from "./presentation/http";
 import { bindHealthcheckRoutes } from "./presentation/http/routes/healthcheck";
 import { createRepository } from "./repository";
 
-export async function main() {
+export async function main(
+  {
+    configOverride,
+  }: {
+    configOverride: Partial<Config>;
+  } = { configOverride: {} }
+) {
   const telemetry = await createTelemetry();
+
+  mergeConfig(configOverride);
+
+  const logger = createLogger("app");
 
   const { database, cache, httpServer } = await telemetry.startSpan(
     "app.startup",
@@ -48,15 +58,24 @@ export async function main() {
     }
   );
 
-  createShutdownManager({
+  const shutdown = createShutdownManager({
     logger,
     cache,
     database,
     httpServer,
     telemetry,
   });
+
+  return {
+    httpServer,
+    database,
+    cache,
+    shutdown,
+  };
 }
 
-main().catch((error) => {
-  throw error;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    throw error;
+  });
+}

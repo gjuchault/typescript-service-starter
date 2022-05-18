@@ -4,7 +4,7 @@ import {
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
 import { FastifyRequest } from "fastify";
-import * as config from "../../../config";
+import { config } from "../../../config";
 
 export const ATTRIBUTE_ERROR_NAME = "error.name";
 export const ATTRIBUTE_ERROR_MESSAGE = "error.message";
