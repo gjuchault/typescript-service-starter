@@ -13,6 +13,7 @@ import ms from "ms";
 import underPressure from "under-pressure";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
+import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
 
 export type HttpServer = FastifyInstance;
 
@@ -39,6 +40,7 @@ export function createHttpServer({
   });
 
   httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
+  httpServer.register(metricsPlugin);
 
   httpServer.register(circuitBreaker);
   httpServer.register(cookie, { secret });
