@@ -1,10 +1,13 @@
 import { context, SpanStatusCode, trace } from "@opentelemetry/api";
+import { Meter, metrics as apiMetrics } from "@opentelemetry/api-metrics";
 import { TraceIdRatioBasedSampler } from "@opentelemetry/core";
+import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { Resource } from "@opentelemetry/resources";
 import * as opentelemetry from "@opentelemetry/sdk-node";
 import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import { config } from "../../config";
+import { bindSystemMetrics } from "./metrics/system";
 import { pinoSpanExporter } from "./pinoExporter";
 
 export interface Telemetry {
@@ -21,6 +24,9 @@ type StartSpanCallback<TResolved> = (
   span: opentelemetry.api.Span
 ) => Promise<TResolved> | TResolved;
 
+export let metrics: Meter;
+export let metricReader: PrometheusExporter;
+
 export async function createTelemetry(): Promise<Telemetry> {
   let traceExporter: opentelemetry.tracing.SpanExporter =
     new InMemorySpanExporter();
@@ -29,8 +35,13 @@ export async function createTelemetry(): Promise<Telemetry> {
     traceExporter = pinoSpanExporter;
   }
 
+  metricReader = new PrometheusExporter({
+    preventServerStart: true,
+  });
+
   const sdk = new opentelemetry.NodeSDK({
     traceExporter,
+    metricReader,
     sampler: new TraceIdRatioBasedSampler(1),
     resource: new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: config.name,
@@ -45,6 +56,10 @@ export async function createTelemetry(): Promise<Telemetry> {
   function getTracer(): opentelemetry.api.Tracer {
     return trace.getTracer(config.name, config.version);
   }
+
+  metrics = apiMetrics.getMeter(config.name, config.version);
+
+  bindSystemMetrics();
 
   async function startSpan<TResolved>(
     name: string,

@@ -38,6 +38,7 @@ export async function main(
         url: config.redisUrl,
         telemetry,
       });
+
       const database = await createDatabase({
         url: config.databaseUrl,
         telemetry,
