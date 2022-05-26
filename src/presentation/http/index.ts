@@ -8,6 +8,7 @@ import formbody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
+import swagger from "@fastify/swagger";
 import { fastify, FastifyInstance } from "fastify";
 import ms from "ms";
 import underPressure from "under-pressure";
@@ -23,10 +24,16 @@ export function createHttpServer({
   address,
   port,
   secret,
+  name,
+  version,
+  description,
 }: {
   address: string;
   port: number;
   secret: string;
+  name: string;
+  version: string;
+  description: string;
 }) {
   const logger = createLogger("http");
 
@@ -51,6 +58,27 @@ export function createHttpServer({
   httpServer.register(multipart);
   httpServer.register(rateLimit);
   httpServer.register(underPressure);
+
+  httpServer.register(swagger, {
+    routePrefix: "/docs",
+    openapi: {
+      info: {
+        title: name,
+        description,
+        version,
+      },
+      externalDocs: {
+        url: "https://example.com/docs",
+        description: "More documentation",
+      },
+      tags: [],
+    },
+    uiConfig: {
+      docExpansion: "full",
+      deepLinking: false,
+    },
+    staticCSP: true,
+  });
 
   httpServer.addHook("onRequest", async (request) => {
     logger.debug(`http request: ${request.method} ${request.url}`, {
@@ -89,6 +117,26 @@ export function createHttpServer({
       httpStatusCode: reply.statusCode,
     });
   });
+
+  httpServer.get(
+    "/docs",
+    {
+      schema: {
+        response: {
+          200: {
+            $schema: "http://json-schema.org/draft-07/schema#",
+            type: "object",
+            properties: {},
+            additionalProperties: true,
+            description: "OpenAPI 3.0 Documentation",
+          },
+        },
+      },
+    },
+    (_request, reply) => {
+      reply.send(httpServer.swagger());
+    }
+  );
 
   httpServer.listen(port, address, (error, address) => {
     if (error !== null) {

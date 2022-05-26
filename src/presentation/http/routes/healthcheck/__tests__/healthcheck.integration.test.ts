@@ -16,6 +16,7 @@ test("healthcheck", async (t) => {
     t.is(body.processMemory, "healthy");
     t.is(body.http, "healthy");
   } else {
+    // in Github Actions, process memory seems to be low or static
     t.is(response.statusCode, 500);
     t.is(body.database, "healthy");
     t.is(body.cache, "healthy");

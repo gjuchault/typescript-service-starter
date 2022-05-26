@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { version } from "../package.json";
+import { version, description } from "../package.json";
 import type { Entries } from "./type-helpers/entries";
 import { rejectUnexpectedValue } from "./type-helpers/switchGuard";
 
@@ -9,6 +9,7 @@ export type Config = typeof config;
 export const config = {
   name: "app",
   version,
+  description,
   env: z
     .union([
       z.literal("development"),
@@ -77,6 +78,9 @@ export function mergeConfig(configOverride: Partial<Config>) {
         break;
       case "version":
         config.version = configValueOverride;
+        break;
+      case "description":
+        config.description = configValueOverride;
         break;
       default:
         rejectUnexpectedValue(configKey);
