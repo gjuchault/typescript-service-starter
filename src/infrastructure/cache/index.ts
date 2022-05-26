@@ -1,3 +1,4 @@
+import { setTimeout } from "node:timers/promises";
 import { default as Redis } from "ioredis";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
@@ -19,11 +20,11 @@ export async function createCacheStorage({
   const redis = new Redis(url, {});
 
   return telemetry.startSpan("redis.connect", getSpanOptions(url), async () => {
-    logger.debug(`connecting to redis...`);
+    logger.debug("connecting to redis...");
 
     await redis.echo("1");
 
-    logger.info(`connected to redis`);
+    logger.info("connected to redis");
 
     return redis;
   });

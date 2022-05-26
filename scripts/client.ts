@@ -1,0 +1,100 @@
+import path from "node:path";
+import fs from "node:fs/promises";
+import { format } from "prettier";
+import * as ts from "typescript";
+import { compilerOptions } from "../tsconfig.json";
+import { parse } from "./openapi-client-generator/parser";
+import { generate } from "./openapi-client-generator/generator";
+import { main as startApp } from "../src";
+
+const clientDir = path.resolve(__dirname, "../client");
+const outputSrc = path.join(clientDir, "./src");
+const outputSrcIndex = path.join(clientDir, "./src/index.ts");
+const outputBuild = path.join(clientDir, "./build");
+
+async function main() {
+  await prepareDirectories();
+
+  process.stdout.write("Starting app and fetching schema... ");
+  let now = Date.now();
+  const parsedSchema = await startAppAndFetchSchema();
+  console.log(`(${Date.now() - now}ms)`);
+  now = Date.now();
+
+  process.stdout.write("Running prettier and writing source file... ");
+  const client = format(generate(parsedSchema), { parser: "typescript" });
+  await fs.writeFile(outputSrcIndex, client);
+  console.log(`(${Date.now() - now}ms)`);
+  now = Date.now();
+
+  process.stdout.write("Generating build assets... ");
+  await createBuildClient();
+  console.log(`(${Date.now() - now}ms)`);
+}
+
+async function prepareDirectories() {
+  await fs.rm(outputSrc, {
+    recursive: true,
+    force: true,
+  });
+
+  await fs.rm(outputBuild, {
+    recursive: true,
+    force: true,
+  });
+
+  await fs.mkdir(outputSrc, { recursive: true });
+  await fs.mkdir(outputBuild, { recursive: true });
+}
+
+async function startAppAndFetchSchema() {
+  const { default: getPort } = await import("get-port");
+  const port = await getPort();
+
+  const app = await startApp({
+    configOverride: {
+      port,
+      logLevel: "error",
+    },
+  });
+
+  const response = await app.httpServer.inject("/docs");
+  const schema = response.json();
+
+  await app.shutdown(false);
+
+  const parsedSchema = await parse(schema);
+
+  return parsedSchema;
+}
+
+async function createBuildClient() {
+  const tsOptions: ts.CompilerOptions = {
+    ...compilerOptions,
+    module: compilerOptions.module as unknown as ts.ModuleKind,
+    target: compilerOptions.target as unknown as ts.ScriptTarget,
+    rootDir: clientDir,
+    outDir: "build",
+    sourceMap: true,
+    declaration: true,
+  };
+  const tsFiles = new Map<string, string>();
+
+  const host = ts.createCompilerHost(tsOptions);
+  host.writeFile = (filename, data) => {
+    tsFiles.set(filename, data);
+  };
+  const program = ts.createProgram([outputSrcIndex], tsOptions, host);
+  program.emit();
+
+  for (const [filename, content] of tsFiles) {
+    await fs.writeFile(
+      path.join(clientDir, filename.replace("/src", "")),
+      content
+    );
+  }
+}
+
+if (require.main === module) {
+  main();
+}
