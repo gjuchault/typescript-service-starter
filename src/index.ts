@@ -44,11 +44,7 @@ export async function main(
         telemetry,
       });
 
-      const httpServer = createHttpServer({
-        address: config.address,
-        port: config.port,
-        secret: config.secret,
-      });
+      const httpServer = createHttpServer(config);
 
       const repository = createRepository({
         database,
