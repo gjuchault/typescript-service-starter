@@ -35,15 +35,50 @@ export function bindHealthcheckRoutes({
     });
   }
 
+  httpServer.post(
+    "/user/:id",
+    {
+      schema: {
+        description: "Check the status of the application",
+        params: zodToJsonSchema(
+          z.object({
+            id: z.string(),
+          })
+        ),
+        querystring: zodToJsonSchema(
+          z.object({
+            includeFoo: z.string(),
+          })
+        ),
+        body: zodToJsonSchema(
+          z.object({
+            foo: z.string(),
+            bar: z.string().default("bar"),
+          })
+        ),
+      },
+    },
+    async (_, rep) => rep.send()
+  );
+
   httpServer.get(
     "/healthcheck",
     {
       schema: {
+        description: "Check the status of the application",
+        params: zodToJsonSchema(
+          z.object({
+            id: z.string(),
+          })
+        ),
+        body: zodToJsonSchema(
+          z.object({
+            foo: z.string(),
+            bar: z.string().default("bar"),
+          })
+        ),
         response: {
-          200: {
-            description: "Check the status of the application",
-            ...zodToJsonSchema(healthcheckResponseSchema),
-          },
+          200: zodToJsonSchema(healthcheckResponseSchema),
         },
       },
     },

@@ -48,7 +48,7 @@ export async function createTelemetry(): Promise<Telemetry> {
       [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: config.env,
       [SemanticResourceAttributes.PROCESS_PID]: process.pid,
     }),
-    autoDetectResources: true,
+    autoDetectResources: false,
   });
 
   await sdk.start();

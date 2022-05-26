@@ -1,7 +1,9 @@
 import { setTimeout } from "node:timers/promises";
+import { context, trace } from "@opentelemetry/api";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import { config } from "../../config";
+import { promiseWithTimeout } from "../../helpers/promise-timeout";
 import type { HttpServer } from "../../presentation/http";
 import type { Cache } from "../cache";
 import type { Database } from "../database";
@@ -49,15 +51,19 @@ export function createShutdownManager({
       await cache.quit();
       logger.debug("cache shut down");
       await telemetry.shutdown();
+      context.disable();
+      trace.disable();
       logger.debug("telemetry shut down");
 
       return true;
     }
 
-    const success = await Promise.race([
-      gracefulShutdown(),
-      setTimeout(ms(gracefulShutdownTimeout), false),
-    ]);
+    let success = true;
+    try {
+      await promiseWithTimeout(ms(gracefulShutdownTimeout), gracefulShutdown);
+    } catch (err) {
+      success = false;
+    }
 
     if (!success) {
       logger.fatal(

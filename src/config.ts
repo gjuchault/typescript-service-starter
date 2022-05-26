@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 import { version, description } from "../package.json";
-import type { Entries } from "./type-helpers/entries";
-import { rejectUnexpectedValue } from "./type-helpers/switchGuard";
+import type { Entries } from "./helpers/entries";
+import { rejectUnexpectedValue } from "./helpers/switchGuard";
 
 export type Config = typeof config;
 
