@@ -1,12 +1,12 @@
 import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
 import { config, Config, mergeConfig } from "./config";
-import { createCacheStorage } from "./infrastructure/cache";
-import { createDatabase } from "./infrastructure/database";
+import { createCacheStorage, Cache } from "./infrastructure/cache";
+import { createDatabase, Database } from "./infrastructure/database";
 import { createLogger } from "./infrastructure/logger";
 import { createShutdownManager } from "./infrastructure/shutdown";
 import { createTelemetry } from "./infrastructure/telemetry";
-import { createHttpServer } from "./presentation/http";
+import { createHttpServer, HttpServer } from "./presentation/http";
 import { bindHealthcheckRoutes } from "./presentation/http/routes/healthcheck";
 import { createRepository } from "./repository";
 
@@ -23,47 +23,56 @@ export async function main(
 
   const logger = createLogger("app");
 
-  const { database, cache, httpServer } = await telemetry.startSpan(
-    "app.startup",
-    undefined,
-    async () => {
-      logger.info(`starting service ${config.name}...`, {
-        version: config.version,
-        nodeVersion: process.version,
-        arch: process.arch,
-        platform: process.platform,
-      });
+  let database: Database;
+  let cache: Cache;
+  let httpServer: HttpServer;
 
-      const cache = await createCacheStorage({
-        url: config.redisUrl,
-        telemetry,
-      });
+  try {
+    ({ database, cache, httpServer } = await telemetry.startSpan(
+      "app.startup",
+      undefined,
+      async () => {
+        logger.info(`starting service ${config.name}...`, {
+          version: config.version,
+          nodeVersion: process.version,
+          arch: process.arch,
+          platform: process.platform,
+        });
 
-      const database = await createDatabase({
-        url: config.databaseUrl,
-        telemetry,
-      });
+        const cache = await createCacheStorage({
+          url: config.redisUrl,
+          telemetry,
+        });
 
-      const httpServer = createHttpServer(config);
+        const database = await createDatabase({
+          url: config.databaseUrl,
+          telemetry,
+        });
 
-      const repository = createRepository({
-        database,
-      });
+        const httpServer = createHttpServer(config);
 
-      const healthcheckApplication = createHealthcheckApplication({
-        cache,
-        healthcheckRepository: repository.healthcheck,
-      });
+        const repository = createRepository({
+          database,
+        });
 
-      bindHealthcheckRoutes({ healthcheckApplication, httpServer });
+        const healthcheckApplication = createHealthcheckApplication({
+          cache,
+          healthcheckRepository: repository.healthcheck,
+        });
 
-      return {
-        database,
-        cache,
-        httpServer,
-      };
-    }
-  );
+        bindHealthcheckRoutes({ healthcheckApplication, httpServer });
+
+        return {
+          database,
+          cache,
+          httpServer,
+        };
+      }
+    ));
+  } catch (error) {
+    logger.error("app startup error", { error });
+    process.exit(1);
+  }
 
   const shutdown = createShutdownManager({
     logger,
