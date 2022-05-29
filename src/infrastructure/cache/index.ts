@@ -1,5 +1,6 @@
-import { setTimeout } from "node:timers/promises";
 import { default as Redis } from "ioredis";
+import ms from "ms";
+import { promiseWithTimeout } from "../../helpers/promise-timeout";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
 import { getSpanOptions } from "../telemetry/instrumentations/ioredis";
@@ -19,10 +20,24 @@ export async function createCacheStorage({
 
   const redis = new Redis(url, {});
 
+  redis.on("error", (error) => {
+    // these will be spamming quite a log stderr
+    if (error.code === "ECONNREFUSED") {
+      return;
+    }
+
+    logger.error("redis error", { error });
+  });
+
   return telemetry.startSpan("redis.connect", getSpanOptions(url), async () => {
     logger.debug("connecting to redis...");
 
-    await redis.echo("1");
+    try {
+      await promiseWithTimeout(ms("2s"), () => redis.echo("1"));
+    } catch (error) {
+      logger.error("redis connection error", { error });
+      throw error;
+    }
 
     logger.info("connected to redis");
 
