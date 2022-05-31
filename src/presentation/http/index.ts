@@ -21,8 +21,6 @@ export type HttpServer = FastifyInstance;
 const requestTimeout = ms("120s");
 
 export function createHttpServer({
-  address,
-  port,
   secret,
   name,
   version,
@@ -137,14 +135,6 @@ export function createHttpServer({
       reply.send(httpServer.swagger());
     }
   );
-
-  httpServer.listen(port, address, (error, address) => {
-    if (error !== null) {
-      throw error;
-    }
-
-    logger.info(`server listening on ${address}`);
-  });
 
   return httpServer;
 }

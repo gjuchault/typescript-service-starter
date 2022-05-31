@@ -1,6 +1,14 @@
-import { context, SpanStatusCode, trace } from "@opentelemetry/api";
+import {
+  context,
+  propagation,
+  SpanStatusCode,
+  trace,
+} from "@opentelemetry/api";
 import { Meter, metrics as apiMetrics } from "@opentelemetry/api-metrics";
-import { TraceIdRatioBasedSampler } from "@opentelemetry/core";
+import {
+  TraceIdRatioBasedSampler,
+  W3CTraceContextPropagator,
+} from "@opentelemetry/core";
 import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { Resource } from "@opentelemetry/resources";
 import * as opentelemetry from "@opentelemetry/sdk-node";
@@ -50,6 +58,8 @@ export async function createTelemetry(): Promise<Telemetry> {
     }),
     autoDetectResources: false,
   });
+
+  propagation.setGlobalPropagator(new W3CTraceContextPropagator());
 
   await sdk.start();
 
