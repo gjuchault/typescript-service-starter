@@ -14,7 +14,8 @@
     "opentelemetry",
     "autotelic",
     "pino",
-    "millis"
+    "millis",
+    "eventloop"
   ],
   "flagWords": [],
   "ignorePaths": [
