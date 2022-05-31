@@ -23,56 +23,45 @@ export async function main(
 
   const logger = createLogger("app");
 
+  const appStartedTimestamp = Date.now();
+  logger.info(`starting service ${config.name}...`, {
+    version: config.version,
+    nodeVersion: process.version,
+    arch: process.arch,
+    platform: process.platform,
+  });
+
   let database: Database;
   let cache: Cache;
   let httpServer: HttpServer;
 
   try {
-    ({ database, cache, httpServer } = await telemetry.startSpan(
-      "app.startup",
-      undefined,
-      async () => {
-        logger.info(`starting service ${config.name}...`, {
-          version: config.version,
-          nodeVersion: process.version,
-          arch: process.arch,
-          platform: process.platform,
-        });
+    cache = await createCacheStorage({
+      url: config.redisUrl,
+      telemetry,
+    });
 
-        const cache = await createCacheStorage({
-          url: config.redisUrl,
-          telemetry,
-        });
+    database = await createDatabase({
+      url: config.databaseUrl,
+      telemetry,
+    });
 
-        const database = await createDatabase({
-          url: config.databaseUrl,
-          telemetry,
-        });
-
-        const httpServer = createHttpServer(config);
-
-        const repository = createRepository({
-          database,
-        });
-
-        const healthcheckApplication = createHealthcheckApplication({
-          cache,
-          healthcheckRepository: repository.healthcheck,
-        });
-
-        bindHealthcheckRoutes({ healthcheckApplication, httpServer });
-
-        return {
-          database,
-          cache,
-          httpServer,
-        };
-      }
-    ));
+    httpServer = createHttpServer(config);
   } catch (error) {
-    logger.error("app startup error", { error });
+    logger.error(`${config.name} startup error`, { error });
     process.exit(1);
   }
+
+  const repository = createRepository({
+    database,
+  });
+
+  const healthcheckApplication = createHealthcheckApplication({
+    cache,
+    healthcheckRepository: repository.healthcheck,
+  });
+
+  bindHealthcheckRoutes({ healthcheckApplication, httpServer });
 
   const shutdown = createShutdownManager({
     logger,
@@ -80,6 +69,19 @@ export async function main(
     database,
     httpServer,
     telemetry,
+  });
+
+  const listeningAbsoluteUrl = await httpServer.listen(
+    config.port,
+    config.address
+  );
+
+  logger.info(`${config.name} server listening on ${listeningAbsoluteUrl}`, {
+    version: config.version,
+    nodeVersion: process.version,
+    arch: process.arch,
+    platform: process.platform,
+    startupTime: Date.now() - appStartedTimestamp,
   });
 
   return {

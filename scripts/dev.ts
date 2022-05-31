@@ -14,6 +14,7 @@ dev({
   ],
   watch: true,
   clear: false,
+  quiet: true,
   minify: false,
 
   platform: "node",
