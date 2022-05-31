@@ -20,6 +20,8 @@ export function generate({
     generateWrapper(
       [methods.join("\n\n"), generateReturnMethods(endpoints)].join("\n")
     ),
+    "",
+    generateTraceBuilder(),
   ].join("\n");
 }
 
@@ -148,4 +150,27 @@ function generateReturnMethods(endpoints: Endpoint[]) {
   return ["return {", endpoints.map(({ name }) => name).join(","), "};"].join(
     "\n"
   );
+}
+
+function generateTraceBuilder() {
+  return [
+    "export function createTraceHeader({",
+    "  traceId,",
+    "  parentSpanId,",
+    "  version",
+    "}: {",
+    "  traceId: string;",
+    "  parentSpanId: string;",
+    "  version?: string",
+    "}) {",
+    "  return {",
+    "    traceparent: [",
+    `      version ?? "00",`,
+    "      traceId,",
+    "      parentSpanId,",
+    `      "01"`,
+    `    ].join("-")`,
+    "  };",
+    "}",
+  ].join("\n");
 }
