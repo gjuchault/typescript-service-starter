@@ -15,7 +15,8 @@
     "autotelic",
     "pino",
     "millis",
-    "eventloop"
+    "eventloop",
+    "openapi"
   ],
   "flagWords": [],
   "ignorePaths": [
