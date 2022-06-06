@@ -1,5 +1,5 @@
 import test from "ava";
-import { setup } from "../../../../../test-utils/integration-start-context";
+import { setup } from "../../../../../test-helpers/integration-start-context";
 
 test("healthcheck", async (t) => {
   const { http, shutdown } = await setup();
