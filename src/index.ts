@@ -77,10 +77,10 @@ export async function main(
 
   shutdown.listenToProcessEvents();
 
-  const listeningAbsoluteUrl = await httpServer.listen(
-    config.port,
-    config.address
-  );
+  const listeningAbsoluteUrl = await httpServer.listen({
+    host: config.address,
+    port: config.port,
+  });
 
   logger.info(`${config.name} server listening on ${listeningAbsoluteUrl}`, {
     version: config.version,
