@@ -8,7 +8,7 @@ test("healthcheck", async (t) => {
 
   const body = response.json();
 
-  if (process.env.CI === "undefined") {
+  if (typeof process.env.CI === "undefined") {
     t.is(response.statusCode, 200);
     t.is(body.database, "healthy");
     t.is(body.cache, "healthy");
