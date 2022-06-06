@@ -1,13 +1,15 @@
 import { pino, Logger } from "pino";
-import { config } from "../../config";
-import { pinoMixin } from "../telemetry/instrumentations/pino";
+import { getConfig } from "../../config";
+import { pinoMixin as telemetryMixin } from "../telemetry/instrumentations/pino";
 
 export { Logger };
 
 export function createLogger(serviceName: string): Logger {
+  const { logLevel } = getConfig();
+
   const logger = pino({
     name: "app",
-    level: config.logLevel,
+    level: logLevel,
     formatters: {
       // format level as string instead of number
       level(label) {
@@ -16,6 +18,8 @@ export function createLogger(serviceName: string): Logger {
     },
     timestamp: pino.stdTimeFunctions.isoTime,
     hooks: {
+      // reverse pino method so it goes logger.method(message, details) instead
+      // of logger.method(details, message)
       logMethod(inputArgs, method) {
         if (inputArgs.length >= 2) {
           const arg1 = inputArgs.shift();
@@ -26,7 +30,7 @@ export function createLogger(serviceName: string): Logger {
         return method.apply(this, inputArgs as [string, ...unknown[]]);
       },
     },
-    mixin: pinoMixin,
+    mixin: telemetryMixin,
   });
 
   return logger.child({

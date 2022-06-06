@@ -14,7 +14,7 @@ import { Resource } from "@opentelemetry/resources";
 import * as opentelemetry from "@opentelemetry/sdk-node";
 import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
-import { config } from "../../config";
+import type { Config } from "../../config";
 import { bindSystemMetrics } from "./metrics/system";
 import { pinoSpanExporter } from "./pinoExporter";
 
@@ -35,7 +35,11 @@ type StartSpanCallback<TResolved> = (
 export let metrics: Meter;
 export let metricReader: PrometheusExporter;
 
-export async function createTelemetry(): Promise<Telemetry> {
+export async function createTelemetry({
+  config,
+}: {
+  config: Config;
+}): Promise<Telemetry> {
   let traceExporter: opentelemetry.tracing.SpanExporter =
     new InMemorySpanExporter();
 

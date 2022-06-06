@@ -6,7 +6,7 @@ import { rejectUnexpectedValue } from "./helpers/switchGuard";
 
 export type Config = typeof config;
 
-export const config = {
+const config = {
   name: "app",
   version,
   description,
@@ -47,6 +47,10 @@ export const config = {
 
   redisUrl: z.string().parse(process.env.REDIS_URL),
 };
+
+export function getConfig() {
+  return config;
+}
 
 export function mergeConfig(configOverride: Partial<Config>) {
   const configEntries = Object.entries(configOverride) as Entries<Config>;
