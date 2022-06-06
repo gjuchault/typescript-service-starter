@@ -17,9 +17,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_USER: tss
-          POSTGRES_PASSWORD: tss
-          POSTGRES_DB: tss
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pwd
+          POSTGRES_DB: db
         ports:
           - 5432:5432
         options: >-
@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: Build services urls
         run: |
-          echo "DATABASE_URL=postgres://tss:tss@localhost:${{ job.services.postgres.ports[5432] }}/tss" >> $GITHUB_ENV
+          echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
           echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
 
       - uses: actions/checkout@v2
