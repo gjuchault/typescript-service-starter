@@ -3,11 +3,11 @@ import { createHealthcheckApplication } from "./application/healthcheck";
 import { Config, getConfig, mergeConfig } from "./config";
 import { createCacheStorage, Cache } from "./infrastructure/cache";
 import { createDatabase, Database } from "./infrastructure/database";
+import { createHttpServer, HttpServer } from "./infrastructure/http";
 import { createLogger } from "./infrastructure/logger";
 import { createShutdownManager } from "./infrastructure/shutdown";
 import { createTelemetry } from "./infrastructure/telemetry";
-import { createHttpServer, HttpServer } from "./presentation/http";
-import { bindHealthcheckRoutes } from "./presentation/http/routes/healthcheck";
+import { bindHttpRoutes } from "./presentation/http";
 import { createRepository } from "./repository";
 
 export async function main(
@@ -47,9 +47,11 @@ export async function main(
       telemetry,
     });
 
-    httpServer = createHttpServer(config);
+    httpServer = createHttpServer({ config, cache });
   } catch (error) {
-    logger.error(`${config.name} startup error`, { error });
+    logger.error(`${config.name} startup error`, {
+      error: (error as unknown as Record<string, unknown>)?.message ?? error,
+    });
     process.exit(1);
   }
 
@@ -62,7 +64,7 @@ export async function main(
     healthcheckRepository: repository.healthcheck,
   });
 
-  bindHealthcheckRoutes({ healthcheckApplication, httpServer });
+  bindHttpRoutes({ httpServer, healthcheckApplication });
 
   const shutdown = createShutdownManager({
     logger,

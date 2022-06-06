@@ -4,7 +4,7 @@ import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import type { Config } from "../../config";
 import { promiseWithTimeout } from "../../helpers/promise-timeout";
-import type { HttpServer } from "../../presentation/http";
+import type { HttpServer } from "../../infrastructure/http";
 import type { Cache } from "../cache";
 import type { Database } from "../database";
 import type { Logger } from "../logger";
