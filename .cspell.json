@@ -16,7 +16,8 @@
     "pino",
     "millis",
     "eventloop",
-    "openapi"
+    "openapi",
+    "traceparent"
   ],
   "flagWords": [],
   "ignorePaths": [
