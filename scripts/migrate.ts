@@ -5,10 +5,10 @@ import { createPool, sql, TaggedTemplateLiteralInvocation } from "slonik";
 import launchEditor from "launch-editor";
 import { Umzug } from "umzug";
 import { z } from "zod";
-import * as config from "../src/config";
+import { getConfig } from "../src/config";
 
 const migrationsPath = path.join(__dirname, "../migrations");
-const databasePool = createPool(config.databaseUrl);
+const databasePool = createPool(getConfig().databaseUrl);
 
 async function main() {
   const args = process.argv.slice(2);
@@ -39,12 +39,11 @@ async function main() {
     case "up":
       await umzug.up();
       process.exit(0);
-      break;
     case "create":
       const name = z.string().parse(args[1]);
 
       await create(name);
-      break;
+      process.exit(0);
   }
 }
 

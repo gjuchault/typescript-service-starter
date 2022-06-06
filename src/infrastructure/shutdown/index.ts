@@ -2,7 +2,7 @@ import { setTimeout } from "node:timers/promises";
 import { context, trace } from "@opentelemetry/api";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
-import { config } from "../../config";
+import type { Config } from "../../config";
 import { promiseWithTimeout } from "../../helpers/promise-timeout";
 import type { HttpServer } from "../../presentation/http";
 import type { Cache } from "../cache";
@@ -16,6 +16,7 @@ interface Dependencies {
   database: Database;
   cache: Cache;
   telemetry: Telemetry;
+  config: Config;
 }
 
 export function createShutdownManager({
@@ -24,6 +25,7 @@ export function createShutdownManager({
   database,
   cache,
   telemetry,
+  config,
 }: Dependencies) {
   const httpTerminator = createHttpTerminator({
     server: httpServer.server,

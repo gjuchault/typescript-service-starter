@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
-import { config, Config, mergeConfig } from "./config";
+import { Config, getConfig, mergeConfig } from "./config";
 import { createCacheStorage, Cache } from "./infrastructure/cache";
 import { createDatabase, Database } from "./infrastructure/database";
 import { createLogger } from "./infrastructure/logger";
@@ -17,9 +17,10 @@ export async function main(
     configOverride: Partial<Config>;
   } = { configOverride: {} }
 ) {
-  const telemetry = await createTelemetry();
-
   mergeConfig(configOverride);
+
+  const config = getConfig();
+  const telemetry = await createTelemetry({ config });
 
   const logger = createLogger("app");
 
@@ -69,6 +70,7 @@ export async function main(
     database,
     httpServer,
     telemetry,
+    config,
   });
 
   const listeningAbsoluteUrl = await httpServer.listen(
