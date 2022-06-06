@@ -55,7 +55,7 @@ src/
 ├── repository     # storage of your entities
 ├── infrastructure # technical components (cache, database connection, etc.)
 ├── helpers        # utilities functions & non-domain code
-└── test-helpers   # test utilities (starting default port, reseting database, etc.)
+└── test-helpers   # test utilities (starting default port, resetting database, etc.)
 ```
 
 ### Client generation
