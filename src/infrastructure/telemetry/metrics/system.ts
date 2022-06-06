@@ -14,32 +14,34 @@ export function bindSystemMetrics() {
   const eventLoopKeys: (keyof Histogram)[] = ["min", "max", "mean", "stddev"];
 
   for (const key of eventLoopKeys) {
-    metrics.createObservableGauge(
+    const gauge = metrics.createObservableGauge(
       `nodejs_eventloop_lag_${key}_seconds`,
-      (observableResult) => {
-        observableResult.observe((eventLoopDelay[key] as number) / 1e9);
-      },
       {
         description: `${key} event loop lag in seconds`,
         unit: "seconds",
         valueType: ValueType.DOUBLE,
       }
     );
+
+    gauge.addCallback((observableResult) => {
+      observableResult.observe((eventLoopDelay[key] as number) / 1e9);
+    });
   }
 
   const percentileKeys = [50, 90, 99];
   for (const percentile of percentileKeys) {
-    metrics.createObservableGauge(
+    const gauge = metrics.createObservableGauge(
       `nodejs_eventloop_lag_p${percentile.toString()}_seconds`,
-      (observableResult) => {
-        observableResult.observe(eventLoopDelay.percentile(percentile) / 1e9);
-      },
       {
         description: `The ${percentile.toString()}th percentile of the recorded event loop delays`,
         unit: "seconds",
         valueType: ValueType.DOUBLE,
       }
     );
+
+    gauge.addCallback((observableResult) => {
+      observableResult.observe(eventLoopDelay.percentile(percentile) / 1e9);
+    });
   }
 
   // gc
@@ -77,65 +79,76 @@ export function bindSystemMetrics() {
     "external",
   ];
   for (const key of memoryKeys) {
-    metrics.createObservableGauge(
+    const gauge = metrics.createObservableGauge(
       "nodejs_heap_size_total_bytes",
-      (observableResult) => {
-        if (key === "heapTotal") {
-          try {
-            sharedMemoryUsage = process.memoryUsage();
-            observableResult.observe(sharedMemoryUsage[key]);
-          } catch {
-            // ignore
-          }
-        } else {
-          observableResult.observe(sharedMemoryUsage[key]);
-        }
-      },
       {
         description: `${key} size in bytes`,
         unit: "bytes",
         valueType: ValueType.INT,
       }
     );
+
+    gauge.addCallback((observableResult) => {
+      if (key === "heapTotal") {
+        try {
+          sharedMemoryUsage = process.memoryUsage();
+          observableResult.observe(sharedMemoryUsage[key]);
+        } catch {
+          // ignore
+        }
+      } else {
+        observableResult.observe(sharedMemoryUsage[key]);
+      }
+    });
   }
 
   // processCpuTotal
   let lastCpuUsage = process.cpuUsage();
   let sharedCpuUsage: NodeJS.CpuUsage;
   for (const key of ["user", "system", "shared"]) {
-    metrics.createObservableCounter(
+    const gauge = metrics.createObservableCounter(
       `process_cpu_${key}_seconds_total`,
-      (observableResult) => {
-        if (key === "user") {
-          sharedCpuUsage = process.cpuUsage();
-          // wait for other counters to report
-          setTimeout(() => {
-            lastCpuUsage = sharedCpuUsage;
-          });
-        }
-
-        const userUsageMicros = sharedCpuUsage.user - lastCpuUsage.user;
-        const systemUsageMicros = sharedCpuUsage.system - lastCpuUsage.system;
-
-        const value =
-          key === "user"
-            ? userUsageMicros
-            : key === "system"
-            ? systemUsageMicros
-            : userUsageMicros + systemUsageMicros;
-
-        observableResult.observe(value / 1e6);
-      },
       {
         description: `Total ${key} CPU time spent in seconds`,
         unit: "seconds",
         valueType: ValueType.DOUBLE,
       }
     );
+
+    gauge.addCallback((observableResult) => {
+      if (key === "user") {
+        sharedCpuUsage = process.cpuUsage();
+        // wait for other counters to report
+        setTimeout(() => {
+          lastCpuUsage = sharedCpuUsage;
+        });
+      }
+
+      const userUsageMicros = sharedCpuUsage.user - lastCpuUsage.user;
+      const systemUsageMicros = sharedCpuUsage.system - lastCpuUsage.system;
+
+      const value =
+        key === "user"
+          ? userUsageMicros
+          : key === "system"
+          ? systemUsageMicros
+          : userUsageMicros + systemUsageMicros;
+
+      observableResult.observe(value / 1e6);
+    });
   }
 
   // processHandles
-  metrics.createObservableGauge("nodejs_active_handles", (observableResult) => {
+  const processHandlesGauge = metrics.createObservableGauge(
+    "nodejs_active_handles",
+    {
+      description: "Number of active handles",
+      unit: "handles",
+      valueType: ValueType.INT,
+    }
+  );
+
+  processHandlesGauge.addCallback((observableResult) => {
     const handles = (
       process as unknown as Record<string, () => []>
     )._getActiveHandles();
@@ -144,11 +157,8 @@ export function bindSystemMetrics() {
   });
 
   // processStartTime
-  metrics.createObservableGauge(
+  const processStartTimeGauge = metrics.createObservableGauge(
     "nodejs_process_start_time_seconds",
-    (observableResult) => {
-      observableResult.observe(startInSeconds);
-    },
     {
       description: "Start time of the process in seconds unix timestamp",
       unit: "seconds",
@@ -156,15 +166,20 @@ export function bindSystemMetrics() {
     }
   );
 
-  metrics.createObservableGauge(
+  processStartTimeGauge.addCallback((observableResult) => {
+    observableResult.observe(startInSeconds);
+  });
+
+  const processUpTimeGauge = metrics.createObservableGauge(
     "nodejs_process_up_time_seconds",
-    (observableResult) => {
-      observableResult.observe(Math.round(Date.now() / 1000 - startInSeconds));
-    },
     {
       description: "Up time of the process in seconds",
       unit: "seconds",
       valueType: ValueType.INT,
     }
   );
+
+  processUpTimeGauge.addCallback((observableResult) => {
+    observableResult.observe(Math.round(Date.now() / 1000 - startInSeconds));
+  });
 }

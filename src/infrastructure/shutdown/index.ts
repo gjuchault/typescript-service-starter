@@ -93,7 +93,7 @@ export function createShutdownManager({
     logger.flush();
 
     if (exit) {
-      await setTimeout(ms("1s"));
+      await setTimeout(ms("2s"));
       process.exit(0);
     }
   }
