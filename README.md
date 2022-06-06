@@ -8,8 +8,10 @@ Yet another (opinionated) typescript service starter template.
 
 ## Opinions and limitations
 
-1. Tries to follow Domain Driven Development
-2. Config should not default to either development or production ([link](https://softwareengineering.stackexchange.com/a/375843))
+1. Tries to follow Domain Driven Development and 3 Layers architecture
+2. As little of externalities requirements as possible (outputs to stdout/stderr, no auth management, etc.)
+3. No dependency on node_modules folder and filesystem at runtime, to allow bundling & small Docker image
+4. Config should not default to either development or production ([link](https://softwareengineering.stackexchange.com/a/375843))
 
 And extends the ones from [typescript-library-starter]()
 
@@ -32,6 +34,65 @@ To enable deployment, you will need to:
 2. Give `GITHUB_TOKEN` write permissions for GitHub releases ([Settings > Actions > General](https://github.com/gjuchault/typescript-service-starter/settings/actions) > Workflow permissions)
 
 ## Features
+
+### Ecosystem
+
+This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). It everages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis)).
+
+For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both prometheus-like metrics & tracing). For distributed racing [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id.
+
+This template also tries to be easy to deploy through esbuild's bundling. This means you can _not_ leverage ode_modules and file system at runtime: reading static files from node_modules, hooking `require`, etc. ill not be possible. This implies to be mindful on libraries (that would read static files from there older), or automatic instrumentation (that hook `require`). Yet it comes with super small Docker images hat are fast to deploy.
+
+### Layers & folder structure
+
+```
+client             # generated fetch wrappers for your application
+migrations         # database migrations (.sql files, no rollback)
+src/
+├── application    # service code
+├── domain         # pure functions & typescript models of your entities
+├── presentation   # communication layer (http)
+├── repository     # storage of your entities
+├── infrastructure # technical components (cache, database connection, etc.)
+├── helpers        # utilities functions & non-domain code
+└── test-helpers   # test utilities (starting default port, reseting database, etc.)
+```
+
+### Client generation
+
+This package can generate a type-safe client package when building (with `npm run build:client`).
+It can be used the following way:
+
+```ts
+import {
+  createClient as createMyAppClient,
+  createTraceHeader as createMyAppTraceHeader,
+} from "my-app/client";
+
+const myApp = createMyAppClient({
+  baseUrl: "http://sometarget/",
+  globalFetchOverrides: {
+    headers: {
+      "X-Custom-Token": "foo",
+    },
+  },
+});
+
+// GET /healthcheck
+const data = await myApp.getHealthcheck({
+  headers: {
+    ...createMyAppTraceHeader({
+      traceId: "some-trace-id",
+      parentSpanId: "some-span-id",
+    }),
+  },
+});
+
+// POST /foo/bar?query=param { body: "json" }
+const data2 = await myApp.postFooBar({ query: "param" }, { body: "json" });
+```
+
+The client will validate the server's response through zod.
 
 ### Node.js, npm version
 
