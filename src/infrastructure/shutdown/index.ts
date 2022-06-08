@@ -3,7 +3,7 @@ import { context, trace } from "@opentelemetry/api";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import type { Config } from "../../config";
-import { promiseWithTimeout } from "../../helpers/promise-timeout";
+import { promiseWithTimeout } from "../../helpers/promiseTimeout";
 import type { HttpServer } from "../../infrastructure/http";
 import type { Cache } from "../cache";
 import type { Database } from "../database";
