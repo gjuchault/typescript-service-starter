@@ -1,15 +1,15 @@
 import test from "ava";
-import type { Redis } from "ioredis";
+import type { Cache } from "../../../infrastructure/cache";
 import type { HealthcheckRepository } from "../../../repository/healthcheck";
 import { createGetHealthcheck } from "../getHealthcheck";
 
 const mockHealthyCache = {
   echo: () => Promise.resolve("1"),
-} as unknown as Redis;
+} as unknown as Cache;
 
 const mockUnhealthyCache = {
   echo: () => Promise.reject(),
-} as unknown as Redis;
+} as unknown as Cache;
 
 const mockHealthyRepository: HealthcheckRepository = {
   async getHealthcheck() {

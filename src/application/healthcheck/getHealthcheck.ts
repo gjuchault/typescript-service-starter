@@ -1,6 +1,6 @@
 import os from "node:os";
 import v8 from "node:v8";
-import type { Redis } from "ioredis";
+import type { Cache } from "../../infrastructure/cache";
 import type { HealthcheckRepository } from "../../repository/healthcheck";
 
 export type GetHealthcheckResult = {
@@ -15,7 +15,7 @@ export function createGetHealthcheck({
   cache,
 }: {
   healthcheckRepository: HealthcheckRepository;
-  cache: Redis;
+  cache: Cache;
 }) {
   async function getHealthcheck(): Promise<GetHealthcheckResult> {
     const databaseResult = await healthcheckRepository.getHealthcheck();

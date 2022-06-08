@@ -1,16 +1,16 @@
-import { default as Redis } from "ioredis";
 import ms from "ms";
+import { createClient as createRedisClient } from "redis";
 import { promiseWithTimeout } from "../../helpers/promise-timeout";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
-import { getSpanOptions } from "../telemetry/instrumentations/ioredis";
+import { getSpanOptions } from "../telemetry/instrumentations/redis";
 
 interface Dependencies {
   url: string;
   telemetry: Telemetry;
 }
 
-export type Cache = Redis;
+export type Cache = ReturnType<typeof createRedisClient>;
 
 export async function createCacheStorage({
   url,
@@ -18,10 +18,11 @@ export async function createCacheStorage({
 }: Dependencies): Promise<Cache> {
   const logger = createLogger("redis");
 
-  const redis = new Redis(url, {});
+  const redis = createRedisClient({ url });
 
   redis.on("error", (error) => {
-    // these will be spamming quite a log stderr
+    // these will be spamming quite a log stderr if the redis server is not
+    // running when starting this service
     if (error.code === "ECONNREFUSED") {
       return;
     }
@@ -33,7 +34,7 @@ export async function createCacheStorage({
     logger.debug("connecting to redis...");
 
     try {
-      await promiseWithTimeout(ms("2s"), () => redis.echo("1"));
+      await promiseWithTimeout(ms("2s"), () => redis.connect());
     } catch (error) {
       logger.error("redis connection error", { error });
       throw error;

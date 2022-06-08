@@ -37,7 +37,7 @@ To enable deployment, you will need to:
 
 ### Ecosystem
 
-This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis)).
+This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [redis](https://github.com/redis/node-redis)).
 
 For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both prometheus-like metrics & tracing). For distributed racing [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id.
 

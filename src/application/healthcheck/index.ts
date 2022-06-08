@@ -1,4 +1,4 @@
-import type { Redis } from "ioredis";
+import type { Cache } from "../../infrastructure/cache";
 import type { HealthcheckRepository } from "../../repository/healthcheck";
 import type { GetHealthcheckResult } from "./getHealthcheck";
 import { createGetHealthcheck } from "./getHealthcheck";
@@ -12,7 +12,7 @@ export function createHealthcheckApplication({
   cache,
 }: {
   healthcheckRepository: HealthcheckRepository;
-  cache: Redis;
+  cache: Cache;
 }): HealthcheckApplication {
   const getHealthcheck = createGetHealthcheck({
     healthcheckRepository,

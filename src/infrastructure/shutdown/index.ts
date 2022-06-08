@@ -60,35 +60,34 @@ export function createShutdownManager({
       return true;
     }
 
-    let success = true;
-    try {
-      await promiseWithTimeout(ms(gracefulShutdownTimeout), gracefulShutdown);
-    } catch (err) {
-      success = false;
-    }
+    await promiseWithTimeout(
+      ms(gracefulShutdownTimeout),
+      gracefulShutdown,
+      () => {
+        logger.fatal(
+          `could not gracefully shut down service ${config.name} after ${gracefulShutdownTimeout}`,
+          {
+            version: config.version,
+            nodeVersion: process.version,
+            arch: process.arch,
+            platform: process.platform,
+          }
+        );
 
-    if (!success) {
-      logger.fatal(
-        `could not gracefully shut down service ${config.name} after ${gracefulShutdownTimeout}`,
-        {
-          version: config.version,
-          nodeVersion: process.version,
-          arch: process.arch,
-          platform: process.platform,
+        logger.flush();
+
+        if (exit) {
+          process.exit(1);
         }
-      );
-
-      if (exit) {
-        process.exit(1);
       }
-    } else {
-      logger.info(`gracefully shut down service ${config.name}`, {
-        version: config.version,
-        nodeVersion: process.version,
-        arch: process.arch,
-        platform: process.platform,
-      });
-    }
+    );
+
+    logger.info(`gracefully shut down service ${config.name}`, {
+      version: config.version,
+      nodeVersion: process.version,
+      arch: process.arch,
+      platform: process.platform,
+    });
 
     logger.flush();
 
