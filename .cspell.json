@@ -17,7 +17,8 @@
     "millis",
     "eventloop",
     "openapi",
-    "traceparent"
+    "traceparent",
+    "weakcb"
   ],
   "flagWords": [],
   "ignorePaths": [
