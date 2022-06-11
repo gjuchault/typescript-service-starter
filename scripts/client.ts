@@ -61,7 +61,7 @@ async function startAppAndFetchSchema() {
   const response = await app.httpServer.inject("/docs");
   const schema = response.json();
 
-  await app.shutdown(false);
+  await app.shutdown.shutdown(false);
 
   const parsedSchema = await parse(schema);
 

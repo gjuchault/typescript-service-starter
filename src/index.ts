@@ -75,6 +75,8 @@ export async function main(
     config,
   });
 
+  shutdown.listenToProcessEvents();
+
   const listeningAbsoluteUrl = await httpServer.listen(
     config.port,
     config.address

@@ -93,13 +93,14 @@ export function createShutdownManager({
     logger.flush();
 
     if (exit) {
-      await setTimeout(ms("2s"));
       process.exit(0);
     }
   }
 
-  process.addListener("SIGTERM", async () => shutdown());
-  process.addListener("SIGINT", async () => shutdown());
+  function listenToProcessEvents() {
+    process.addListener("SIGTERM", async () => shutdown());
+    process.addListener("SIGINT", async () => shutdown());
+  }
 
-  return shutdown;
+  return { listenToProcessEvents, shutdown };
 }
