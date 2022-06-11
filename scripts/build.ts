@@ -1,8 +1,8 @@
 import path from "node:path";
-import { build as esbuild } from "esbuild";
+import { build as esbuild, BuildOptions } from "esbuild";
 
-async function main() {
-  await esbuild({
+export async function main(opts: Partial<BuildOptions> = {}) {
+  const result = await esbuild({
     platform: "node",
     target: "esnext",
     format: "cjs",
@@ -12,7 +12,10 @@ async function main() {
     bundle: true,
     outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
+    ...opts,
   });
+
+  return result;
 }
 
 if (require.main === module) {
