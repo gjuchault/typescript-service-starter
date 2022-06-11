@@ -118,7 +118,7 @@
     "pino": "^8.0.0",
     "slonik": "^28.1.1",
     "umzug": "^3.1.1",
-    "under-pressure": "^5.8.1",
+    "under-pressure": "^6.1.0",
     "zod": "^3.17.3",
     "zod-to-json-schema": "^3.17.0"
   },
