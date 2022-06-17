@@ -4,7 +4,7 @@ import { run } from "./setup";
 
 const exec = promisify(childProcess.exec);
 
-async function main() {
+async function testSetup() {
   try {
     const { stdout: gitEmail } = await exec(
       `git config --global --get user.email`
@@ -65,5 +65,5 @@ async function testNoGrep(pattern: string) {
 }
 
 if (require.main === module) {
-  main();
+  testSetup();
 }

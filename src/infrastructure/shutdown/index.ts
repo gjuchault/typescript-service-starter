@@ -1,9 +1,8 @@
-import { setTimeout } from "node:timers/promises";
 import { context, trace } from "@opentelemetry/api";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import type { Config } from "../../config";
-import { promiseWithTimeout } from "../../helpers/promiseTimeout";
+import { promiseWithTimeout } from "../../helpers/promise-timeout";
 import type { HttpServer } from "../../infrastructure/http";
 import type { Cache } from "../cache";
 import type { Database } from "../database";
@@ -17,6 +16,7 @@ interface Dependencies {
   cache: Cache;
   telemetry: Telemetry;
   config: Config;
+  exit: (statusCode: number) => void;
 }
 
 export function createShutdownManager({
@@ -26,6 +26,7 @@ export function createShutdownManager({
   cache,
   telemetry,
   config,
+  exit,
 }: Dependencies) {
   const httpTerminator = createHttpTerminator({
     server: httpServer.server,
@@ -34,7 +35,7 @@ export function createShutdownManager({
 
   let isShuttingDown = false;
 
-  async function shutdown(exit = true) {
+  async function shutdown(shouldExit = true) {
     if (isShuttingDown) {
       return;
     }
@@ -63,7 +64,7 @@ export function createShutdownManager({
     let success = true;
     try {
       await promiseWithTimeout(ms(gracefulShutdownTimeout), gracefulShutdown);
-    } catch (err) {
+    } catch {
       success = false;
     }
 
@@ -78,8 +79,8 @@ export function createShutdownManager({
         }
       );
 
-      if (exit) {
-        process.exit(1);
+      if (shouldExit) {
+        exit(1);
       }
     } else {
       logger.info(`gracefully shut down service ${config.name}`, {
@@ -93,7 +94,7 @@ export function createShutdownManager({
     logger.flush();
 
     if (exit) {
-      process.exit(0);
+      exit(0);
     }
   }
 

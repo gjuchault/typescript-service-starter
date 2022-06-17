@@ -5,14 +5,14 @@ import * as ts from "typescript";
 import { compilerOptions } from "../tsconfig.json";
 import { parse } from "./openapi-client-generator/parser";
 import { generate } from "./openapi-client-generator/generator";
-import { main as startApp } from "../src";
+import { startApp } from "../src";
 
 const clientDir = path.resolve(__dirname, "../client");
 const outputSrc = path.join(clientDir, "./src");
 const outputSrcIndex = path.join(clientDir, "./src/index.ts");
 const outputBuild = path.join(clientDir, "./build");
 
-async function main() {
+async function client() {
   await prepareDirectories();
 
   process.stdout.write("Starting app and fetching schema... ");
@@ -52,10 +52,8 @@ async function startAppAndFetchSchema() {
   const port = await getPort();
 
   const app = await startApp({
-    configOverride: {
-      port,
-      logLevel: "error",
-    },
+    port,
+    logLevel: "error",
   });
 
   const response = await app.httpServer.inject("/docs");
@@ -96,5 +94,5 @@ async function createBuildClient() {
 }
 
 if (require.main === module) {
-  main();
+  client();
 }

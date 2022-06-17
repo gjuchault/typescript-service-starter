@@ -3,7 +3,7 @@ import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
 import { metrics, metricReader } from "..";
 
-const ignoredPaths: string[] = [];
+const ignoredPaths: Set<string> = new Set();
 
 export const metricsPlugin = fp(innerMetricsPlugin);
 
@@ -28,10 +28,7 @@ function innerMetricsPlugin(
   const durationMap = new WeakMap<FastifyRequest, number>();
 
   httpServer.addHook("onRequest", (request, _reply, done) => {
-    if (
-      request.method === "head" ||
-      ignoredPaths.includes(request.routerPath)
-    ) {
+    if (request.method === "head" || ignoredPaths.has(request.routerPath)) {
       return done();
     }
 

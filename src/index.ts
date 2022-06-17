@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
 import { Config, getConfig, mergeConfig } from "./config";
@@ -10,13 +11,7 @@ import { createTelemetry } from "./infrastructure/telemetry";
 import { bindHttpRoutes } from "./presentation/http";
 import { createRepository } from "./repository";
 
-export async function main(
-  {
-    configOverride,
-  }: {
-    configOverride: Partial<Config>;
-  } = { configOverride: {} }
-) {
+export async function startApp(configOverride: Partial<Config> = {}) {
   mergeConfig(configOverride);
 
   const config = getConfig();
@@ -73,6 +68,7 @@ export async function main(
     httpServer,
     telemetry,
     config,
+    exit: process.exit,
   });
 
   shutdown.listenToProcessEvents();
@@ -99,7 +95,7 @@ export async function main(
 }
 
 if (require.main === module) {
-  main().catch((error) => {
+  startApp().catch((error) => {
     throw error;
   });
 }

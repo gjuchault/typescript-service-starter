@@ -1,14 +1,12 @@
-import { main as startApp } from "../index";
+import { startApp } from "../index";
 
 export async function setup() {
   const { default: getPort } = await import("get-port");
   const port = await getPort();
 
   const app = await startApp({
-    configOverride: {
-      port,
-      logLevel: "error",
-    },
+    port,
+    logLevel: "error",
   });
 
   return {

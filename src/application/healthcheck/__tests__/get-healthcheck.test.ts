@@ -1,7 +1,7 @@
 import test from "ava";
 import type { Redis } from "ioredis";
 import type { HealthcheckRepository } from "../../../repository/healthcheck";
-import { createGetHealthcheck } from "../getHealthcheck";
+import { createGetHealthcheck } from "../get-healthcheck";
 
 const mockHealthyCache = {
   echo: () => Promise.resolve("1"),

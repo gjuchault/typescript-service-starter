@@ -1,7 +1,7 @@
 import path from "node:path";
 import ms from "ms";
 import { ChildProcess, fork } from "node:child_process";
-import { main as build } from "./build";
+import { build } from "./build";
 
 const rootPath = path.join(__dirname, "..");
 const bundleFilePath = path.join(rootPath, "build", "index.js");

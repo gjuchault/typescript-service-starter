@@ -16,7 +16,7 @@ import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import type { Config } from "../../config";
 import { bindSystemMetrics } from "./metrics/system";
-import { pinoSpanExporter } from "./pinoExporter";
+import { pinoSpanExporter } from "./pino-exporter";
 
 export interface Telemetry {
   getTracer(): opentelemetry.api.Tracer;
