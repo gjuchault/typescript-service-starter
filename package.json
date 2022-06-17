@@ -12,9 +12,8 @@
   "bugs": "https://github.com/gjuchault/typescript-service-starter/issues",
   "author": "Gabriel Juchault <gabriel.juchault@gmail.com>",
   "repository": "gjuchault/typescript-service-starter",
-  "main": "./build/cjs/index.js",
-  "module": "./build/esm/index.js",
-  "types": "./build/index.d.ts",
+  "main": "./build/index.js",
+  "types": "./build/src/index.d.ts",
   "license": "MIT",
   "engines": {
     "node": "> 14"
