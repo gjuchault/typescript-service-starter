@@ -24,7 +24,20 @@ export function bindSystemMetrics() {
     );
 
     gauge.addCallback((observableResult) => {
-      observableResult.observe((eventLoopDelay[key] as number) / 1e9);
+      switch (key) {
+        case "min":
+          observableResult.observe(eventLoopDelay.min / 1e9);
+          break;
+        case "max":
+          observableResult.observe(eventLoopDelay.max / 1e9);
+          break;
+        case "mean":
+          observableResult.observe(eventLoopDelay.mean / 1e9);
+          break;
+        case "stddev":
+          observableResult.observe(eventLoopDelay.stddev / 1e9);
+          break;
+      }
     });
   }
 
@@ -89,15 +102,21 @@ export function bindSystemMetrics() {
     );
 
     gauge.addCallback((observableResult) => {
-      if (key === "heapTotal") {
-        try {
-          sharedMemoryUsage = process.memoryUsage();
-          observableResult.observe(sharedMemoryUsage[key]);
-        } catch {
-          // ignore
-        }
-      } else {
-        observableResult.observe(sharedMemoryUsage[key]);
+      switch (key) {
+        case "heapTotal":
+          try {
+            sharedMemoryUsage = process.memoryUsage();
+            observableResult.observe(sharedMemoryUsage.heapTotal);
+          } catch {
+            // ignore
+          }
+          break;
+        case "heapUsed":
+          observableResult.observe(sharedMemoryUsage.heapUsed);
+          break;
+        case "external":
+          observableResult.observe(sharedMemoryUsage.external);
+          break;
       }
     });
   }

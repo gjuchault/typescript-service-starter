@@ -10,7 +10,7 @@ import { getConfig } from "../src/config";
 const migrationsPath = path.join(__dirname, "../migrations");
 const databasePool = createPool(getConfig().databaseUrl);
 
-async function main() {
+async function migrate() {
   const args = process.argv.slice(2);
 
   const umzug = new Umzug({
@@ -131,5 +131,5 @@ async function create(name: string) {
 }
 
 if (require.main === module) {
-  main();
+  migrate();
 }

@@ -1,7 +1,7 @@
 import type { Redis } from "ioredis";
 import type { HealthcheckRepository } from "../../repository/healthcheck";
-import type { GetHealthcheckResult } from "./getHealthcheck";
-import { createGetHealthcheck } from "./getHealthcheck";
+import type { GetHealthcheckResult } from "./get-healthcheck";
+import { createGetHealthcheck } from "./get-healthcheck";
 
 export interface HealthcheckApplication {
   getHealthcheck(): Promise<GetHealthcheckResult>;

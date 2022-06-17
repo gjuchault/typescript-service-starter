@@ -16,6 +16,9 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:import/recommended",
     "plugin:import/typescript",
+    "plugin:unicorn/recommended",
+    "plugin:ava/recommended",
+    "plugin:security/recommended",
     "prettier"
   ],
   "settings": {
@@ -34,6 +37,8 @@
           "caseInsensitive": true
         }
       }
-    ]
+    ],
+    "import/no-extraneous-dependencies": ["error"],
+    "unicorn/prefer-module": "warn"
   }
 }

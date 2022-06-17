@@ -1,7 +1,7 @@
 import path from "node:path";
 import { build as esbuild, BuildOptions } from "esbuild";
 
-export async function main(opts: Partial<BuildOptions> = {}) {
+export async function build(opts: Partial<BuildOptions> = {}) {
   const result = await esbuild({
     platform: "node",
     target: "esnext",
@@ -18,6 +18,7 @@ export async function main(opts: Partial<BuildOptions> = {}) {
   return result;
 }
 
+console.log(build);
 if (require.main === module) {
-  main();
+  build();
 }
