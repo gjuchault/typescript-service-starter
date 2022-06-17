@@ -47,7 +47,7 @@ export async function main(
       telemetry,
     });
 
-    httpServer = createHttpServer({ config, cache });
+    httpServer = await createHttpServer({ config, cache });
   } catch (error) {
     logger.error(`${config.name} startup error`, {
       error: (error as unknown as Record<string, unknown>)?.message ?? error,

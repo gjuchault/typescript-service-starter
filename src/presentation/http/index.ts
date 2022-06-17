@@ -1,3 +1,4 @@
+import { z } from "zod";
 import type { HealthcheckApplication } from "../../application/healthcheck";
 import type { HttpServer } from "../../infrastructure/http";
 import { bindHealthcheckRoutes } from "./routes/healthcheck";
@@ -14,13 +15,7 @@ export function bindHttpRoutes({
     {
       schema: {
         response: {
-          200: {
-            $schema: "http://json-schema.org/draft-07/schema#",
-            type: "object",
-            properties: {},
-            additionalProperties: true,
-            description: "OpenAPI 3.0 Documentation",
-          },
+          200: z.object({}),
         },
       },
     },
