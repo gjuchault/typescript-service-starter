@@ -30,7 +30,7 @@ interface Input {
   userMail: string;
 }
 
-async function main() {
+async function setup() {
   const initialProjectName = path.basename(rootPath);
 
   const input: Input = await prompts([
@@ -241,5 +241,5 @@ async function logAsyncTask<TResolve>(
 }
 
 if (require.main === module) {
-  main();
+  setup();
 }

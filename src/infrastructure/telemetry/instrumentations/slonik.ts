@@ -43,17 +43,20 @@ export function createSlonikTelemetryInterceptor({
 
       spanByQueryId.set(getQueryId(queryContext), span);
 
+      // eslint-disable-next-line unicorn/no-null
       return null;
     },
     afterQueryExecution(queryContext) {
       const span = spanByQueryId.get(getQueryId(queryContext));
 
       if (!span) {
+        // eslint-disable-next-line unicorn/no-null
         return null;
       }
 
       span.end();
 
+      // eslint-disable-next-line unicorn/no-null
       return null;
     },
   };

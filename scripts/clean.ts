@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-async function main() {
+async function clean() {
   await Promise.all([rmrf("build"), rmrf("coverage"), rmrf(".nyc_output")]);
 }
 
@@ -13,5 +13,5 @@ async function rmrf(pathFromRoot: string): Promise<void> {
 }
 
 if (require.main === module) {
-  main();
+  clean();
 }

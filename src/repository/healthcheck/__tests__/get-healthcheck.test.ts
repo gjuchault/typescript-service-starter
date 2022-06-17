@@ -1,7 +1,7 @@
 import test from "ava";
 import sinon from "sinon";
 import { createMockPool, createMockQueryResult } from "slonik";
-import { createHealthcheckRepository } from "../";
+import { createHealthcheckRepository } from "..";
 
 test("getHealthcheck() - healthy database", async (t) => {
   const mockQuery = sinon.stub().resolves(createMockQueryResult([]));

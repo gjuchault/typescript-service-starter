@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { version, description } from "../package.json";
 import type { Entries } from "./helpers/entries";
-import { rejectUnexpectedValue } from "./helpers/switchGuard";
+import { rejectUnexpectedValue } from "./helpers/switch-guard";
 
 export type Config = typeof config;
 
@@ -38,9 +38,9 @@ const config = {
     .refine((portAsString) => {
       const port = Number(portAsString);
 
-      return port > 0 && port < 65536;
+      return port > 0 && port < 65_536;
     })
-    .transform((portAsString) => Number(portAsString))
+    .transform(Number)
     .parse(process.env.PORT),
 
   databaseUrl: z.string().parse(process.env.DATABASE_URL),
