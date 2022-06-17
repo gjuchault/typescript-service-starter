@@ -1,9 +1,9 @@
-import { OpenTelemetryPluginOptions } from "@autotelic/fastify-opentelemetry";
+import type { OpenTelemetryPluginOptions } from "@autotelic/fastify-opentelemetry";
 import {
   NetTransportValues,
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
-import { FastifyRequest } from "fastify";
+import type { FastifyRequest } from "fastify";
 import { getConfig } from "../../../config";
 
 export const ATTRIBUTE_ERROR_NAME = "error.name";

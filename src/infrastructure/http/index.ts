@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import openTelemetryPlugin from "@autotelic/fastify-opentelemetry";
 import circuitBreaker from "@fastify/circuit-breaker";
 import cookie from "@fastify/cookie";
@@ -10,18 +11,61 @@ import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
-import { fastify, FastifyInstance } from "fastify";
+import {
+  ContextConfigDefault,
+  fastify,
+  FastifyBaseLogger,
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  RawReplyDefaultExpression,
+  RawRequestDefaultExpression,
+} from "fastify";
+import type { RouteGenericInterface } from "fastify/types/route";
+import type { ResolveFastifyReplyType } from "fastify/types/type-provider";
 import ms from "ms";
+import type { ZodType } from "zod";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
+import {
+  serializerCompiler,
+  swaggerTransform,
+  validatorCompiler,
+  ZodTypeProvider,
+} from "../../type-helpers/fastify-zod";
 import { Cache } from "../cache";
 
-export type HttpServer = FastifyInstance;
+export type HttpServer = FastifyInstance<
+  Server,
+  IncomingMessage,
+  ServerResponse,
+  FastifyBaseLogger,
+  ZodTypeProvider
+>;
+
+export type HttpRequest = FastifyRequest<
+  RouteGenericInterface,
+  Server,
+  RawRequestDefaultExpression<Server>,
+  ZodType,
+  ZodTypeProvider
+>;
+
+export type HttpReply = FastifyReply<
+  Server,
+  RawRequestDefaultExpression<Server>,
+  RawReplyDefaultExpression<Server>,
+  RouteGenericInterface,
+  ContextConfigDefault,
+  ZodType,
+  ZodTypeProvider,
+  ResolveFastifyReplyType<ZodTypeProvider, ZodType, RouteGenericInterface>
+>;
 
 const requestTimeout = ms("120s");
 
-export function createHttpServer({
+export async function createHttpServer({
   config: { secret, name, version, description },
   cache,
 }: {
@@ -35,34 +79,59 @@ export function createHttpServer({
 }) {
   const logger = createLogger("http");
 
-  const httpServer = fastify({
+  const httpServer: HttpServer = fastify({
     requestTimeout,
     logger: undefined,
     requestIdHeader: "x-request-id",
     genReqId() {
       return randomUUID();
     },
-  });
+  }).withTypeProvider<ZodTypeProvider>();
 
-  httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
-  httpServer.register(metricsPlugin);
+  httpServer.setValidatorCompiler(validatorCompiler);
+  httpServer.setSerializerCompiler(serializerCompiler);
 
-  httpServer.register(circuitBreaker);
-  httpServer.register(cookie, { secret });
-  httpServer.register(cors);
-  httpServer.register(etag);
-  httpServer.register(helmet);
-  httpServer.register(formbody);
-  httpServer.register(multipart);
-  httpServer.register(rateLimit, {
+  await httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
+  await httpServer.register(metricsPlugin);
+
+  await httpServer.register(circuitBreaker);
+  await httpServer.register(cookie, { secret });
+  await httpServer.register(cors);
+  await httpServer.register(etag);
+  await httpServer.register(helmet);
+  await httpServer.register(formbody);
+  await httpServer.register(multipart);
+  await httpServer.register(rateLimit, {
     redis: cache,
   });
-  httpServer.register(underPressure);
+  await httpServer.register(underPressure);
+
+  await httpServer.register(swagger, {
+    routePrefix: "/docs",
+    openapi: {
+      info: {
+        title: name,
+        description,
+        version,
+      },
+      externalDocs: {
+        url: "https://example.com/docs",
+        description: "More documentation",
+      },
+      tags: [],
+    },
+    uiConfig: {
+      docExpansion: "full",
+      deepLinking: false,
+    },
+    staticCSP: true,
+    transform: swaggerTransform,
+  });
 
   httpServer.setNotFoundHandler(
     {
       preHandler: (request, reply) => {
-        const handler = request.server.rateLimit().bind(httpServer);
+        const handler = request.server.rateLimit().bind(request.server);
 
         return handler(request, reply);
       },
@@ -100,7 +169,12 @@ export function createHttpServer({
   httpServer.addHook("onError", async (request, reply, error) => {
     logger.error(`http error: ${error}`, {
       requestId: request.id,
-      error,
+      error: {
+        name: error.name,
+        message: error.message,
+        code: error.code,
+        stack: error.stack,
+      },
       method: request.method,
       url: request.url,
       route: request.routerPath,
@@ -108,27 +182,6 @@ export function createHttpServer({
       responseTime: Math.ceil(reply.getResponseTime()),
       httpStatusCode: reply.statusCode,
     });
-  });
-
-  httpServer.register(swagger, {
-    routePrefix: "/docs",
-    openapi: {
-      info: {
-        title: name,
-        description,
-        version,
-      },
-      externalDocs: {
-        url: "https://example.com/docs",
-        description: "More documentation",
-      },
-      tags: [],
-    },
-    uiConfig: {
-      docExpansion: "full",
-      deepLinking: false,
-    },
-    staticCSP: true,
   });
 
   return httpServer;
