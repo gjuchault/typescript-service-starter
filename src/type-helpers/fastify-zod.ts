@@ -15,11 +15,9 @@ export function validatorCompiler({ schema }: FastifyRouteSchemaDef<ZodType>) {
   return (data: unknown) => {
     const zodResult = schema.safeParse(data);
 
-    if (zodResult.success) {
-      return { value: zodResult.data };
-    } else {
-      return { error: zodResult.error };
-    }
+    return zodResult.success
+      ? { value: zodResult.data }
+      : { error: zodResult.error };
   };
 }
 
@@ -39,7 +37,7 @@ export function swaggerTransform({
   schema: JSONObject;
   url: string;
 } {
-  let transformedResponse: Record<string, JSONObject> | undefined = undefined;
+  let transformedResponse: Record<string, JSONObject> | undefined;
 
   if (schema.response) {
     transformedResponse = {};
@@ -48,6 +46,12 @@ export function swaggerTransform({
       schema.response as Record<string, { properties?: ZodType } | undefined>
     )) {
       if (responseSchema?.properties) {
+        // skip unsafe keys injection
+        if (!Number.isSafeInteger(Number(statusCode))) {
+          continue;
+        }
+
+        // eslint-disable-next-line security/detect-object-injection
         transformedResponse[statusCode] = zodToJsonSchema(
           responseSchema.properties
         ) as JSONObject;
