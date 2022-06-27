@@ -1,5 +1,5 @@
 {
-  "include": ["./src/**/*.ts", "./src/typings", "./client/src/**.*.ts"],
+  "include": ["./src/**/*.ts", "./client/src/**.*.ts"],
   "exclude": ["./src/**/__tests__"],
   "compilerOptions": {
     "lib": ["es2020"],

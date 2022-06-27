@@ -1,27 +1,39 @@
-import test from "ava";
+import type { LightMyRequestResponse } from "fastify";
+import { beforeAll, describe, expect, it } from "vitest";
+import type { HealthcheckResponseSchema } from "..";
 import { setup } from "../../../../../test-helpers/integration-start-context";
 
-test("healthcheck", async (t) => {
-  const { http, shutdown } = await setup();
+describe("GET /healthcheck", () => {
+  describe("when called", () => {
+    let response: LightMyRequestResponse;
 
-  const response = await http.inject("/healthcheck");
+    beforeAll(async () => {
+      const { http, shutdown } = await setup();
 
-  const body = response.json();
+      response = await http.inject("/healthcheck");
 
-  if (typeof process.env.CI === "undefined") {
-    t.is(response.statusCode, 200);
-    t.is(body.database, "healthy");
-    t.is(body.cache, "healthy");
-    t.is(body.systemMemory, "healthy");
-    t.is(body.processMemory, "healthy");
-    t.is(body.http, "healthy");
-  } else {
-    // in Github Actions, process memory seems to be low or static
-    t.is(response.statusCode, 500);
-    t.is(body.database, "healthy");
-    t.is(body.cache, "healthy");
-    t.is(body.http, "healthy");
-  }
+      return async () => {
+        await shutdown();
+      };
+    });
 
-  t.teardown(() => shutdown());
+    it("returns 200", () => {
+      const body = response.json<HealthcheckResponseSchema>();
+
+      if (typeof process.env.CI === "undefined") {
+        expect(response.statusCode).toBe(200);
+        expect(body.database).toBe("healthy");
+        expect(body.cache).toBe("healthy");
+        expect(body.systemMemory).toBe("healthy");
+        expect(body.processMemory).toBe("healthy");
+        expect(body.http).toBe("healthy");
+      } else {
+        // in Github Actions, process memory seems to be low or static
+        expect(response.statusCode).toBe(500);
+        expect(body.database).toBe("healthy");
+        expect(body.cache).toBe("healthy");
+        expect(body.http).toBe("healthy");
+      }
+    });
+  });
 });
