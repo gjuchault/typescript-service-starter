@@ -1,16 +1,18 @@
+import { beforeAll } from "vitest";
 import { startApp } from "../index";
+import type { HttpServer } from "../infrastructure/http";
 
-export async function setup() {
-  const { default: getPort } = await import("get-port");
-  const port = await getPort();
+export let http: HttpServer;
 
+beforeAll(async () => {
   const app = await startApp({
-    port,
+    port: 1987,
     logLevel: "error",
   });
 
-  return {
-    http: app.httpServer,
-    shutdown: () => app.shutdown.shutdown(false),
+  http = app.httpServer;
+
+  return async () => {
+    await app.shutdown.shutdown(false);
   };
-}
+});

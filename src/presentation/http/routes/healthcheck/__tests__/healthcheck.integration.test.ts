@@ -1,20 +1,14 @@
 import type { LightMyRequestResponse } from "fastify";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { HealthcheckResponseSchema } from "..";
-import { setup } from "../../../../../test-helpers/integration-start-context";
+import { http } from "../../../../../test-helpers/integration-start-context";
 
 describe("GET /healthcheck", () => {
   describe("when called", () => {
     let response: LightMyRequestResponse;
 
     beforeAll(async () => {
-      const { http, shutdown } = await setup();
-
       response = await http.inject("/healthcheck");
-
-      return async () => {
-        await shutdown();
-      };
     });
 
     it("returns 200", () => {
