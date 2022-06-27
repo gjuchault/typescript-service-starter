@@ -93,7 +93,7 @@ export function createShutdownManager({
 
     logger.flush();
 
-    if (exit) {
+    if (shouldExit && exit) {
       exit(0);
     }
   }

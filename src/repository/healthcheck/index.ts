@@ -4,7 +4,9 @@ export interface HealthcheckRepository {
   getHealthcheck(): Promise<GetHealthcheckResult>;
 }
 
-type GetHealthcheckResult = { outcome: "healthy" } | { outcome: "unhealthy" };
+export type GetHealthcheckResult =
+  | { outcome: "healthy" }
+  | { outcome: "unhealthy" };
 
 export function createHealthcheckRepository({
   database,
