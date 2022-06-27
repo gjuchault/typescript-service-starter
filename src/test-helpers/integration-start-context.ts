@@ -1,7 +1,11 @@
 import { sql } from "slonik";
 import { beforeAll } from "vitest";
-import { databasePool, migrate } from "../../scripts/migrate";
 import { startApp } from "../index";
+import {
+  buildMigration,
+  databasePool,
+  readMigrations,
+} from "../infrastructure/database/migration";
 import type { HttpServer } from "../infrastructure/http";
 
 export let http: HttpServer;
@@ -24,7 +28,14 @@ beforeAll(async () => {
     `
   );
 
-  await migrate(["up"], false);
+  const migrationFiles = await readMigrations();
+
+  const migration = buildMigration({
+    databasePool,
+    migrationFiles,
+  });
+
+  await migration.up();
 
   http = app.httpServer;
 
