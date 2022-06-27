@@ -61,11 +61,24 @@ export async function parse(input: OpenApi): Promise<{
   const interfaces: string[] = [];
 
   for (const [path, endpoint] of Object.entries(input.paths)) {
-    const { summary, description, ...methods } = endpoint;
+    const { summary, description } = endpoint;
+    const methods = [
+      "get",
+      "put",
+      "post",
+      "delete",
+      "options",
+      "head",
+      "patch",
+      "trace",
+    ] as const;
+    for (const method of methods) {
+      const operation = endpoint[method];
 
-    for (const [method, operation] of Object.entries(methods) as Entries<
-      Omit<OpenApiPath, "summary" | "description">
-    >) {
+      if (!operation) {
+        continue;
+      }
+
       const name = generateMethodName(method, path);
 
       const body = await parseBody(name, operation);
@@ -140,6 +153,13 @@ function parseResponses(
 } {
   const interfaceNames: string[] = [];
   const interfaceContents: string[] = [];
+
+  if (!operation.responses) {
+    return {
+      interfaceNames,
+      interfaceContents,
+    };
+  }
 
   for (const [status, response] of Object.entries(operation.responses)) {
     if (Number(status) < 200 || Number(status) >= 300) {

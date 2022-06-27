@@ -18,7 +18,9 @@
     "eventloop",
     "openapi",
     "traceparent",
-    "weakcb"
+    "weakcb",
+    "tablename",
+    "schemaname"
   ],
   "flagWords": [],
   "ignorePaths": [
