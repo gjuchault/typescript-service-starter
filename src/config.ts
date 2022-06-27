@@ -49,7 +49,10 @@ const config = {
 };
 
 export function getConfig() {
-  return config;
+  return {
+    ...config,
+    databaseUrl: process.env.DATABASE_TEST_URL ?? config.databaseUrl,
+  };
 }
 
 export function mergeConfig(configOverride: Partial<Config>) {

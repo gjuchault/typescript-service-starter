@@ -8,11 +8,9 @@ import { z } from "zod";
 import { getConfig } from "../src/config";
 
 const migrationsPath = path.join(__dirname, "../migrations");
-const databasePool = createPool(getConfig().databaseUrl);
+export const databasePool = createPool(getConfig().databaseUrl);
 
-async function migrate() {
-  const args = process.argv.slice(2);
-
+export async function migrate(args = process.argv.slice(2), exit = true) {
   const umzug = new Umzug({
     migrations: await readMigrations(),
     logger: undefined,
@@ -38,12 +36,15 @@ async function migrate() {
   switch (command) {
     case "up":
       await umzug.up();
-      process.exit(0);
+      break;
     case "create":
       const name = z.string().parse(args[1]);
-
       await create(name);
-      process.exit(0);
+      break;
+  }
+
+  if (exit) {
+    process.exit(0);
   }
 }
 
