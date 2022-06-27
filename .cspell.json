@@ -20,7 +20,9 @@
     "traceparent",
     "weakcb",
     "tablename",
-    "schemaname"
+    "schemaname",
+    "umzug",
+    "unlog"
   ],
   "flagWords": [],
   "ignorePaths": [
