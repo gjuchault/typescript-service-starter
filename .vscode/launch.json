@@ -9,13 +9,15 @@
       "port": 9229
     },
     {
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
-      "name": "Debug test file",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/ava",
-      "runtimeArgs": ["--serial", "${file}"],
-      "outputCapture": "std",
-      "skipFiles": ["<node_internals>/**"]
+      "name": "Debug Current Test File",
+      "autoAttachChildProcesses": true,
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "args": ["run", "${relativeFile}"],
+      "smartStep": true,
+      "console": "integratedTerminal"
     }
   ]
 }
