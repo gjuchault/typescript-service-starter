@@ -47,7 +47,6 @@ export async function startApp(configOverride: Partial<Config> = {}) {
     logger.error(`${config.name} startup error`, {
       error: (error as unknown as Record<string, unknown>)?.message ?? error,
     });
-    console.log("exit", error);
     process.exit(1);
   }
 

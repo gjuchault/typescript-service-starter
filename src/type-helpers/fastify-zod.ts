@@ -73,7 +73,6 @@ export function swaggerTransform({
     response: transformedResponse,
   };
 
-  console.log("OUTPUT", transformedSchema.querystring);
   return {
     schema: transformedSchema as JSONObject,
     url,

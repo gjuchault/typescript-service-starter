@@ -18,7 +18,6 @@ export async function build(opts: Partial<BuildOptions> = {}) {
   return result;
 }
 
-console.log(build);
 if (require.main === module) {
   build();
 }
