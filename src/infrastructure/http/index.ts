@@ -28,13 +28,13 @@ import type { ZodType } from "zod";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
+import { Cache } from "../cache";
 import {
   serializerCompiler,
   swaggerTransform,
   validatorCompiler,
   ZodTypeProvider,
-} from "../../type-helpers/fastify-zod";
-import { Cache } from "../cache";
+} from "./fastify-zod";
 
 export type HttpServer = FastifyInstance<
   Server,
