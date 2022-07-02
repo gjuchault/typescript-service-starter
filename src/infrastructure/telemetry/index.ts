@@ -1,7 +1,10 @@
 import {
   context,
   propagation,
+  Span,
+  SpanOptions,
   SpanStatusCode,
+  Tracer,
   trace,
 } from "@opentelemetry/api";
 import { Meter, metrics as apiMetrics } from "@opentelemetry/api-metrics";
@@ -11,25 +14,28 @@ import {
 } from "@opentelemetry/core";
 import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
 import { Resource } from "@opentelemetry/resources";
-import * as opentelemetry from "@opentelemetry/sdk-node";
-import { InMemorySpanExporter } from "@opentelemetry/sdk-trace-base";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import {
+  InMemorySpanExporter,
+  SpanExporter,
+} from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
 import type { Config } from "../../config";
 import { bindSystemMetrics } from "./metrics/system";
 import { pinoSpanExporter } from "./pino-exporter";
 
 export interface Telemetry {
-  getTracer(): opentelemetry.api.Tracer;
+  getTracer(): Tracer;
   startSpan<TResolved>(
     name: string,
-    options: opentelemetry.api.SpanOptions | undefined,
+    options: SpanOptions | undefined,
     callback: StartSpanCallback<TResolved>
   ): Promise<TResolved>;
   shutdown(): Promise<void>;
 }
 
 type StartSpanCallback<TResolved> = (
-  span: opentelemetry.api.Span
+  span: Span
 ) => Promise<TResolved> | TResolved;
 
 export let metrics: Meter;
@@ -40,8 +46,7 @@ export async function createTelemetry({
 }: {
   config: Config;
 }): Promise<Telemetry> {
-  let traceExporter: opentelemetry.tracing.SpanExporter =
-    new InMemorySpanExporter();
+  let traceExporter: SpanExporter = new InMemorySpanExporter();
 
   if (config.env === "production") {
     traceExporter = pinoSpanExporter;
@@ -51,7 +56,7 @@ export async function createTelemetry({
     preventServerStart: true,
   });
 
-  const sdk = new opentelemetry.NodeSDK({
+  const sdk = new NodeSDK({
     traceExporter,
     metricReader,
     sampler: new TraceIdRatioBasedSampler(1),
@@ -67,7 +72,7 @@ export async function createTelemetry({
 
   await sdk.start();
 
-  function getTracer(): opentelemetry.api.Tracer {
+  function getTracer(): Tracer {
     return trace.getTracer(config.name, config.version);
   }
 
@@ -77,7 +82,7 @@ export async function createTelemetry({
 
   async function startSpan<TResolved>(
     name: string,
-    options: opentelemetry.api.SpanOptions | undefined,
+    options: SpanOptions | undefined,
     callback: StartSpanCallback<TResolved>
   ): Promise<TResolved> {
     const span = getTracer().startSpan(name, options);
