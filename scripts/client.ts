@@ -3,8 +3,7 @@ import fs from "node:fs/promises";
 import { format } from "prettier";
 import * as ts from "typescript";
 import { compilerOptions } from "../tsconfig.json";
-import { parse } from "./openapi-client-generator/parser";
-import { generate } from "./openapi-client-generator/generator";
+import { parse, generate, Endpoint } from "./openapi-client-generator";
 import { startApp } from "../src";
 
 const clientDir = path.resolve(__dirname, "../client");
@@ -15,21 +14,10 @@ const outputBuild = path.join(clientDir, "./build");
 async function client() {
   await prepareDirectories();
 
-  process.stdout.write("Starting app and fetching schema... ");
-  let now = Date.now();
   const parsedSchema = await startAppAndFetchSchema();
-  console.log(`(${Date.now() - now}ms)`);
-  now = Date.now();
 
-  process.stdout.write("Running prettier and writing source file... ");
-  const client = format(generate(parsedSchema), { parser: "typescript" });
-  await fs.writeFile(outputSrcIndex, client);
-  console.log(`(${Date.now() - now}ms)`);
-  now = Date.now();
-
-  process.stdout.write("Generating build assets... ");
+  await createSrcClient(parsedSchema);
   await createBuildClient();
-  console.log(`(${Date.now() - now}ms)`);
 }
 
 async function prepareDirectories() {
@@ -48,6 +36,9 @@ async function prepareDirectories() {
 }
 
 async function startAppAndFetchSchema() {
+  const startTime = Date.now();
+  process.stdout.write("Starting app and fetching schema... ");
+
   const { default: getPort } = await import("get-port");
   const port = await getPort();
 
@@ -62,8 +53,22 @@ async function startAppAndFetchSchema() {
   await app.shutdown.shutdown(false);
 
   const parsedSchema = await parse(schema);
+  console.log(`(${Date.now() - startTime}ms)`);
 
   return parsedSchema;
+}
+
+async function createSrcClient(parsedSchema: {
+  endpoints: Endpoint[];
+  interfaces: string[];
+}) {
+  const startTime = Date.now();
+  process.stdout.write("Running prettier and writing source file... ");
+
+  const client = format(generate(parsedSchema), { parser: "typescript" });
+  await fs.writeFile(outputSrcIndex, client);
+
+  console.log(`(${Date.now() - startTime}ms)`);
 }
 
 async function createBuildClient() {
