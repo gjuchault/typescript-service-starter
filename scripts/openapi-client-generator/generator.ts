@@ -124,7 +124,11 @@ function generateSuccessfulReturn(endpoint: Endpoint) {
 
   return `
     const data = await response.json();
-    return { success: true, data: ${endpoint.responseType}.parse(data) }
+    return {
+      success: true,
+      headers: response.headers,
+      data: ${endpoint.responseType}.parse(data)
+    }
   `;
 }
 
