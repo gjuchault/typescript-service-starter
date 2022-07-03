@@ -95,6 +95,7 @@ export async function startApp(configOverride: Partial<Config> = {}) {
 }
 
 if (require.main === module) {
+  // eslint-disable-next-line unicorn/prefer-top-level-await
   startApp().catch((error) => {
     throw error;
   });
