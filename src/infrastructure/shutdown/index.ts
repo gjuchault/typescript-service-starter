@@ -2,10 +2,10 @@ import { context, trace } from "@opentelemetry/api";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import type { Config } from "../../config";
-import { promiseWithTimeout } from "../../helpers/promise-timeout";
 import type { HttpServer } from "../../infrastructure/http";
 import type { Cache } from "../cache";
 import type { Database } from "../database";
+import { promiseWithTimeout } from "../helpers/promise-timeout";
 import type { Logger } from "../logger";
 import type { Telemetry } from "../telemetry";
 

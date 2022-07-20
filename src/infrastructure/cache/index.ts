@@ -1,6 +1,6 @@
 import { default as Redis } from "ioredis";
 import ms from "ms";
-import { promiseWithTimeout } from "../../helpers/promise-timeout";
+import { promiseWithTimeout } from "../helpers/promise-timeout";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
 import { getSpanOptions } from "../telemetry/instrumentations/ioredis";
