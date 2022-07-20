@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { z } from "zod";
 
 import { version, description } from "../package.json";
