@@ -25,7 +25,9 @@ import { bindSystemMetrics } from "./metrics/system";
 import { pinoSpanExporter } from "./pino-exporter";
 
 export interface Telemetry {
-  getTracer(): Tracer;
+  metrics: Meter;
+  metricReader: PrometheusExporter;
+  tracer: Tracer;
   startSpan<TResolved>(
     name: string,
     options: SpanOptions | undefined,
@@ -38,21 +40,15 @@ type StartSpanCallback<TResolved> = (
   span: Span
 ) => Promise<TResolved> | TResolved;
 
-export let metrics: Meter;
-export let metricReader: PrometheusExporter;
-
 export async function createTelemetry({
   config,
 }: {
   config: Config;
 }): Promise<Telemetry> {
-  let traceExporter: SpanExporter = new InMemorySpanExporter();
+  const traceExporter: SpanExporter =
+    config.env === "production" ? pinoSpanExporter : new InMemorySpanExporter();
 
-  if (config.env === "production") {
-    traceExporter = pinoSpanExporter;
-  }
-
-  metricReader = new PrometheusExporter({
+  const metricReader = new PrometheusExporter({
     preventServerStart: true,
   });
 
@@ -72,44 +68,41 @@ export async function createTelemetry({
 
   await sdk.start();
 
-  function getTracer(): Tracer {
-    return trace.getTracer(config.name, config.version);
-  }
+  const tracer = trace.getTracer(config.name, config.version);
 
-  metrics = apiMetrics.getMeter(config.name, config.version);
+  const metrics = apiMetrics.getMeter(config.name, config.version);
 
-  bindSystemMetrics();
+  bindSystemMetrics({ metrics });
 
   async function startSpan<TResolved>(
     name: string,
     options: SpanOptions | undefined,
     callback: StartSpanCallback<TResolved>
   ): Promise<TResolved> {
-    const span = getTracer().startSpan(name, options);
+    const span = tracer.startSpan(name, options);
     const traceContext = trace.setSpan(context.active(), span);
 
-    return new Promise<TResolved>((resolve, reject) => {
-      context.with(traceContext, async () => {
-        try {
-          const result: TResolved = await callback(span);
+    return context.with(traceContext, async () => {
+      try {
+        const result: TResolved = await callback(span);
 
-          span.setStatus({ code: SpanStatusCode.OK });
+        span.setStatus({ code: SpanStatusCode.OK });
 
-          resolve(result);
-        } catch (error) {
-          if (error instanceof Error) {
-            span.recordException(error);
-          }
-
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: getErrorMessage(error),
-          });
-          reject(error);
-        } finally {
-          span.end();
+        return result;
+      } catch (error) {
+        if (error instanceof Error) {
+          span.recordException(error);
         }
-      });
+
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: getErrorMessage(error),
+        });
+
+        throw error;
+      } finally {
+        span.end();
+      }
     });
   }
 
@@ -118,7 +111,9 @@ export async function createTelemetry({
   }
 
   return {
-    getTracer,
+    metrics,
+    metricReader,
+    tracer,
     startSpan,
     shutdown,
   };

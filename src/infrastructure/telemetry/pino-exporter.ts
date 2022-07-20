@@ -28,6 +28,9 @@ export const pinoSpanExporter: SpanExporter = {
   async shutdown() {
     logger.flush();
 
+    // SpanExported requires shutdown to be asynchronous
+    await Promise.resolve();
+
     return;
   },
 };

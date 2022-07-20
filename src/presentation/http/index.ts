@@ -19,8 +19,8 @@ export function bindHttpRoutes({
         },
       },
     },
-    (_request, reply) => {
-      reply.send(httpServer.swagger());
+    () => {
+      return httpServer.swagger();
     }
   );
 
