@@ -1,20 +1,18 @@
-import { createMockPool, createMockQueryResult, sql } from "slonik";
+import { createMockPool, createMockQueryResult } from "slonik";
 import { beforeAll, describe, it, vi, expect } from "vitest";
 import { createHealthcheckRepository, GetHealthcheckResult } from "..";
 
 describe("getHealthcheck()", () => {
   describe("given a healthy database", () => {
+    const query = vi.fn().mockResolvedValue(createMockQueryResult([]));
+
     const database = createMockPool({
-      query() {
-        return Promise.resolve(createMockQueryResult([]));
-      },
+      query,
     });
 
     const repository = createHealthcheckRepository({
       database,
     });
-
-    const spyQuery = vi.spyOn(database, "query");
 
     describe("when called", () => {
       let result: GetHealthcheckResult;
@@ -28,24 +26,24 @@ describe("getHealthcheck()", () => {
       });
 
       it("called the database with the appropriate query", () => {
-        expect(spyQuery).toBeCalledTimes(1);
-        expect(spyQuery.mock.calls[0][0]).toEqual(sql`select 1`);
+        expect(query).toBeCalledTimes(1);
+        expect(query.mock.calls[0][0]).toEqual("select 1");
       });
     });
   });
 
   describe("given an unhealthy database", () => {
+    const query = vi.fn().mockImplementation(() => {
+      throw new Error("error");
+    });
+
     const database = createMockPool({
-      query() {
-        throw new Error("error");
-      },
+      query,
     });
 
     const repository = createHealthcheckRepository({
       database,
     });
-
-    const spyQuery = vi.spyOn(database, "query");
 
     describe("when called", () => {
       let result: GetHealthcheckResult;
@@ -59,8 +57,8 @@ describe("getHealthcheck()", () => {
       });
 
       it("called the database with the appropriate query", () => {
-        expect(spyQuery).toBeCalledTimes(1);
-        expect(spyQuery.mock.calls[0][0]).toEqual(sql`select 1`);
+        expect(query).toBeCalledTimes(1);
+        expect(query.mock.calls[0][0]).toEqual("select 1");
       });
     });
   });
