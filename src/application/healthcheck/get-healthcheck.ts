@@ -10,37 +10,33 @@ export interface GetHealthcheckResult {
   processMemory: "healthy" | "unhealthy";
 }
 
-export function createGetHealthcheck({
+export async function getHealthcheck({
   healthcheckRepository,
   cache,
 }: {
   healthcheckRepository: HealthcheckRepository;
   cache: Redis;
-}) {
-  async function getHealthcheck(): Promise<GetHealthcheckResult> {
-    const databaseResult = await healthcheckRepository.getHealthcheck();
+}): Promise<GetHealthcheckResult> {
+  const databaseResult = await healthcheckRepository.getHealthcheck();
 
-    let cacheResult: "healthy" | "unhealthy" = "healthy";
+  let cacheResult: "healthy" | "unhealthy" = "healthy";
 
-    try {
-      await cache.echo("1");
-    } catch {
-      cacheResult = "unhealthy";
-    }
-
-    const systemMemoryUsage = os.freemem() / os.totalmem();
-
-    const v8HeapStatistics = v8.getHeapStatistics();
-    const processMemoryUsage =
-      v8HeapStatistics.total_heap_size / v8HeapStatistics.heap_size_limit;
-
-    return {
-      database: databaseResult.outcome,
-      cache: cacheResult,
-      systemMemory: systemMemoryUsage > 0.8 ? "unhealthy" : "healthy",
-      processMemory: processMemoryUsage > 0.8 ? "unhealthy" : "healthy",
-    };
+  try {
+    await cache.echo("1");
+  } catch {
+    cacheResult = "unhealthy";
   }
 
-  return getHealthcheck;
+  const systemMemoryUsage = os.freemem() / os.totalmem();
+
+  const v8HeapStatistics = v8.getHeapStatistics();
+  const processMemoryUsage =
+    v8HeapStatistics.total_heap_size / v8HeapStatistics.heap_size_limit;
+
+  return {
+    database: databaseResult.outcome,
+    cache: cacheResult,
+    systemMemory: systemMemoryUsage > 0.8 ? "unhealthy" : "healthy",
+    processMemory: processMemoryUsage > 0.8 ? "unhealthy" : "healthy",
+  };
 }
