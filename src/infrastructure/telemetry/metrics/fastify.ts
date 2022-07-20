@@ -1,17 +1,19 @@
 import { ValueType } from "@opentelemetry/api-metrics";
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
-import { metrics, metricReader } from "..";
+import type { Telemetry } from "..";
 
-const ignoredPaths: Set<string> = new Set();
+const ignoredPaths = new Set<string>();
 
 export const metricsPlugin = fp(innerMetricsPlugin);
 
 function innerMetricsPlugin(
   httpServer: FastifyInstance,
-  _options: FastifyPluginOptions,
+  options: Telemetry,
   done: () => void
 ) {
+  const { metrics, metricReader } = options;
+
   httpServer.get("/metrics", (request, reply) => {
     metricReader.getMetricsRequestHandler(request.raw, reply.raw);
   });
@@ -36,7 +38,7 @@ function innerMetricsPlugin(
     done();
   });
 
-  httpServer.addHook("onResponse", (request, reply, done) => {
+  httpServer.addHook("onResponse", (request, _reply, done) => {
     const requestStarted = durationMap.get(request);
 
     if (requestStarted === undefined) {

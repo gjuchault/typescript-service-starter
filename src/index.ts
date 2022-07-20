@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
-import { Config, getConfig, mergeConfig } from "./config";
+import { Config, getConfig } from "./config";
 import { createCacheStorage, Cache } from "./infrastructure/cache";
 import { createDatabase, Database } from "./infrastructure/database";
 import { createHttpServer, HttpServer } from "./infrastructure/http";
@@ -12,9 +12,7 @@ import { bindHttpRoutes } from "./presentation/http";
 import { createRepository } from "./repository";
 
 export async function startApp(configOverride: Partial<Config> = {}) {
-  mergeConfig(configOverride);
-
-  const config = getConfig();
+  const config = getConfig(configOverride);
   const telemetry = await createTelemetry({ config });
 
   const logger = createLogger("app");
@@ -42,10 +40,10 @@ export async function startApp(configOverride: Partial<Config> = {}) {
       telemetry,
     });
 
-    httpServer = await createHttpServer({ config, cache });
+    httpServer = await createHttpServer({ config, cache, telemetry });
   } catch (error) {
     logger.error(`${config.name} startup error`, {
-      error: (error as unknown as Record<string, unknown>)?.message ?? error,
+      error: (error as Record<string, unknown>).message ?? error,
     });
     process.exit(1);
   }
@@ -68,7 +66,7 @@ export async function startApp(configOverride: Partial<Config> = {}) {
     httpServer,
     telemetry,
     config,
-    exit: process.exit,
+    exit: (statusCode?: number) => process.exit(statusCode),
   });
 
   shutdown.listenToProcessEvents();
@@ -94,8 +92,9 @@ export async function startApp(configOverride: Partial<Config> = {}) {
   };
 }
 
+// eslint-disable-next-line unicorn/prefer-module -- Not ESM yet
 if (require.main === module) {
-  // eslint-disable-next-line unicorn/prefer-top-level-await
+  // eslint-disable-next-line unicorn/prefer-top-level-await -- Not ESM yet
   startApp().catch((error) => {
     throw error;
   });

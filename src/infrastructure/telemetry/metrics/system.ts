@@ -1,12 +1,11 @@
 import perfHooks, { Histogram, NodeGCPerformanceDetail } from "node:perf_hooks";
-import { ValueType } from "@opentelemetry/api-metrics";
-import { metrics } from "..";
+import { Meter, ValueType } from "@opentelemetry/api-metrics";
 
 // https://github.com/siimon/prom-client/blob/master/lib/metrics
 
 const startInSeconds = Math.round(Date.now() / 1000 - process.uptime());
 
-export function bindSystemMetrics() {
+export function bindSystemMetrics({ metrics }: { metrics: Meter }) {
   // eventLoopLag
   const eventLoopDelay = perfHooks.monitorEventLoopDelay();
   eventLoopDelay.enable();
@@ -36,6 +35,11 @@ export function bindSystemMetrics() {
           break;
         case "stddev":
           observableResult.observe(eventLoopDelay.stddev / 1e9);
+          break;
+        case "exceeds":
+        case "percentile":
+        case "percentiles":
+        case "reset":
           break;
       }
     });
@@ -116,6 +120,9 @@ export function bindSystemMetrics() {
           break;
         case "external":
           observableResult.observe(sharedMemoryUsage.external);
+          break;
+        case "rss":
+        case "arrayBuffers":
           break;
       }
     });

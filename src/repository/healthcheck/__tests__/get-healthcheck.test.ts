@@ -5,8 +5,8 @@ import { createHealthcheckRepository, GetHealthcheckResult } from "..";
 describe("getHealthcheck()", () => {
   describe("given a healthy database", () => {
     const database = createMockPool({
-      async query() {
-        return createMockQueryResult([]);
+      query() {
+        return Promise.resolve(createMockQueryResult([]));
       },
     });
 
@@ -36,7 +36,7 @@ describe("getHealthcheck()", () => {
 
   describe("given an unhealthy database", () => {
     const database = createMockPool({
-      async query() {
+      query() {
         throw new Error("error");
       },
     });

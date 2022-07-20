@@ -11,7 +11,9 @@ export interface ZodTypeProvider extends FastifyTypeProvider {
   output: this["input"] extends z.ZodSchema ? z.infer<this["input"]> : never;
 }
 
-export function validatorCompiler({ schema }: FastifyRouteSchemaDef<ZodType>) {
+export function validatorCompiler({
+  schema,
+}: FastifyRouteSchemaDef<ZodType<unknown>>) {
   return (data: unknown) => {
     const zodResult = schema.safeParse(data);
 
