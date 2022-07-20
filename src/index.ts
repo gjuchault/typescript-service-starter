@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
 import { Config, getConfig } from "./config";
 import { createCacheStorage, Cache } from "./infrastructure/cache";
