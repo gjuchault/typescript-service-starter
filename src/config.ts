@@ -1,12 +1,21 @@
 import { z } from "zod";
 
 import { version, description } from "../package.json";
-import type { Entries } from "./helpers/entries";
-import { rejectUnexpectedValue } from "./helpers/switch-guard";
 
-export type Config = typeof config;
+export interface Config {
+  name: string;
+  version: string;
+  description: string;
+  env: "development" | "production" | "test";
+  logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
+  address: string;
+  secret: string;
+  port: number;
+  databaseUrl: string;
+  redisUrl: string;
+}
 
-const config = {
+const config: Config = {
   name: "app",
   version,
   description,
@@ -48,49 +57,10 @@ const config = {
   redisUrl: z.string().parse(process.env.REDIS_URL),
 };
 
-export function getConfig() {
+export function getConfig(configOverride: Partial<Config> = {}): Config {
   return {
     ...config,
+    ...configOverride,
     databaseUrl: process.env.DATABASE_TEST_URL ?? config.databaseUrl,
   };
-}
-
-export function mergeConfig(configOverride: Partial<Config>) {
-  const configEntries = Object.entries(configOverride) as Entries<Config>;
-  for (const [configKey, configValueOverride] of configEntries) {
-    switch (configKey) {
-      case "address":
-        config.address = configValueOverride;
-        break;
-      case "databaseUrl":
-        config.databaseUrl = configValueOverride;
-        break;
-      case "env":
-        config.env = configValueOverride;
-        break;
-      case "logLevel":
-        config.logLevel = configValueOverride;
-        break;
-      case "name":
-        config.name = configValueOverride;
-        break;
-      case "port":
-        config.port = configValueOverride;
-        break;
-      case "redisUrl":
-        config.redisUrl = configValueOverride;
-        break;
-      case "secret":
-        config.secret = configValueOverride;
-        break;
-      case "version":
-        config.version = configValueOverride;
-        break;
-      case "description":
-        config.description = configValueOverride;
-        break;
-      default:
-        rejectUnexpectedValue("configKey", configKey);
-    }
-  }
 }

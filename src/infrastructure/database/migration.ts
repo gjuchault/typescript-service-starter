@@ -1,23 +1,18 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import {
-  DatabasePool,
-  createPool,
-  sql,
-  TaggedTemplateLiteralInvocation,
-} from "slonik";
-import { Umzug, InputMigrations } from "umzug";
-import { getConfig } from "../../config";
+import { sql, TaggedTemplateLiteralInvocation } from "slonik";
+import { InputMigrations, Umzug } from "umzug";
+import type { Database } from ".";
 
 export function buildMigration({
   migrationFiles,
-  databasePool,
+  database,
 }: {
   migrationFiles: InputMigrations<Record<never, never>>;
-  databasePool: DatabasePool;
+  database: Database;
 }) {
   async function ensureTable() {
-    await databasePool.query(sql`
+    await database.query(sql`
       create table if not exists "public"."migrations" (
         "name" varchar, primary key ("name")
       );
@@ -26,7 +21,7 @@ export function buildMigration({
 
   async function executed() {
     await ensureTable();
-    const migrations = await databasePool.anyFirst<string>(sql`
+    const migrations = await database.anyFirst<string>(sql`
       select "name"
       from "public"."migrations"
       order by "name" asc;
@@ -36,7 +31,7 @@ export function buildMigration({
   }
 
   async function logMigration({ name }: { name: string }) {
-    await databasePool.query(sql`
+    await database.query(sql`
       insert into "public"."migrations" ("name")
       values (${name});
     `);
@@ -45,7 +40,7 @@ export function buildMigration({
   async function unlogMigration({ name }: { name: string }) {
     await ensureTable();
 
-    await databasePool.query(sql`
+    await database.query(sql`
       delete from "public"."migrations"
       where "name" = ${name};
     `);
@@ -66,13 +61,12 @@ export function buildMigration({
 
 // eslint-disable-next-line unicorn/prefer-module
 const migrationsPath = path.join(__dirname, "../../../migrations");
-export const databasePool = createPool(getConfig().databaseUrl);
 
 /**
  * Do not use this in production, as it assumes the file structure
  * Should only be used in tests
  */
-export async function readMigrations() {
+export async function readMigrations(database: Database) {
   // eslint-disable-next-line security/detect-non-literal-fs-filename
   const migrationsFiles = await fs.readdir(migrationsPath);
   return await Promise.all(
@@ -94,7 +88,7 @@ export async function readMigrations() {
         return {
           name: file.slice(file.indexOf("_") + 1, -1 * ".sql".length),
           async up() {
-            await databasePool.query(query);
+            await database.query(query);
           },
           async down() {
             // nothing to do

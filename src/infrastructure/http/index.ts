@@ -25,6 +25,7 @@ import type { RouteGenericInterface } from "fastify/types/route";
 import type { ResolveFastifyReplyType } from "fastify/types/type-provider";
 import ms from "ms";
 import type { ZodType } from "zod";
+import type { Config } from "../../config";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
@@ -71,12 +72,7 @@ export async function createHttpServer({
   cache,
   telemetry,
 }: {
-  config: {
-    secret: string;
-    name: string;
-    version: string;
-    description: string;
-  };
+  config: Config;
   cache: Cache;
   telemetry: Telemetry;
 }) {
@@ -95,10 +91,7 @@ export async function createHttpServer({
   httpServer.setSerializerCompiler(serializerCompiler);
 
   await httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
-  await httpServer.register(metricsPlugin, {
-    metrics: telemetry.metrics,
-    metricReader: telemetry.metricReader,
-  });
+  await httpServer.register(metricsPlugin, telemetry);
 
   await httpServer.register(circuitBreaker);
   await httpServer.register(cookie, { secret });

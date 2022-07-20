@@ -1,7 +1,7 @@
-import { Meter, ValueType } from "@opentelemetry/api-metrics";
-import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { ValueType } from "@opentelemetry/api-metrics";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
+import type { Telemetry } from "..";
 
 const ignoredPaths = new Set<string>();
 
@@ -9,10 +9,7 @@ export const metricsPlugin = fp(innerMetricsPlugin);
 
 function innerMetricsPlugin(
   httpServer: FastifyInstance,
-  options: {
-    readonly metrics: Meter;
-    readonly metricReader: PrometheusExporter;
-  },
+  options: Telemetry,
   done: () => void
 ) {
   const { metrics, metricReader } = options;
@@ -41,7 +38,7 @@ function innerMetricsPlugin(
     done();
   });
 
-  httpServer.addHook("onResponse", (request, reply, done) => {
+  httpServer.addHook("onResponse", (request, _reply, done) => {
     const requestStarted = durationMap.get(request);
 
     if (requestStarted === undefined) {

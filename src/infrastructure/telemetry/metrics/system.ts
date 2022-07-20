@@ -36,6 +36,11 @@ export function bindSystemMetrics({ metrics }: { metrics: Meter }) {
         case "stddev":
           observableResult.observe(eventLoopDelay.stddev / 1e9);
           break;
+        case "exceeds":
+        case "percentile":
+        case "percentiles":
+        case "reset":
+          break;
       }
     });
   }
@@ -115,6 +120,9 @@ export function bindSystemMetrics({ metrics }: { metrics: Meter }) {
           break;
         case "external":
           observableResult.observe(sharedMemoryUsage.external);
+          break;
+        case "rss":
+        case "arrayBuffers":
           break;
       }
     });

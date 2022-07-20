@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import "dotenv/config";
 import { createHealthcheckApplication } from "./application/healthcheck";
-import { Config, getConfig, mergeConfig } from "./config";
+import { Config, getConfig } from "./config";
 import { createCacheStorage, Cache } from "./infrastructure/cache";
 import { createDatabase, Database } from "./infrastructure/database";
 import { createHttpServer, HttpServer } from "./infrastructure/http";
@@ -12,9 +12,7 @@ import { bindHttpRoutes } from "./presentation/http";
 import { createRepository } from "./repository";
 
 export async function startApp(configOverride: Partial<Config> = {}) {
-  mergeConfig(configOverride);
-
-  const config = getConfig();
+  const config = getConfig(configOverride);
   const telemetry = await createTelemetry({ config });
 
   const logger = createLogger("app");

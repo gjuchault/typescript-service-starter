@@ -3,7 +3,6 @@ import { beforeAll } from "vitest";
 import { startApp } from "../index";
 import {
   buildMigration,
-  databasePool,
   readMigrations,
 } from "../infrastructure/database/migration";
 import type { HttpServer } from "../infrastructure/http";
@@ -24,7 +23,15 @@ beforeAll(async () => {
     logLevel: "error",
   });
 
-  await databasePool.query(
+  const {
+    database,
+    httpServer,
+    shutdown: { shutdown },
+  } = app;
+
+  http = httpServer;
+
+  await database.query(
     sql`
       do $$ declare
           r record;
@@ -36,18 +43,16 @@ beforeAll(async () => {
     `
   );
 
-  const migrationFiles = await readMigrations();
+  const migrationFiles = await readMigrations(database);
 
   const migration = buildMigration({
-    databasePool,
+    database,
     migrationFiles,
   });
 
   await migration.up();
 
-  http = app.httpServer;
-
   return async () => {
-    await app.shutdown.shutdown(false);
+    await shutdown(false);
   };
 });

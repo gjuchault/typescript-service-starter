@@ -1,6 +1,8 @@
-import { pino, Logger } from "pino";
+import { pino, Logger as PinoLogger } from "pino";
 import { getConfig } from "../../config";
 import { pinoMixin as telemetryMixin } from "../telemetry/instrumentations/pino";
+
+export type Logger = PinoLogger;
 
 export function createLogger(serviceName: string): Logger {
   const { logLevel } = getConfig();
@@ -20,12 +22,12 @@ export function createLogger(serviceName: string): Logger {
       // of logger.method(details, message)
       logMethod(inputArguments: unknown[], method) {
         if (inputArguments.length >= 2) {
-          const argument1 = inputArguments.shift();
-          const argument2 = inputArguments.shift();
+          const argument1 = inputArguments[0];
+          const argument2 = inputArguments[1];
           return Reflect.apply(method, this, [
             argument2,
             argument1,
-            ...inputArguments,
+            ...inputArguments.slice(2),
           ]) as unknown;
         }
 
@@ -39,5 +41,3 @@ export function createLogger(serviceName: string): Logger {
     serviceName,
   });
 }
-
-export { Logger } from "pino";

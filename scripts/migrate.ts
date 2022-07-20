@@ -11,13 +11,13 @@ import {
 } from "../src/infrastructure/database/migration";
 
 const migrationsPath = path.join(__dirname, "../migrations");
-export const databasePool = createPool(getConfig().databaseUrl);
 
 export async function migrate(args = process.argv.slice(2), exit = true) {
-  const migrationFiles = await readMigrations();
+  const database = createPool(getConfig().databaseUrl);
+  const migrationFiles = await readMigrations(database);
   const umzug = buildMigration({
     migrationFiles,
-    databasePool,
+    database,
   });
 
   umzug.on("migrating", ({ name }) => {
