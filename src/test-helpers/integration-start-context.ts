@@ -8,7 +8,15 @@ import {
 } from "../infrastructure/database/migration";
 import type { HttpServer } from "../infrastructure/http";
 
-export let http: HttpServer;
+let http: HttpServer | undefined;
+
+export function getHttpTestContext() {
+  if (!http) {
+    throw new Error("http not yet initialized");
+  }
+
+  return http;
+}
 
 beforeAll(async () => {
   const app = await startApp({

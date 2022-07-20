@@ -90,7 +90,7 @@ export function mergeConfig(configOverride: Partial<Config>) {
         config.description = configValueOverride;
         break;
       default:
-        rejectUnexpectedValue(configKey);
+        rejectUnexpectedValue("configKey", configKey);
     }
   }
 }

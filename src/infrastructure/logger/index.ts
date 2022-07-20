@@ -18,7 +18,7 @@ export function createLogger(serviceName: string): Logger {
     hooks: {
       // reverse pino method so it goes logger.method(message, details) instead
       // of logger.method(details, message)
-      logMethod(inputArguments, method) {
+      logMethod(inputArguments: unknown[], method) {
         if (inputArguments.length >= 2) {
           const argument1 = inputArguments.shift();
           const argument2 = inputArguments.shift();
@@ -26,7 +26,7 @@ export function createLogger(serviceName: string): Logger {
             argument2,
             argument1,
             ...inputArguments,
-          ]);
+          ]) as unknown;
         }
 
         return method.apply(this, inputArguments as [string, ...unknown[]]);

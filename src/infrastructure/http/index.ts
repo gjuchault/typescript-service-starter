@@ -28,7 +28,8 @@ import type { ZodType } from "zod";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
-import { Cache } from "../cache";
+import type { Cache } from "../cache";
+import type { Telemetry } from "../telemetry";
 import {
   serializerCompiler,
   swaggerTransform,
@@ -47,15 +48,15 @@ export type HttpServer = FastifyInstance<
 export type HttpRequest = FastifyRequest<
   RouteGenericInterface,
   Server,
-  RawRequestDefaultExpression<Server>,
+  RawRequestDefaultExpression,
   ZodType,
   ZodTypeProvider
 >;
 
 export type HttpReply = FastifyReply<
   Server,
-  RawRequestDefaultExpression<Server>,
-  RawReplyDefaultExpression<Server>,
+  RawRequestDefaultExpression,
+  RawReplyDefaultExpression,
   RouteGenericInterface,
   ContextConfigDefault,
   ZodType,
@@ -68,6 +69,7 @@ const requestTimeout = ms("120s");
 export async function createHttpServer({
   config: { secret, name, version, description },
   cache,
+  telemetry,
 }: {
   config: {
     secret: string;
@@ -76,6 +78,7 @@ export async function createHttpServer({
     description: string;
   };
   cache: Cache;
+  telemetry: Telemetry;
 }) {
   const logger = createLogger("http");
 
@@ -92,7 +95,10 @@ export async function createHttpServer({
   httpServer.setSerializerCompiler(serializerCompiler);
 
   await httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
-  await httpServer.register(metricsPlugin);
+  await httpServer.register(metricsPlugin, {
+    metrics: telemetry.metrics,
+    metricReader: telemetry.metricReader,
+  });
 
   await httpServer.register(circuitBreaker);
   await httpServer.register(cookie, { secret });
@@ -130,32 +136,31 @@ export async function createHttpServer({
 
   httpServer.setNotFoundHandler(
     {
-      preHandler: (request, reply) => {
-        const handler = request.server.rateLimit().bind(request.server);
-
-        return handler(request, reply);
-      },
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      preHandler: httpServer.rateLimit(),
     },
     function (_request, reply) {
-      reply.code(404).send();
+      void reply.code(404).send();
     }
   );
 
-  httpServer.addHook("onRequest", async (request) => {
+  httpServer.addHook("onRequest", (request, _response, done) => {
     logger.debug(`http request: ${request.method} ${request.url}`, {
-      requestId: request.id,
+      requestId: getRequestId(request),
       method: request.method,
       url: request.url,
       route: request.routerPath,
       userAgent: request.headers["user-agent"],
     });
+
+    done();
   });
 
-  httpServer.addHook("onResponse", async (request, reply) => {
+  httpServer.addHook("onResponse", (request, reply, done) => {
     logger.debug(
       `http reply: ${request.method} ${request.url} ${reply.statusCode}`,
       {
-        requestId: request.id,
+        requestId: getRequestId(request),
         method: request.method,
         url: request.url,
         route: request.routerPath,
@@ -164,11 +169,13 @@ export async function createHttpServer({
         httpStatusCode: reply.statusCode,
       }
     );
+
+    done();
   });
 
-  httpServer.addHook("onError", async (request, reply, error) => {
-    logger.error(`http error: ${error}`, {
-      requestId: request.id,
+  httpServer.addHook("onError", (request, reply, error, done) => {
+    logger.error(`http error (${error.code}): ${error.name} ${error.message}`, {
+      requestId: getRequestId(request),
       error: {
         name: error.name,
         message: error.message,
@@ -182,7 +189,17 @@ export async function createHttpServer({
       responseTime: Math.ceil(reply.getResponseTime()),
       httpStatusCode: reply.statusCode,
     });
+
+    done();
   });
 
   return httpServer;
+}
+
+function getRequestId(request: FastifyRequest): string | undefined {
+  if (typeof request.id === "string") {
+    return request.id;
+  }
+
+  return undefined;
 }

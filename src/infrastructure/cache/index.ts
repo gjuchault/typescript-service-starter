@@ -21,8 +21,12 @@ export async function createCacheStorage({
   const redis = new Redis(url, {});
 
   redis.on("error", (error) => {
+    if (!isRedisError(error)) {
+      throw error;
+    }
+
     // these will be spamming quite a log stderr
-    if (error.code === "ECONNREFUSED") {
+    if (isRedisConnRefusedError(error)) {
       return;
     }
 
@@ -43,4 +47,16 @@ export async function createCacheStorage({
 
     return redis;
   });
+}
+
+function isRedisError(error: unknown): error is object {
+  return typeof error === "object" && error !== null;
+}
+
+function isRedisConnRefusedError(error: object): error is { code: string } {
+  if ("code" in error) {
+    return (error as { code: string }).code === "ECONNREFUSED";
+  }
+
+  return false;
 }

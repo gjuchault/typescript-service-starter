@@ -21,32 +21,6 @@ export function bindHealthcheckRoutes({
   httpServer: HttpServer;
   healthcheckApplication: HealthcheckApplication;
 }) {
-  // const querystringSchema = z.object({
-  //   foo: z.string(),
-  // });
-
-  // httpServer.post(
-  //   "/user",
-  //   {
-  //     schema: {
-  //       querystring: querystringSchema,
-  //       body: z.object({
-  //         name: z.string(),
-  //       }),
-  //       response: {
-  //         200: z.object({ name: z.string() }),
-  //       },
-  //     },
-  //   },
-  //   async (request, reply) => {
-  //     request.query.foo;
-  //     request.body.name;
-  //     reply.send({
-  //       name: "foo",
-  //     });
-  //   }
-  // );
-
   httpServer.get(
     "/healthcheck",
     {
@@ -61,8 +35,6 @@ export function bindHealthcheckRoutes({
     async function handler(_request, reply) {
       const healthcheck = await healthcheckApplication.getHealthcheck();
 
-      // _request.query.foo;
-
       let status = 200;
       for (const value of Object.values(healthcheck)) {
         if (value !== "healthy") {
@@ -71,7 +43,7 @@ export function bindHealthcheckRoutes({
         }
       }
 
-      reply.code(status).send({
+      return reply.code(status).send({
         ...healthcheck,
         http: "healthy",
       });

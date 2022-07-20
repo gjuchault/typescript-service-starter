@@ -1,17 +1,22 @@
-import { ValueType } from "@opentelemetry/api-metrics";
-import { FastifyInstance, FastifyPluginOptions, FastifyRequest } from "fastify";
+import { Meter, ValueType } from "@opentelemetry/api-metrics";
+import { PrometheusExporter } from "@opentelemetry/exporter-prometheus";
+import { FastifyInstance, FastifyRequest } from "fastify";
 import fp from "fastify-plugin";
-import { metrics, metricReader } from "..";
 
-const ignoredPaths: Set<string> = new Set();
+const ignoredPaths = new Set<string>();
 
 export const metricsPlugin = fp(innerMetricsPlugin);
 
 function innerMetricsPlugin(
   httpServer: FastifyInstance,
-  _options: FastifyPluginOptions,
+  options: {
+    readonly metrics: Meter;
+    readonly metricReader: PrometheusExporter;
+  },
   done: () => void
 ) {
+  const { metrics, metricReader } = options;
+
   httpServer.get("/metrics", (request, reply) => {
     metricReader.getMetricsRequestHandler(request.raw, reply.raw);
   });

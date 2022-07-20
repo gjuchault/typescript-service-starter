@@ -25,6 +25,8 @@ import { bindSystemMetrics } from "./metrics/system";
 import { pinoSpanExporter } from "./pino-exporter";
 
 export interface Telemetry {
+  metrics: Meter;
+  metricReader: PrometheusExporter;
   getTracer(): Tracer;
   startSpan<TResolved>(
     name: string,
@@ -38,9 +40,6 @@ type StartSpanCallback<TResolved> = (
   span: Span
 ) => Promise<TResolved> | TResolved;
 
-export let metrics: Meter;
-export let metricReader: PrometheusExporter;
-
 export async function createTelemetry({
   config,
 }: {
@@ -52,7 +51,7 @@ export async function createTelemetry({
     traceExporter = pinoSpanExporter;
   }
 
-  metricReader = new PrometheusExporter({
+  const metricReader = new PrometheusExporter({
     preventServerStart: true,
   });
 
@@ -76,9 +75,9 @@ export async function createTelemetry({
     return trace.getTracer(config.name, config.version);
   }
 
-  metrics = apiMetrics.getMeter(config.name, config.version);
+  const metrics = apiMetrics.getMeter(config.name, config.version);
 
-  bindSystemMetrics();
+  bindSystemMetrics({ metrics });
 
   async function startSpan<TResolved>(
     name: string,
@@ -88,28 +87,27 @@ export async function createTelemetry({
     const span = getTracer().startSpan(name, options);
     const traceContext = trace.setSpan(context.active(), span);
 
-    return new Promise<TResolved>((resolve, reject) => {
-      context.with(traceContext, async () => {
-        try {
-          const result: TResolved = await callback(span);
+    return context.with(traceContext, async () => {
+      try {
+        const result: TResolved = await callback(span);
 
-          span.setStatus({ code: SpanStatusCode.OK });
+        span.setStatus({ code: SpanStatusCode.OK });
 
-          resolve(result);
-        } catch (error) {
-          if (error instanceof Error) {
-            span.recordException(error);
-          }
-
-          span.setStatus({
-            code: SpanStatusCode.ERROR,
-            message: getErrorMessage(error),
-          });
-          reject(error);
-        } finally {
-          span.end();
+        return result;
+      } catch (error) {
+        if (error instanceof Error) {
+          span.recordException(error);
         }
-      });
+
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: getErrorMessage(error),
+        });
+
+        throw error;
+      } finally {
+        span.end();
+      }
     });
   }
 
@@ -118,6 +116,8 @@ export async function createTelemetry({
   }
 
   return {
+    metrics,
+    metricReader,
     getTracer,
     startSpan,
     shutdown,

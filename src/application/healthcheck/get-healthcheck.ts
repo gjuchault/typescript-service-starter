@@ -3,12 +3,12 @@ import v8 from "node:v8";
 import type { Redis } from "ioredis";
 import type { HealthcheckRepository } from "../../repository/healthcheck";
 
-export type GetHealthcheckResult = {
+export interface GetHealthcheckResult {
   database: "healthy" | "unhealthy";
   cache: "healthy" | "unhealthy";
   systemMemory: "healthy" | "unhealthy";
   processMemory: "healthy" | "unhealthy";
-};
+}
 
 export function createGetHealthcheck({
   healthcheckRepository,

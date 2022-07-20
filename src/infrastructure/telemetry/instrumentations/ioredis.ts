@@ -19,7 +19,8 @@ export function getCommonSpanOptions(url: string) {
 
   return {
     [SemanticAttributes.DB_SYSTEM]: DbSystemValues.REDIS,
-    [SemanticAttributes.DB_NAME]: redisUrl.pathname.slice(1) ?? "0",
+    [SemanticAttributes.DB_NAME]:
+      redisUrl.pathname.slice(1) === "" ? "0" : redisUrl.pathname.slice(1),
     [SemanticAttributes.NET_PEER_NAME]: redisUrl.host,
     [SemanticAttributes.NET_PEER_PORT]: redisUrl.port,
     [SemanticAttributes.DB_CONNECTION_STRING]: `redis://${redisUrl.host}:${redisUrl.port}`,

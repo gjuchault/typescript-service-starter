@@ -80,7 +80,7 @@ export function createShutdownManager({
       );
 
       if (shouldExit) {
-        exit(1);
+        return exit(1);
       }
     } else {
       logger.info(`gracefully shut down service ${config.name}`, {
@@ -93,14 +93,20 @@ export function createShutdownManager({
 
     logger.flush();
 
-    if (shouldExit && exit) {
-      exit(0);
+    if (shouldExit) {
+      return exit(0);
     }
   }
 
   function listenToProcessEvents() {
-    process.addListener("SIGTERM", async () => shutdown());
-    process.addListener("SIGINT", async () => shutdown());
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    process.addListener("SIGTERM", async () => {
+      await shutdown();
+    });
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    process.addListener("SIGINT", async () => {
+      await shutdown();
+    });
   }
 
   return { listenToProcessEvents, shutdown };

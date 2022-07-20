@@ -15,8 +15,10 @@ export const openTelemetryPluginOptions: OpenTelemetryPluginOptions = {
   wrapRoutes: true,
   formatSpanName(request) {
     const requestUrl = getAbsoluteUrl(request);
-    const target = requestUrl.pathname ?? "/";
-    const pathname = request.routerPath ?? target;
+    // FIXME: is request.pathname optional?
+    const target = (requestUrl.pathname as string | undefined) ?? "/";
+    // FIXME: is request.routerPath optional?
+    const pathname = (request.routerPath as string | undefined) ?? target;
     return `${request.method} ${pathname}`;
   },
   formatSpanAttributes: {
@@ -28,8 +30,10 @@ export const openTelemetryPluginOptions: OpenTelemetryPluginOptions = {
       const ips = headers["x-forwarded-for"];
       const httpVersion = request.raw.httpVersion;
 
-      const target = requestUrl.pathname ?? "/";
-      const pathname = request.routerPath ?? target;
+      // FIXME: is request.pathname optional?
+      const target = (requestUrl.pathname as string | undefined) ?? "/";
+      // FIXME: is request.routerPath optional?
+      const pathname = (request.routerPath as string | undefined) ?? target;
       const clientIp = typeof ips === "string" ? ips.split(",")[0] : undefined;
       const netTransport =
         httpVersion === "QUIC"
@@ -71,7 +75,7 @@ function getRequestContentLength(
 ): Record<string, number> | undefined {
   const length = Number(request.headers["content-length"]);
 
-  if (length === undefined || !Number.isSafeInteger(length)) {
+  if (!Number.isSafeInteger(length)) {
     return;
   }
 

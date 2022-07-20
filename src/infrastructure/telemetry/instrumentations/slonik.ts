@@ -27,10 +27,10 @@ export function createSlonikTelemetryInterceptor({
 }: {
   telemetry: Telemetry;
 }): Interceptor {
-  const spanByQueryId: Map<string, Span> = new Map();
+  const spanByQueryId = new Map<string, Span>();
 
   return {
-    async beforeQueryExecution(queryContext, query) {
+    beforeQueryExecution(queryContext, query) {
       const span = telemetry.getTracer().startSpan("database.query", {
         kind: SpanKind.CLIENT,
         attributes: {
