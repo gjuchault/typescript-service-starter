@@ -31,7 +31,7 @@ export function createSlonikTelemetryInterceptor({
 
   return {
     beforeQueryExecution(queryContext, query) {
-      const span = telemetry.getTracer().startSpan("database.query", {
+      const span = telemetry.tracer.startSpan("database.query", {
         kind: SpanKind.CLIENT,
         attributes: {
           ...getCommonSpanOptions(),

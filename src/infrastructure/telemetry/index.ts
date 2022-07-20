@@ -27,7 +27,7 @@ import { pinoSpanExporter } from "./pino-exporter";
 export interface Telemetry {
   metrics: Meter;
   metricReader: PrometheusExporter;
-  getTracer(): Tracer;
+  tracer: Tracer;
   startSpan<TResolved>(
     name: string,
     options: SpanOptions | undefined,
@@ -45,11 +45,8 @@ export async function createTelemetry({
 }: {
   config: Config;
 }): Promise<Telemetry> {
-  let traceExporter: SpanExporter = new InMemorySpanExporter();
-
-  if (config.env === "production") {
-    traceExporter = pinoSpanExporter;
-  }
+  const traceExporter: SpanExporter =
+    config.env === "production" ? pinoSpanExporter : new InMemorySpanExporter();
 
   const metricReader = new PrometheusExporter({
     preventServerStart: true,
@@ -71,9 +68,7 @@ export async function createTelemetry({
 
   await sdk.start();
 
-  function getTracer(): Tracer {
-    return trace.getTracer(config.name, config.version);
-  }
+  const tracer = trace.getTracer(config.name, config.version);
 
   const metrics = apiMetrics.getMeter(config.name, config.version);
 
@@ -84,7 +79,7 @@ export async function createTelemetry({
     options: SpanOptions | undefined,
     callback: StartSpanCallback<TResolved>
   ): Promise<TResolved> {
-    const span = getTracer().startSpan(name, options);
+    const span = tracer.startSpan(name, options);
     const traceContext = trace.setSpan(context.active(), span);
 
     return context.with(traceContext, async () => {
@@ -118,7 +113,7 @@ export async function createTelemetry({
   return {
     metrics,
     metricReader,
-    getTracer,
+    tracer,
     startSpan,
     shutdown,
   };
