@@ -1,7 +1,7 @@
 import type { Redis } from "ioredis";
 import { beforeAll, describe, it, vi, expect } from "vitest";
 import type { HealthcheckRepository } from "../../../repository/healthcheck";
-import { createGetHealthcheck, GetHealthcheckResult } from "../get-healthcheck";
+import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck";
 
 const mockHealthyCache = {
   echo: vi.fn().mockResolvedValue("1"),
@@ -21,16 +21,14 @@ const mockUnhealthyRepository: HealthcheckRepository = {
 
 describe("getHealthcheck()", () => {
   describe("given a healthy cache and database", () => {
-    const getHealthcheck = createGetHealthcheck({
-      cache: mockHealthyCache,
-      healthcheckRepository: mockHealthyRepository,
-    });
-
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
       beforeAll(async () => {
-        result = await getHealthcheck();
+        result = await getHealthcheck({
+          cache: mockHealthyCache,
+          healthcheckRepository: mockHealthyRepository,
+        });
       });
 
       it("returns healthy", () => {
@@ -47,16 +45,14 @@ describe("getHealthcheck()", () => {
   });
 
   describe("given an unhealthy cache and healthy database", () => {
-    const getHealthcheck = createGetHealthcheck({
-      cache: mockUnhealthyCache,
-      healthcheckRepository: mockHealthyRepository,
-    });
-
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
       beforeAll(async () => {
-        result = await getHealthcheck();
+        result = await getHealthcheck({
+          cache: mockUnhealthyCache,
+          healthcheckRepository: mockHealthyRepository,
+        });
       });
 
       it("returns unhealthy cache, healthy database", () => {
@@ -73,16 +69,14 @@ describe("getHealthcheck()", () => {
   });
 
   describe("given a healthy cache and unhealthy database", () => {
-    const getHealthcheck = createGetHealthcheck({
-      cache: mockHealthyCache,
-      healthcheckRepository: mockUnhealthyRepository,
-    });
-
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
       beforeAll(async () => {
-        result = await getHealthcheck();
+        result = await getHealthcheck({
+          cache: mockHealthyCache,
+          healthcheckRepository: mockUnhealthyRepository,
+        });
       });
 
       it("returns unhealthy cache, healthy database", () => {
@@ -99,16 +93,14 @@ describe("getHealthcheck()", () => {
   });
 
   describe("given a healthy cache and database", () => {
-    const getHealthcheck = createGetHealthcheck({
-      cache: mockUnhealthyCache,
-      healthcheckRepository: mockUnhealthyRepository,
-    });
-
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
       beforeAll(async () => {
-        result = await getHealthcheck();
+        result = await getHealthcheck({
+          cache: mockUnhealthyCache,
+          healthcheckRepository: mockUnhealthyRepository,
+        });
       });
 
       it("returns unhealthy cache, healthy database", () => {
