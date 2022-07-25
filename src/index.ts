@@ -14,7 +14,7 @@ export async function startApp(configOverride: Partial<Config> = {}) {
   const config = getConfig(configOverride);
   const telemetry = await createTelemetry({ config });
 
-  const logger = createLogger("app");
+  const logger = createLogger("app", { config });
 
   const appStartedTimestamp = Date.now();
   logger.info(`starting service ${config.name}...`, {
@@ -30,12 +30,12 @@ export async function startApp(configOverride: Partial<Config> = {}) {
 
   try {
     cache = await createCacheStorage({
-      url: config.redisUrl,
+      config,
       telemetry,
     });
 
     database = await createDatabase({
-      url: config.databaseUrl,
+      config,
       telemetry,
     });
 

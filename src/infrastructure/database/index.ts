@@ -1,5 +1,6 @@
 import ms from "ms";
 import { sql, createPool, DatabasePool } from "slonik";
+import type { Config } from "../../config";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
 import {
@@ -8,19 +9,19 @@ import {
 } from "../telemetry/instrumentations/slonik";
 
 interface Dependencies {
-  url: string;
+  config: Config;
   telemetry: Telemetry;
 }
 
 export type Database = DatabasePool;
 
 export async function createDatabase({
-  url,
+  config,
   telemetry,
 }: Dependencies): Promise<Database> {
-  const logger = createLogger("database");
+  const logger = createLogger("database", { config });
 
-  const pool = createPool(url, {
+  const pool = createPool(config.databaseUrl, {
     captureStackTrace: false,
     statementTimeout: ms("20s"),
     interceptors: [createSlonikTelemetryInterceptor({ telemetry })],
