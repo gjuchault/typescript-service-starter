@@ -1,24 +1,25 @@
 import { default as Redis } from "ioredis";
 import ms from "ms";
+import type { Config } from "../../config";
 import { promiseWithTimeout } from "../helpers/promise-timeout";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
 import { getSpanOptions } from "../telemetry/instrumentations/ioredis";
 
 interface Dependencies {
-  url: string;
+  config: Config;
   telemetry: Telemetry;
 }
 
 export type Cache = Redis;
 
 export async function createCacheStorage({
-  url,
+  config,
   telemetry,
 }: Dependencies): Promise<Cache> {
-  const logger = createLogger("redis");
+  const logger = createLogger("redis", { config });
 
-  const redis = new Redis(url, {});
+  const redis = new Redis(config.redisUrl, {});
 
   redis.on("error", (error) => {
     if (!isRedisError(error)) {
@@ -33,20 +34,24 @@ export async function createCacheStorage({
     logger.error("redis error", { error });
   });
 
-  return telemetry.startSpan("redis.connect", getSpanOptions(url), async () => {
-    logger.debug("connecting to redis...");
+  return telemetry.startSpan(
+    "redis.connect",
+    getSpanOptions(config.redisUrl),
+    async () => {
+      logger.debug("connecting to redis...");
 
-    try {
-      await promiseWithTimeout(ms("2s"), () => redis.echo("1"));
-    } catch (error) {
-      logger.error("redis connection error", { error });
-      throw error;
+      try {
+        await promiseWithTimeout(ms("2s"), () => redis.echo("1"));
+      } catch (error) {
+        logger.error("redis connection error", { error });
+        throw error;
+      }
+
+      logger.info("connected to redis");
+
+      return redis;
     }
-
-    logger.info("connected to redis");
-
-    return redis;
-  });
+  );
 }
 
 function isRedisError(error: unknown): error is object {
