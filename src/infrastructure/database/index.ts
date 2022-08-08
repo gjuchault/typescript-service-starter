@@ -21,17 +21,22 @@ export async function createDatabase({
 }: Dependencies): Promise<Database> {
   const logger = createLogger("database", { config });
 
-  const pool = createPool(config.databaseUrl, {
-    captureStackTrace: false,
-    statementTimeout: ms("20s"),
-    interceptors: [createSlonikTelemetryInterceptor({ telemetry })],
-  });
+  const idleTimeout = ms("5s");
+  const maximumPoolSize = 10;
 
-  return telemetry.startSpan(
+  return await telemetry.startSpan(
     "database.connect",
-    getSpanOptions({ pool }),
+    getSpanOptions({ idleTimeout, maximumPoolSize }),
     async () => {
       logger.debug(`connecting to database...`);
+
+      const pool = await createPool(config.databaseUrl, {
+        captureStackTrace: false,
+        statementTimeout: ms("20s"),
+        interceptors: [createSlonikTelemetryInterceptor({ telemetry })],
+        idleTimeout,
+        maximumPoolSize,
+      });
 
       await pool.query(sql`select 1`);
 
