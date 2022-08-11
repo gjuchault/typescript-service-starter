@@ -13,7 +13,7 @@ Yet another (opinionated) typescript service starter template.
 3. No dependency on node_modules folder and filesystem at runtime, to allow bundling & small Docker image
 4. Config should not default to either development or production ([link](https://softwareengineering.stackexchange.com/a/375843))
 
-And extends the ones from [typescript-library-starter]()
+And extends the ones from [typescript-library-starter](https://github.com/gjuchault/typescript-library-starter)
 
 1. Relies as much as possible on each included library's defaults
 2. Only rely on GitHub Actions
