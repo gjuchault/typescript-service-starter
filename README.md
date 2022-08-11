@@ -21,7 +21,7 @@ And extends the ones from [typescript-library-starter]()
 
 ## Getting started
 
-1. `git clone git@github.com:gjuchault/typescript-service-starter.git my-project`
+1. `npx degit gjuchault/typescript-service-starter my-project`
 2. `cd my-project`
 3. `npm install`
 4. `npm run setup`
