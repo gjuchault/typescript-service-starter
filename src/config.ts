@@ -1,6 +1,6 @@
 import ms from "ms";
 import "dotenv/config";
-import { z } from "zod";
+import { string, z } from "zod";
 
 import { version, description } from "../package.json";
 
@@ -17,6 +17,7 @@ export interface Config {
   databaseMaximumPoolSize: number;
   databaseIdleTimeout: number;
   databaseStatementTimeout: number;
+  tracingSampling: number;
   redisUrl: string;
 }
 
@@ -80,6 +81,14 @@ const config: Config = {
     .parse(process.env.DATABASE_STATEMENT_TIMEOUT),
 
   redisUrl: z.string().parse(process.env.REDIS_URL),
+
+  tracingSampling: z
+    .string()
+    .refine((tracingSampling) =>
+      refineMinMaxFloat(tracingSampling, { min: 0, max: 1 })
+    )
+    .transform(Number)
+    .parse(process.env.TRACING_SAMPLING),
 };
 
 export function getConfig(configOverride: Partial<Config> = {}): Config {
@@ -104,4 +113,13 @@ export function refineMinMaxInteger(
   const value = Number(valueAsString);
 
   return Number.isSafeInteger(value) && value >= min && value <= max;
+}
+
+export function refineMinMaxFloat(
+  valueAsString: string,
+  { min, max }: { min: number; max: number }
+): boolean {
+  const value = Number(valueAsString);
+
+  return value >= min && value <= max;
 }
