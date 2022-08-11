@@ -1,3 +1,4 @@
+import ms from "ms";
 import "dotenv/config";
 import { z } from "zod";
 
@@ -13,6 +14,9 @@ export interface Config {
   secret: string;
   port: number;
   databaseUrl: string;
+  databaseMaximumPoolSize: number;
+  databaseIdleTimeout: number;
+  databaseStatementTimeout: number;
   redisUrl: string;
 }
 
@@ -45,15 +49,35 @@ const config: Config = {
 
   port: z
     .string()
-    .refine((portAsString) => {
-      const port = Number(portAsString);
-
-      return port > 0 && port < 65_536;
-    })
+    .refine((databaseMaximumPoolSize) =>
+      refineMinMaxInteger(databaseMaximumPoolSize, { min: 10, max: 65_536 })
+    )
     .transform(Number)
     .parse(process.env.PORT),
 
   databaseUrl: z.string().parse(process.env.DATABASE_URL),
+
+  databaseMaximumPoolSize: z
+    .string()
+    .refine((databaseMaximumPoolSize) =>
+      refineMinMaxInteger(databaseMaximumPoolSize, { min: 0, max: 5000 })
+    )
+    .transform(Number)
+    .parse(process.env.DATABASE_MAXIMUM_POOL_SIZE),
+
+  databaseIdleTimeout: z
+    .string()
+    .min(1)
+    .refine((databaseIdleTimeout) => refineMs(databaseIdleTimeout))
+    .transform((databaseIdleTimeout) => ms(databaseIdleTimeout))
+    .parse(process.env.DATABASE_IDLE_TIMEOUT),
+
+  databaseStatementTimeout: z
+    .string()
+    .min(1)
+    .refine((databaseStatementTimeout) => refineMs(databaseStatementTimeout))
+    .transform((databaseStatementTimeout) => ms(databaseStatementTimeout))
+    .parse(process.env.DATABASE_STATEMENT_TIMEOUT),
 
   redisUrl: z.string().parse(process.env.REDIS_URL),
 };
@@ -63,4 +87,21 @@ export function getConfig(configOverride: Partial<Config> = {}): Config {
     ...config,
     ...configOverride,
   };
+}
+
+export function refineMs(value: string): boolean {
+  try {
+    return Number.isSafeInteger(ms(value));
+  } catch {
+    return false;
+  }
+}
+
+export function refineMinMaxInteger(
+  valueAsString: string,
+  { min, max }: { min: number; max: number }
+): boolean {
+  const value = Number(valueAsString);
+
+  return Number.isSafeInteger(value) && value >= min && value <= max;
 }
