@@ -1,11 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import {
-  QueryResultRow,
-  sql,
-  SqlSqlToken,
-  TaggedTemplateLiteralInvocation,
-} from "slonik";
+import { sql } from "slonik";
 import { InputMigrations, Umzug } from "umzug";
 import type { Database } from ".";
 
