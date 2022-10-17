@@ -106,7 +106,6 @@ export async function createHttpServer({
   await httpServer.register(underPressure);
 
   await httpServer.register(swagger, {
-    routePrefix: "/docs",
     openapi: {
       info: {
         title: config.name,
@@ -119,11 +118,6 @@ export async function createHttpServer({
       },
       tags: [],
     },
-    uiConfig: {
-      docExpansion: "full",
-      deepLinking: false,
-    },
-    staticCSP: true,
     transform: swaggerTransform,
   });
 
