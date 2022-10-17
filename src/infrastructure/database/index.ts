@@ -1,4 +1,3 @@
-import ms from "ms";
 import { sql, createPool, DatabasePool } from "slonik";
 import type { Config } from "../../config";
 import { createLogger } from "../logger";

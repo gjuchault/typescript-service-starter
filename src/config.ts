@@ -1,6 +1,6 @@
 import ms from "ms";
 import "dotenv/config";
-import { string, z } from "zod";
+import { z } from "zod";
 
 import { version, description } from "../package.json";
 
