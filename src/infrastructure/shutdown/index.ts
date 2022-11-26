@@ -68,7 +68,14 @@ export function createShutdownManager({
       success = false;
     }
 
-    if (!success) {
+    if (success) {
+      logger.info(`gracefully shut down service ${config.name}`, {
+        version: config.version,
+        nodeVersion: process.version,
+        arch: process.arch,
+        platform: process.platform,
+      });
+    } else {
       logger.fatal(
         `could not gracefully shut down service ${config.name} after ${gracefulShutdownTimeout}`,
         {
@@ -82,13 +89,6 @@ export function createShutdownManager({
       if (shouldExit) {
         return exit(1);
       }
-    } else {
-      logger.info(`gracefully shut down service ${config.name}`, {
-        version: config.version,
-        nodeVersion: process.version,
-        arch: process.arch,
-        platform: process.platform,
-      });
     }
 
     logger.flush();
