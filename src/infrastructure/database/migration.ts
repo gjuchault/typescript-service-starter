@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { sql } from "slonik";
 import { InputMigrations, Umzug } from "umzug";
+import { z } from "zod";
 import type { Database } from ".";
 
 export function buildMigration({
@@ -12,7 +13,7 @@ export function buildMigration({
   database: Database;
 }) {
   async function ensureTable() {
-    await database.query(sql`
+    await database.query(sql.type(z.unknown())`
       create table if not exists "public"."migrations" (
         "name" varchar, primary key ("name")
       );
@@ -21,7 +22,9 @@ export function buildMigration({
 
   async function executed() {
     await ensureTable();
-    const migrations = await database.anyFirst<string>(sql`
+    const migrations = await database.anyFirst(sql.type(
+      z.object({ name: z.string() })
+    )`
       select "name"
       from "public"."migrations"
       order by "name" asc;
@@ -31,7 +34,7 @@ export function buildMigration({
   }
 
   async function logMigration({ name }: { name: string }) {
-    await database.query(sql`
+    await database.query(sql.type(z.unknown())`
       insert into "public"."migrations" ("name")
       values (${name});
     `);
@@ -40,7 +43,7 @@ export function buildMigration({
   async function unlogMigration({ name }: { name: string }) {
     await ensureTable();
 
-    await database.query(sql`
+    await database.query(sql.type(z.unknown())`
       delete from "public"."migrations"
       where "name" = ${name};
     `);
@@ -79,7 +82,7 @@ export async function readMigrations(database: Database) {
           "utf8"
         );
 
-        const query = sql([content] as unknown as TemplateStringsArray);
+        const query = sql.type(z.unknown())([content]);
 
         return {
           name: file.slice(file.indexOf("_") + 1, -1 * ".sql".length),

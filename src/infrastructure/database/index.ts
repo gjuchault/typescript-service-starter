@@ -1,4 +1,5 @@
 import { sql, createPool, DatabasePool } from "slonik";
+import { z } from "zod";
 import type { Config } from "../../config";
 import { createLogger } from "../logger";
 import type { Telemetry } from "../telemetry";
@@ -41,7 +42,7 @@ export async function createDatabase({
         maximumPoolSize,
       });
 
-      await pool.query(sql`select 1`);
+      await pool.query(sql.type(z.unknown())`select 1`);
 
       logger.info(`connected to database`);
 

@@ -1,5 +1,6 @@
 import { sql } from "slonik";
 import { beforeAll } from "vitest";
+import { z } from "zod";
 import { startApp } from "../index";
 import {
   buildMigration,
@@ -32,7 +33,7 @@ beforeAll(async () => {
   http = httpServer;
 
   await database.query(
-    sql`
+    sql.type(z.unknown())`
       do $$ declare
           r record;
       begin
