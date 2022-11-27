@@ -23,6 +23,7 @@ export interface TaskScheduling {
   ): Promise<(payloads: TPayload[], options?: JobsOptions) => Promise<void>>;
   allWorkers: Worker[];
   allQueues: Queue[];
+  allConnections: Cache[];
 }
 
 export function createTaskScheduling({
@@ -32,6 +33,7 @@ export function createTaskScheduling({
 }: Dependencies): TaskScheduling {
   const allQueues: Queue[] = [];
   const allWorkers: Worker[] = [];
+  const allConnections: Cache[] = [];
 
   // prevent bullmq from reading from node_modules that might not exist if we
   // bundle the files
@@ -59,15 +61,20 @@ export function createTaskScheduling({
       const name = `${config.name}-task-scheduling-${taskName}`;
       const logger = createLogger(`task-scheduling-${taskName}`, { config });
 
+      const queueConnection = cache.duplicate({ maxRetriesPerRequest: null });
       const queue = new Queue(name, {
-        connection: cache.duplicate({ maxRetriesPerRequest: null }),
+        connection: queueConnection,
       });
 
       await queue.waitUntilReady();
 
       allQueues.push(queue);
+      allConnections.push(queueConnection);
 
       for (let index = 0; index < workersCount; index += 1) {
+        const workerConnection = cache.duplicate({
+          maxRetriesPerRequest: null,
+        });
         const worker = new Worker<TPayload>(
           name,
           async (job) => {
@@ -82,12 +89,13 @@ export function createTaskScheduling({
               () => processFunction(job)
             );
           },
-          { connection: cache.duplicate({ maxRetriesPerRequest: null }) }
+          { connection: workerConnection }
         );
 
         await worker.waitUntilReady();
 
         allWorkers.push(worker);
+        allConnections.push(workerConnection);
 
         worker.on("active", (job) => {
           logger.debug(`Worker ${worker.id} taking ${taskName}`, {
@@ -126,5 +134,6 @@ export function createTaskScheduling({
 
     allWorkers,
     allQueues,
+    allConnections,
   };
 }

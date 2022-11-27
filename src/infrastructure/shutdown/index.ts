@@ -54,6 +54,9 @@ export function createShutdownManager({
       await Promise.all(
         taskScheduling.allWorkers.map((worker) => worker.close())
       );
+      await Promise.all(
+        taskScheduling.allConnections.map((cache) => cache.quit())
+      );
       logger.debug("task scheduling shut down");
       await httpTerminator.terminate();
       logger.debug("http server shut down");
