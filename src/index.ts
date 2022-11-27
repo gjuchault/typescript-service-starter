@@ -6,6 +6,10 @@ import { createDatabase, Database } from "./infrastructure/database";
 import { createHttpServer, HttpServer } from "./infrastructure/http";
 import { createLogger } from "./infrastructure/logger";
 import { createShutdownManager } from "./infrastructure/shutdown";
+import {
+  createTaskScheduling,
+  TaskScheduling,
+} from "./infrastructure/task-scheduling/index";
 import { createTelemetry } from "./infrastructure/telemetry";
 import { bindHttpRoutes } from "./presentation/http";
 import { createRepository } from "./repository";
@@ -27,6 +31,7 @@ export async function startApp(configOverride: Partial<Config> = {}) {
   let database: Database;
   let cache: Cache;
   let httpServer: HttpServer;
+  let taskScheduling: TaskScheduling;
 
   try {
     cache = await createCacheStorage({
@@ -34,12 +39,18 @@ export async function startApp(configOverride: Partial<Config> = {}) {
       telemetry,
     });
 
+    taskScheduling = createTaskScheduling({ config, cache, telemetry });
+
     database = await createDatabase({
       config,
       telemetry,
     });
 
-    httpServer = await createHttpServer({ config, cache, telemetry });
+    httpServer = await createHttpServer({
+      config,
+      cache,
+      telemetry,
+    });
   } catch (error) {
     logger.error(`${config.name} startup error`, {
       error: (error as Record<string, unknown>).message ?? error,
@@ -51,8 +62,9 @@ export async function startApp(configOverride: Partial<Config> = {}) {
     database,
   });
 
-  const healthcheckApplication = createHealthcheckApplication({
+  const healthcheckApplication = await createHealthcheckApplication({
     cache,
+    taskScheduling,
     healthcheckRepository: repository.healthcheck,
   });
 
@@ -63,6 +75,7 @@ export async function startApp(configOverride: Partial<Config> = {}) {
     cache,
     database,
     httpServer,
+    taskScheduling,
     telemetry,
     config,
     exit: (statusCode?: number) => process.exit(statusCode),
