@@ -7,12 +7,14 @@ import type { Cache } from "../cache";
 import type { Database } from "../database";
 import { promiseWithTimeout } from "../helpers/promise-timeout";
 import type { Logger } from "../logger";
+import type { TaskScheduling } from "../task-scheduling";
 import type { Telemetry } from "../telemetry";
 
 interface Dependencies {
   logger: Logger;
   httpServer: HttpServer;
   database: Database;
+  taskScheduling: TaskScheduling;
   cache: Cache;
   telemetry: Telemetry;
   config: Config;
@@ -23,6 +25,7 @@ export function createShutdownManager({
   logger,
   httpServer,
   database,
+  taskScheduling,
   cache,
   telemetry,
   config,
@@ -47,6 +50,14 @@ export function createShutdownManager({
     const gracefulShutdownTimeout = "20s";
 
     async function gracefulShutdown() {
+      await Promise.all(taskScheduling.allQueues.map((queue) => queue.close()));
+      await Promise.all(
+        taskScheduling.allWorkers.map((worker) => worker.close())
+      );
+      await Promise.all(
+        taskScheduling.allConnections.map((cache) => cache.quit())
+      );
+      logger.debug("task scheduling shut down");
       await httpTerminator.terminate();
       logger.debug("http server shut down");
       await database.end();
