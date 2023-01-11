@@ -4,5 +4,3 @@ node_modules/
 coverage/
 .DS_Store
 .env
-client/build/*
-client/src/*.ts

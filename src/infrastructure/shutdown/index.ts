@@ -21,6 +21,11 @@ interface Dependencies {
   exit: (statusCode: number) => void;
 }
 
+export interface ShutdownManager {
+  listenToProcessEvents: () => void;
+  shutdown: (shouldExit?: boolean) => Promise<void>;
+}
+
 export function createShutdownManager({
   logger,
   httpServer,
