@@ -1,28 +1,23 @@
-import { z } from "zod";
+import { initTRPC } from "@trpc/server";
 import type { HealthcheckApplication } from "../../application/healthcheck";
-import type { HttpServer } from "../../infrastructure/http";
 import { bindHealthcheckRoutes } from "./routes/healthcheck";
 
-export function bindHttpRoutes({
-  httpServer,
+export type AppRouter = ReturnType<typeof createAppRouter>;
+export type RootRouter = ReturnType<typeof initTRPC.create>;
+
+export function createAppRouter({
   healthcheckApplication,
 }: {
-  httpServer: HttpServer;
   healthcheckApplication: HealthcheckApplication;
 }) {
-  httpServer.get(
-    "/docs",
-    {
-      schema: {
-        response: {
-          200: z.object({}),
-        },
-      },
-    },
-    () => {
-      return httpServer.swagger();
-    }
-  );
+  const t = initTRPC.create();
 
-  bindHealthcheckRoutes({ httpServer, healthcheckApplication });
+  const healthcheckRouter = bindHealthcheckRoutes({
+    t,
+    healthcheckApplication,
+  });
+
+  return t.router({
+    healthcheck: healthcheckRouter,
+  });
 }

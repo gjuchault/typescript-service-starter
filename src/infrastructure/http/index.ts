@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import openTelemetryPlugin from "@autotelic/fastify-opentelemetry";
 import circuitBreaker from "@fastify/circuit-breaker";
 import cookie from "@fastify/cookie";
@@ -9,61 +8,29 @@ import formbody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
-import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
+import type { AnyRouter } from "@trpc/server";
 import {
-  ContextConfigDefault,
+  fastifyTRPCPlugin,
+  CreateFastifyContextOptions,
+} from "@trpc/server/adapters/fastify";
+import {
   fastify,
-  FastifyBaseLogger,
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
-  RawReplyDefaultExpression,
-  RawRequestDefaultExpression,
 } from "fastify";
-import type { RouteGenericInterface } from "fastify/types/route";
-import type { ResolveFastifyReplyType } from "fastify/types/type-provider";
 import ms from "ms";
-import type { ZodType } from "zod";
 import type { Config } from "../../config";
 import { createLogger } from "../../infrastructure/logger";
 import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
 import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
 import type { Cache } from "../cache";
 import type { Telemetry } from "../telemetry";
-import {
-  serializerCompiler,
-  swaggerTransform,
-  validatorCompiler,
-  ZodTypeProvider,
-} from "./fastify-zod";
 
-export type HttpServer = FastifyInstance<
-  Server,
-  IncomingMessage,
-  ServerResponse,
-  FastifyBaseLogger,
-  ZodTypeProvider
->;
-
-export type HttpRequest = FastifyRequest<
-  RouteGenericInterface,
-  Server,
-  RawRequestDefaultExpression,
-  ZodType,
-  ZodTypeProvider
->;
-
-export type HttpReply = FastifyReply<
-  Server,
-  RawRequestDefaultExpression,
-  RawReplyDefaultExpression,
-  RouteGenericInterface,
-  ContextConfigDefault,
-  ZodType,
-  ZodTypeProvider,
-  ResolveFastifyReplyType<ZodTypeProvider, ZodType, RouteGenericInterface>
->;
+export type HttpServer = FastifyInstance;
+export type HttpRequest = FastifyRequest;
+export type HttpReply = FastifyReply;
 
 const requestTimeout = ms("120s");
 
@@ -71,10 +38,12 @@ export async function createHttpServer({
   config,
   cache,
   telemetry,
+  appRouter,
 }: {
   config: Config;
   cache: Cache;
   telemetry: Telemetry;
+  appRouter: AnyRouter;
 }) {
   const logger = createLogger("http", { config });
 
@@ -82,13 +51,11 @@ export async function createHttpServer({
     requestTimeout,
     logger: undefined,
     requestIdHeader: "x-request-id",
+    maxParamLength: 10_000,
     genReqId() {
       return randomUUID();
     },
-  }).withTypeProvider<ZodTypeProvider>();
-
-  httpServer.setValidatorCompiler(validatorCompiler);
-  httpServer.setSerializerCompiler(serializerCompiler);
+  });
 
   await httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
   await httpServer.register(metricsPlugin, telemetry);
@@ -105,20 +72,9 @@ export async function createHttpServer({
   });
   await httpServer.register(underPressure);
 
-  await httpServer.register(swagger, {
-    openapi: {
-      info: {
-        title: config.name,
-        description: config.description,
-        version: config.version,
-      },
-      externalDocs: {
-        url: "https://example.com/docs",
-        description: "More documentation",
-      },
-      tags: [],
-    },
-    transform: swaggerTransform,
+  await httpServer.register(fastifyTRPCPlugin, {
+    prefix: "/api",
+    trpcOptions: { router: appRouter, createContext },
   });
 
   httpServer.setNotFoundHandler(
@@ -189,4 +145,8 @@ function getRequestId(request: FastifyRequest): string | undefined {
   }
 
   return undefined;
+}
+
+export function createContext({ req, res }: CreateFastifyContextOptions) {
+  return { req, res };
 }

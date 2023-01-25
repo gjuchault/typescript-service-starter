@@ -30,7 +30,6 @@
     "setup": "node -r ./esbuild-hook ./scripts/setup",
     "build": "npm run clean && npm run type:dts && npm run build:main",
     "build:main": "node -r ./esbuild-hook ./scripts/build",
-    "build:client": "node -r ./esbuild-hook ./scripts/client",
     "start": "node ./build",
     "start:debug": "node --inspect ./build",
     "dev": "node -r ./esbuild-hook ./scripts/dev | pino-pretty",
@@ -60,6 +59,7 @@
     "@semantic-release/github": "^8.0.7",
     "@semantic-release/npm": "^9.0.2",
     "@semantic-release/release-notes-generator": "^10.0.3",
+    "@trpc/client": "^10.9.0",
     "@types/eslint": "^8.4.10",
     "@types/ms": "^0.7.31",
     "@types/node": "^18.11.18",
@@ -67,7 +67,6 @@
     "@typescript-eslint/eslint-plugin": "^5.49.0",
     "@typescript-eslint/parser": "^5.49.0",
     "c8": "^7.12.0",
-    "camelcase": "^6.3.0",
     "cspell": "^6.19.2",
     "esbuild": "^0.16.17",
     "eslint": "^8.32.0",
@@ -78,8 +77,6 @@
     "eslint-plugin-security": "^1.6.0",
     "eslint-plugin-unicorn": "^45.0.2",
     "get-port": "^6.1.2",
-    "json-schema-to-typescript": "^11.0.3",
-    "json-schema-to-zod": "^0.6.2",
     "launch-editor": "^2.6.0",
     "nyc": "^15.1.0",
     "pino-pretty": "^9.1.1",
@@ -101,7 +98,6 @@
     "@fastify/helmet": "^10.1.0",
     "@fastify/multipart": "^7.4.0",
     "@fastify/rate-limit": "^7.6.0",
-    "@fastify/swagger": "^8.3.0",
     "@fastify/under-pressure": "^8.2.0",
     "@opentelemetry/api": "^1.2.0",
     "@opentelemetry/api-metrics": "^0.33.0",
@@ -111,6 +107,7 @@
     "@opentelemetry/sdk-node": "^0.33.0",
     "@opentelemetry/sdk-trace-base": "^1.9.0",
     "@opentelemetry/semantic-conventions": "^1.9.0",
+    "@trpc/server": "^10.8.2",
     "bullmq": "^3.5.9",
     "dotenv": "^16.0.3",
     "fastify": "^4.12.0",
@@ -121,7 +118,6 @@
     "pino": "^8.8.0",
     "slonik": "^33.0.6",
     "umzug": "^3.2.1",
-    "zod": "^3.20.2",
-    "zod-to-json-schema": "^3.20.2"
+    "zod": "^3.20.2"
   }
 }

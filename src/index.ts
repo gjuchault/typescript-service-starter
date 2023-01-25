@@ -5,14 +5,19 @@ import { createCacheStorage, Cache } from "./infrastructure/cache";
 import { createDatabase, Database } from "./infrastructure/database";
 import { createHttpServer, HttpServer } from "./infrastructure/http";
 import { createLogger } from "./infrastructure/logger";
-import { createShutdownManager } from "./infrastructure/shutdown";
+import {
+  createShutdownManager,
+  ShutdownManager,
+} from "./infrastructure/shutdown";
 import {
   createTaskScheduling,
   TaskScheduling,
 } from "./infrastructure/task-scheduling/index";
 import { createTelemetry } from "./infrastructure/telemetry";
-import { bindHttpRoutes } from "./presentation/http";
+import { createAppRouter } from "./presentation/http";
 import { createRepository } from "./repository";
+
+export type { AppRouter } from "./presentation/http";
 
 export async function startApp(configOverride: Partial<Config> = {}) {
   const config = getConfig(configOverride);
@@ -32,6 +37,8 @@ export async function startApp(configOverride: Partial<Config> = {}) {
   let cache: Cache;
   let httpServer: HttpServer;
   let taskScheduling: TaskScheduling;
+  let listeningAbsoluteUrl: string;
+  let shutdown: ShutdownManager;
 
   try {
     cache = await createCacheStorage({
@@ -46,10 +53,41 @@ export async function startApp(configOverride: Partial<Config> = {}) {
       telemetry,
     });
 
+    const repository = createRepository({
+      database,
+    });
+
+    const healthcheckApplication = await createHealthcheckApplication({
+      cache,
+      taskScheduling,
+      healthcheckRepository: repository.healthcheck,
+    });
+
+    const appRouter = createAppRouter({ healthcheckApplication });
+
     httpServer = await createHttpServer({
       config,
       cache,
       telemetry,
+      appRouter,
+    });
+
+    shutdown = createShutdownManager({
+      logger,
+      cache,
+      database,
+      httpServer,
+      taskScheduling,
+      telemetry,
+      config,
+      exit: (statusCode?: number) => process.exit(statusCode),
+    });
+
+    shutdown.listenToProcessEvents();
+
+    listeningAbsoluteUrl = await httpServer.listen({
+      host: config.address,
+      port: config.port,
     });
   } catch (error) {
     logger.error(`${config.name} startup error`, {
@@ -57,36 +95,6 @@ export async function startApp(configOverride: Partial<Config> = {}) {
     });
     process.exit(1);
   }
-
-  const repository = createRepository({
-    database,
-  });
-
-  const healthcheckApplication = await createHealthcheckApplication({
-    cache,
-    taskScheduling,
-    healthcheckRepository: repository.healthcheck,
-  });
-
-  bindHttpRoutes({ httpServer, healthcheckApplication });
-
-  const shutdown = createShutdownManager({
-    logger,
-    cache,
-    database,
-    httpServer,
-    taskScheduling,
-    telemetry,
-    config,
-    exit: (statusCode?: number) => process.exit(statusCode),
-  });
-
-  shutdown.listenToProcessEvents();
-
-  const listeningAbsoluteUrl = await httpServer.listen({
-    host: config.address,
-    port: config.port,
-  });
 
   logger.info(`${config.name} server listening on ${listeningAbsoluteUrl}`, {
     version: config.version,

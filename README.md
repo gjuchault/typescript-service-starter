@@ -36,7 +36,8 @@ To enable deployment, you will need to:
 
 ### Ecosystem
 
-This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis)).
+This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [trpc](https://trpc.io/) is used to have nice routes & automatic client generations with zod and typescript.
+It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis)).
 
 For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both prometheus-like metrics & tracing). To handle distributed tracing, it expects [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id.
 
@@ -47,7 +48,6 @@ This template also tries to be easy to deploy through esbuild's bundling. This m
 ### Layers & folder structure
 
 ```
-client             # generated fetch wrappers for your application
 migrations         # database migrations (.sql files, no rollback)
 src/
 ├── application    # service code
@@ -61,39 +61,7 @@ src/
 
 ### Client generation
 
-This package can generate a type-safe client package when building (with `npm run build:client`).
-It can be used the following way:
-
-```ts
-import {
-  createClient as createMyAppClient,
-  createTraceHeader as createMyAppTraceHeader,
-} from "my-app/client";
-
-const myApp = createMyAppClient({
-  baseUrl: "http://sometarget/",
-  globalFetchOverrides: {
-    headers: {
-      "X-Custom-Token": "foo",
-    },
-  },
-});
-
-// GET /healthcheck
-const data = await myApp.getHealthcheck({
-  headers: {
-    ...createMyAppTraceHeader({
-      traceId: "some-trace-id",
-      parentSpanId: "some-span-id",
-    }),
-  },
-});
-
-// POST /foo/bar?query=param { body: "json" }
-const data2 = await myApp.postFooBar({ query: "param" }, { body: "json" });
-```
-
-The client will validate the server's response through zod.
+You can check [trpc's documentation](https://trpc.io/docs/client) to have an automatic client with typing. `AppRouter` is exported on the index file. If you wish to use your own client, remember that nested routers in trpc are using dot instead of slash (eg.: `GET http://localhost:8080/api/healthcheck.healthcheck`).
 
 ### Node.js, npm version
 
