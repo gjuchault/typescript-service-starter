@@ -1,7 +1,8 @@
+import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { sql } from "slonik";
 import { beforeAll } from "vitest";
 import { z } from "zod";
-import { startApp } from "../index";
+import { startApp, AppRouter } from "../index";
 import {
   buildMigration,
   readMigrations,
@@ -9,6 +10,7 @@ import {
 import type { HttpServer } from "../infrastructure/http";
 
 let http: HttpServer | undefined;
+let client: ReturnType<typeof createTRPCProxyClient<AppRouter>> | undefined;
 
 export function getHttpTestContext() {
   if (!http) {
@@ -16,6 +18,14 @@ export function getHttpTestContext() {
   }
 
   return http;
+}
+
+export function getHttpClient() {
+  if (!client) {
+    throw new Error("client not yet initialized");
+  }
+
+  return client;
 }
 
 beforeAll(async () => {
@@ -31,6 +41,14 @@ beforeAll(async () => {
   } = app;
 
   http = httpServer;
+
+  client = createTRPCProxyClient<AppRouter>({
+    links: [
+      httpLink({
+        url: "http://0.0.0.0:1987/api",
+      }),
+    ],
+  });
 
   await database.query(
     sql.type(z.unknown())`
