@@ -106,7 +106,7 @@
     "@opentelemetry/resources": "^1.9.1",
     "@opentelemetry/sdk-node": "^0.33.0",
     "@opentelemetry/sdk-trace-base": "^1.9.1",
-    "@opentelemetry/semantic-conventions": "^1.9.1",
+    "@opentelemetry/semantic-conventions": "^1.10.0",
     "@trpc/server": "^10.15.0",
     "bullmq": "^3.10.1",
     "dotenv": "^16.0.3",
