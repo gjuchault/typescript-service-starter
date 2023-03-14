@@ -60,7 +60,7 @@
     "@semantic-release/npm": "^10.0.0-beta.4",
     "@semantic-release/release-notes-generator": "^10.0.3",
     "@trpc/client": "^10.9.1",
-    "@types/eslint": "^8.4.10",
+    "@types/eslint": "^8.21.1",
     "@types/ms": "^0.7.31",
     "@types/node": "^18.11.18",
     "@types/prompts": "^2.4.2",
