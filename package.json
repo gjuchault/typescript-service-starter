@@ -16,12 +16,12 @@
   "types": "./build/src/index.d.ts",
   "license": "MIT",
   "engines": {
-    "node": "^18.14.2",
-    "npm": "^8.19.3"
+    "node": "^18.15.0",
+    "npm": "^9.5.0"
   },
   "volta": {
-    "node": "18.13.0",
-    "npm": "8.19.3"
+    "node": "18.15.0",
+    "npm": "9.5.0"
   },
   "publishConfig": {
     "access": "public"
