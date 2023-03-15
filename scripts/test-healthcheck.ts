@@ -1,12 +1,13 @@
 import { exec } from "node:child_process";
+import url from "node:url";
 import { getContext } from "./build";
 
-async function main() {
+async function testHealthcheck() {
   const context = await getContext();
   await context.rebuild();
   await context.dispose();
 
-  const appProcess = exec("node build", {
+  const appProcess = exec("node build/index.js", {
     env: {
       ...process.env,
       NODE_ENV: "test",
@@ -22,7 +23,7 @@ async function main() {
         "http://127.0.0.1:8080/api/healthcheck.healthcheck"
       );
 
-      if (fetchResult.ok || process.env.CI !== undefined) {
+      if (fetchResult.ok) {
         process.exit(0);
       }
     } catch {}
@@ -37,6 +38,8 @@ async function main() {
   }, 10 * 1000);
 }
 
-if (require.main === module) {
-  main();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await testHealthcheck();
+  }
 }

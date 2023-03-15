@@ -1,14 +1,14 @@
 import { context, trace } from "@opentelemetry/api";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
-import type { Config } from "../../config";
-import type { HttpServer } from "../../infrastructure/http";
-import type { Cache } from "../cache";
-import type { Database } from "../database";
-import { promiseWithTimeout } from "../helpers/promise-timeout";
-import type { Logger } from "../logger";
-import type { TaskScheduling } from "../task-scheduling";
-import type { Telemetry } from "../telemetry";
+import type { Config } from "../../config.js";
+import type { HttpServer } from "../../infrastructure/http/index.js";
+import type { Cache } from "../cache/index.js";
+import type { Database } from "../database/index.js";
+import { promiseWithTimeout } from "../helpers/promise-timeout.js";
+import type { Logger } from "../logger/index.js";
+import type { TaskScheduling } from "../task-scheduling/index.js";
+import type { Telemetry } from "../telemetry/index.js";
 
 interface Dependencies {
   logger: Logger;

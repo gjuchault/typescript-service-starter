@@ -1,17 +1,17 @@
 import { default as Redis } from "ioredis";
 import ms from "ms";
-import type { Config } from "../../config";
-import { promiseWithTimeout } from "../helpers/promise-timeout";
-import { createLogger } from "../logger";
-import type { Telemetry } from "../telemetry";
-import { getSpanOptions } from "../telemetry/instrumentations/ioredis";
+import type { Config } from "../../config.js";
+import { promiseWithTimeout } from "../helpers/promise-timeout.js";
+import { createLogger } from "../logger/index.js";
+import type { Telemetry } from "../telemetry/index.js";
+import { getSpanOptions } from "../telemetry/instrumentations/ioredis.js";
 
 interface Dependencies {
   config: Config;
   telemetry: Telemetry;
 }
 
-export type Cache = Redis;
+export type Cache = Redis.default;
 
 export async function createCacheStorage({
   config,
@@ -19,7 +19,7 @@ export async function createCacheStorage({
 }: Dependencies): Promise<Cache> {
   const logger = createLogger("redis", { config });
 
-  const redis = new Redis(config.redisUrl, {});
+  const redis = new Redis.default(config.redisUrl, {});
 
   redis.on("error", (error) => {
     if (!isRedisError(error)) {

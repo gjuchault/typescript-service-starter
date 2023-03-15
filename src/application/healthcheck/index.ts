@@ -1,8 +1,8 @@
-import type { Cache } from "../../infrastructure/cache";
-import type { TaskScheduling } from "../../infrastructure/task-scheduling";
-import type { HealthcheckRepository } from "../../repository/healthcheck";
-import type { GetHealthcheckResult } from "./get-healthcheck";
-import { getHealthcheck } from "./get-healthcheck";
+import type { Cache } from "../../infrastructure/cache/index.js";
+import type { TaskScheduling } from "../../infrastructure/task-scheduling/index.js";
+import type { HealthcheckRepository } from "../../repository/healthcheck/index.js";
+import type { GetHealthcheckResult } from "./get-healthcheck.js";
+import { getHealthcheck } from "./get-healthcheck.js";
 
 export interface HealthcheckApplication {
   getHealthcheck(): Promise<GetHealthcheckResult>;

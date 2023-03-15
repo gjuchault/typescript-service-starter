@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { HealthcheckApplication } from "../../../../application/healthcheck";
-import type { RootRouter } from "../../index";
+import type { HealthcheckApplication } from "../../../../application/healthcheck/index.js";
+import type { RootRouter } from "../../index.js";
 
 const healthcheckResponseSchema = z.object({
   http: z.literal("healthy"),

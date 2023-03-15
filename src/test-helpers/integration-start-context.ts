@@ -2,12 +2,12 @@ import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { sql } from "slonik";
 import { beforeAll } from "vitest";
 import { z } from "zod";
-import { startApp, AppRouter } from "../index";
+import { startApp, AppRouter } from "../index.js";
 import {
   buildMigration,
   readMigrations,
-} from "../infrastructure/database/migration";
-import type { HttpServer } from "../infrastructure/http";
+} from "../infrastructure/database/migration.js";
+import type { HttpServer } from "../infrastructure/http/index.js";
 
 let http: HttpServer | undefined;
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>> | undefined;

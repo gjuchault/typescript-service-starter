@@ -1,6 +1,6 @@
 import { pino, Logger as PinoLogger } from "pino";
-import type { Config } from "../../config";
-import { pinoMixin as telemetryMixin } from "../telemetry/instrumentations/pino";
+import type { Config } from "../../config.js";
+import { pinoMixin as telemetryMixin } from "../telemetry/instrumentations/pino.js";
 
 export type Logger = PinoLogger;
 

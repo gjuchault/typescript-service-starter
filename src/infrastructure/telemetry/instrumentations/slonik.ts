@@ -4,8 +4,8 @@ import {
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
 import { Interceptor, QueryContext } from "slonik";
-import type { Telemetry } from "..";
-import { getConfig } from "../../../config";
+import { getConfig } from "../../../config.js";
+import type { Telemetry } from "../index.js";
 
 export const PG_VALUES = "db.postgresql.values";
 export const IDLE_TIMEOUT_MILLIS = "db.postgresql.idle.timeout.millis";

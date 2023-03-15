@@ -2,10 +2,13 @@ import childProcess from "node:child_process";
 import path from "node:path";
 import fs from "node:fs/promises";
 import { promisify } from "node:util";
+import url from "node:url";
 import slugify from "slugify";
 import prompts from "prompts";
 
 const exec = promisify(childProcess.exec);
+const __filename = url.fileURLToPath(import.meta.url);
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 const rootPath = path.join(__dirname, "..");
 const releaseRcPath = path.join(rootPath, ".releaserc.json");
@@ -13,7 +16,7 @@ const cspellPath = path.join(rootPath, ".cspell.json");
 const packageJsonPath = path.join(rootPath, "package.json");
 const contributingPath = path.join(rootPath, "CONTRIBUTING.md");
 const setupPath = __filename;
-const testSetupPath = path.join(rootPath, "scripts/testSetup.ts");
+const testSetupPath = path.join(rootPath, "scripts/test-setup.ts");
 const workflowPath = path.join(
   rootPath,
   ".github/workflows/typescript-service-starter.yml"
@@ -193,7 +196,7 @@ async function cleanup({ packageName }: { packageName: string }) {
   );
 
   await logAsyncTask("Removing setup.ts script", fs.rm(setupPath));
-  await logAsyncTask("Removing testSetup.ts script", fs.rm(testSetupPath));
+  await logAsyncTask("Removing test-setup.ts script", fs.rm(testSetupPath));
 }
 
 async function replaceInFile(
@@ -231,6 +234,8 @@ async function logAsyncTask<TResolve>(
   return output;
 }
 
-if (require.main === module) {
-  setup();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await setup();
+  }
 }

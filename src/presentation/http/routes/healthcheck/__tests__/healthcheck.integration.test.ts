@@ -1,10 +1,10 @@
 import type { LightMyRequestResponse } from "fastify";
 import { beforeAll, describe, expect, it } from "vitest";
-import type { HealthcheckResponseSchema } from "..";
 import {
   getHttpTestContext,
   getHttpClient,
-} from "../../../../../test-helpers/integration-start-context";
+} from "../../../../../test-helpers/integration-start-context.js";
+import type { HealthcheckResponseSchema } from "../index.js";
 
 describe("GET /healthcheck", () => {
   describe("when called with native client", () => {

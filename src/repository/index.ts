@@ -1,5 +1,5 @@
-import type { Database } from "../infrastructure/database";
-import { createHealthcheckRepository } from "./healthcheck";
+import type { Database } from "../infrastructure/database/index.js";
+import { createHealthcheckRepository } from "./healthcheck/index.js";
 
 export function createRepository({ database }: { database: Database }) {
   return {
