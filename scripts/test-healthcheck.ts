@@ -7,7 +7,7 @@ async function testHealthcheck() {
   await context.rebuild();
   await context.dispose();
 
-  const appProcess = exec("node build", {
+  const appProcess = exec("node build/index.js", {
     env: {
       ...process.env,
       NODE_ENV: "test",
@@ -23,7 +23,7 @@ async function testHealthcheck() {
         "http://127.0.0.1:8080/api/healthcheck.healthcheck"
       );
 
-      if (fetchResult.ok || process.env.CI !== undefined) {
+      if (fetchResult.ok) {
         process.exit(0);
       }
     } catch {}
