@@ -1,26 +1,17 @@
 import path from "node:path";
 import ms from "ms";
 import { ChildProcess, fork } from "node:child_process";
-import { build } from "./build";
+import { getContext } from "./build";
 
 const rootPath = path.join(__dirname, "..");
 const bundleFilePath = path.join(rootPath, "build", "index.js");
 
 async function main() {
-  await build({
-    watch: {
-      onRebuild(error) {
-        if (error) {
-          console.error(error);
-          return;
-        }
-
-        onBuild(true);
-      },
-    },
+  const context = await getContext(async (isRebuild) => {
+    await onBuild(isRebuild);
   });
 
-  onBuild();
+  await context.watch();
 }
 
 let subProcess: ChildProcess | undefined = undefined;

@@ -1,8 +1,10 @@
 import { exec } from "node:child_process";
-import { build } from "./build";
+import { getContext } from "./build";
 
 async function main() {
-  await build();
+  const context = await getContext();
+  await context.rebuild();
+  await context.dispose();
 
   const appProcess = exec("node build", {
     env: {

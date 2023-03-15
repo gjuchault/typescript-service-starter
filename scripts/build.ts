@@ -1,9 +1,11 @@
 import path from "node:path";
 import fs from "node:fs/promises";
-import { build as esbuild, BuildOptions } from "esbuild";
+import { context as esbuildContext } from "esbuild";
 
-export async function build(opts: Partial<BuildOptions> = {}) {
-  const result = await esbuild({
+export async function getContext(
+  onBuild: (isRebuild: boolean) => Promise<void> = async () => {}
+) {
+  const context = await esbuildContext({
     platform: "node",
     target: "esnext",
     format: "cjs",
@@ -13,12 +15,38 @@ export async function build(opts: Partial<BuildOptions> = {}) {
     bundle: true,
     outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
-    ...opts,
+    plugins: [
+      {
+        name: "onBuild",
+        setup(build) {
+          let isRebuild = false;
+
+          build.onEnd(async (result) => {
+            if (result.errors.length > 0) {
+              console.log("Errors", result.errors);
+              return;
+            }
+
+            await copyLuaCommands();
+            await onBuild(isRebuild);
+
+            isRebuild = true;
+          });
+        },
+      },
+    ],
   });
 
   await copyLuaCommands();
 
-  return result;
+  return context;
+}
+
+async function build() {
+  const context = await getContext();
+
+  await context.rebuild();
+  await context.dispose();
 }
 
 // prevent bullmq from reading from node_modules that might not exist if we

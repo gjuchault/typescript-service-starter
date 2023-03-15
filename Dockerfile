@@ -6,15 +6,14 @@ WORKDIR /app
 
 COPY scripts/ /app/scripts
 COPY src/ /app/src
-COPY esbuild-hook.js \
-  package.json \
+COPY package.json \
   package-lock.json \
   tsconfig.json \
   /app/
 
 RUN npm install
 RUN npm run build:main
-RUN rm -rf node_modules/ scripts/ src/ esbuild-hook.js tsconfig.json package-lock.json
+RUN rm -rf node_modules/ scripts/ src/ tsconfig.json package-lock.json
 
 FROM builder as runtime
 
