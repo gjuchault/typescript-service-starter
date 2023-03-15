@@ -1,13 +1,16 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable unicorn/no-null */
 import path from "node:path";
+import url from "node:url";
 import { Job, JobsOptions, Queue, Worker, scriptLoader } from "bullmq";
 
-import type { Config } from "../../config";
-import type { Cache } from "../cache";
-import { createLogger } from "../logger";
-import type { Telemetry } from "../telemetry";
-import { getSpanOptions } from "../telemetry/instrumentations/bullmq";
+import type { Config } from "../../config.js";
+import type { Cache } from "../cache/index.js";
+import { createLogger } from "../logger/index.js";
+import type { Telemetry } from "../telemetry/index.js";
+import { getSpanOptions } from "../telemetry/instrumentations/bullmq.js";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 interface Dependencies {
   config: Config;

@@ -1,5 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import url from "node:url";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 async function clean() {
   await Promise.all([rmrf("build"), rmrf("coverage"), rmrf(".nyc_output")]);
@@ -12,6 +15,8 @@ async function rmrf(pathFromRoot: string): Promise<void> {
   });
 }
 
-if (require.main === module) {
-  clean();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await clean();
+  }
 }

@@ -1,6 +1,6 @@
 import { ExportResultCode, hrTimeToMicroseconds } from "@opentelemetry/core";
 import { SpanExporter } from "@opentelemetry/sdk-trace-base";
-import type { Logger } from "../logger";
+import type { Logger } from "../logger/index.js";
 
 export function createPinoSpanExporter({
   logger,

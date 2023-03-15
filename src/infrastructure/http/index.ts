@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import openTelemetryPlugin from "@autotelic/fastify-opentelemetry";
+import { default as openTelemetryPlugin } from "@autotelic/fastify-opentelemetry";
 import circuitBreaker from "@fastify/circuit-breaker";
 import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
@@ -7,7 +7,7 @@ import etag from "@fastify/etag";
 import formbody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
-import rateLimit from "@fastify/rate-limit";
+import { default as rateLimit } from "@fastify/rate-limit";
 import underPressure from "@fastify/under-pressure";
 import type { AnyRouter } from "@trpc/server";
 import {
@@ -21,12 +21,12 @@ import {
   FastifyRequest,
 } from "fastify";
 import ms from "ms";
-import type { Config } from "../../config";
-import { createLogger } from "../../infrastructure/logger";
-import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify";
-import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify";
-import type { Cache } from "../cache";
-import type { Telemetry } from "../telemetry";
+import type { Config } from "../../config.js";
+import { createLogger } from "../../infrastructure/logger/index.js";
+import { openTelemetryPluginOptions } from "../../infrastructure/telemetry/instrumentations/fastify.js";
+import { metricsPlugin } from "../../infrastructure/telemetry/metrics/fastify.js";
+import type { Cache } from "../cache/index.js";
+import type { Telemetry } from "../telemetry/index.js";
 
 export type HttpServer = FastifyInstance;
 export type HttpRequest = FastifyRequest;
@@ -57,7 +57,10 @@ export async function createHttpServer({
     },
   });
 
-  await httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
+  await httpServer.register(
+    openTelemetryPlugin.default,
+    openTelemetryPluginOptions
+  );
   await httpServer.register(metricsPlugin, telemetry);
 
   await httpServer.register(circuitBreaker);
@@ -67,7 +70,7 @@ export async function createHttpServer({
   await httpServer.register(helmet);
   await httpServer.register(formbody);
   await httpServer.register(multipart);
-  await httpServer.register(rateLimit, {
+  await httpServer.register(rateLimit.default, {
     redis: cache,
   });
   await httpServer.register(underPressure);

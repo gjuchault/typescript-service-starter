@@ -1,7 +1,7 @@
 import type { Redis } from "ioredis";
 import { beforeAll, describe, it, vi, expect } from "vitest";
-import type { HealthcheckRepository } from "../../../repository/healthcheck";
-import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck";
+import type { HealthcheckRepository } from "../../../repository/healthcheck/index.js";
+import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck.js";
 
 const mockHealthyCache = {
   echo: vi.fn().mockResolvedValue("1"),

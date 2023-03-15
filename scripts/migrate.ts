@@ -1,5 +1,6 @@
 import path from "node:path";
 import fs from "node:fs/promises";
+import url from "node:url";
 import "dotenv/config";
 import { createPool } from "slonik";
 import launchEditor from "launch-editor";
@@ -9,6 +10,8 @@ import {
   buildMigration,
   readMigrations,
 } from "../src/infrastructure/database/migration";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 const migrationsPath = path.join(__dirname, "../migrations");
 
@@ -67,6 +70,8 @@ async function create(name: string) {
   await launchEditor(filePath);
 }
 
-if (require.main === module) {
-  migrate();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await migrate();
+  }
 }

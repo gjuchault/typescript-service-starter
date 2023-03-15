@@ -1,6 +1,6 @@
 import { createMockPool, createMockQueryResult } from "slonik";
 import { beforeAll, describe, it, vi, expect } from "vitest";
-import { createHealthcheckRepository, GetHealthcheckResult } from "..";
+import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
 describe("getHealthcheck()", () => {
   describe("given a healthy database", () => {

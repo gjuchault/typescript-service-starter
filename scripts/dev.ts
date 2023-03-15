@@ -1,12 +1,15 @@
 import path from "node:path";
-import ms from "ms";
 import { ChildProcess, fork } from "node:child_process";
+import url from "node:url";
+import ms from "ms";
 import { getContext } from "./build";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 const rootPath = path.join(__dirname, "..");
 const bundleFilePath = path.join(rootPath, "build", "index.js");
 
-async function main() {
+async function dev() {
   const context = await getContext(async (isRebuild) => {
     await onBuild(isRebuild);
   });
@@ -58,6 +61,8 @@ async function killSubProcess() {
   });
 }
 
-if (require.main === module) {
-  main();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await dev();
+  }
 }

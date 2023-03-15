@@ -1,9 +1,12 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import url from "node:url";
 import { sql } from "slonik";
 import { InputMigrations, Umzug } from "umzug";
 import { z } from "zod";
-import type { Database } from ".";
+import type { Database } from "./index.js";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 export function buildMigration({
   migrationFiles,

@@ -1,12 +1,12 @@
 import { sql, createPool, DatabasePool } from "slonik";
 import { z } from "zod";
-import type { Config } from "../../config";
-import { createLogger } from "../logger";
-import type { Telemetry } from "../telemetry";
+import type { Config } from "../../config.js";
+import { createLogger } from "../logger/index.js";
+import type { Telemetry } from "../telemetry/index.js";
 import {
   getSpanOptions,
   createSlonikTelemetryInterceptor,
-} from "../telemetry/instrumentations/slonik";
+} from "../telemetry/instrumentations/slonik.js";
 
 interface Dependencies {
   config: Config;

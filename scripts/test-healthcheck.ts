@@ -1,7 +1,8 @@
 import { exec } from "node:child_process";
+import url from "node:url";
 import { getContext } from "./build";
 
-async function main() {
+async function testHealthcheck() {
   const context = await getContext();
   await context.rebuild();
   await context.dispose();
@@ -37,6 +38,8 @@ async function main() {
   }, 10 * 1000);
 }
 
-if (require.main === module) {
-  main();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await testHealthcheck();
+  }
 }

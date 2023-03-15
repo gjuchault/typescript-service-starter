@@ -20,10 +20,10 @@ import {
   SpanExporter,
 } from "@opentelemetry/sdk-trace-base";
 import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
-import type { Config } from "../../config";
-import { createLogger } from "../logger";
-import { bindSystemMetrics } from "./metrics/system";
-import { createPinoSpanExporter } from "./pino-exporter";
+import type { Config } from "../../config.js";
+import { createLogger } from "../logger/index.js";
+import { bindSystemMetrics } from "./metrics/system.js";
+import { createPinoSpanExporter } from "./pino-exporter.js";
 
 export interface Telemetry {
   metrics: Meter;

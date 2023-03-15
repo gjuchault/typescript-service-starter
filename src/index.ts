@@ -1,23 +1,24 @@
 #!/usr/bin/env node
-import { createHealthcheckApplication } from "./application/healthcheck";
-import { Config, getConfig } from "./config";
-import { createCacheStorage, Cache } from "./infrastructure/cache";
-import { createDatabase, Database } from "./infrastructure/database";
-import { createHttpServer, HttpServer } from "./infrastructure/http";
-import { createLogger } from "./infrastructure/logger";
+import url from "node:url";
+import { createHealthcheckApplication } from "./application/healthcheck/index.js";
+import { Config, getConfig } from "./config.js";
+import { createCacheStorage, Cache } from "./infrastructure/cache/index.js";
+import { createDatabase, Database } from "./infrastructure/database/index.js";
+import { createHttpServer, HttpServer } from "./infrastructure/http/index.js";
+import { createLogger } from "./infrastructure/logger/index.js";
 import {
   createShutdownManager,
   ShutdownManager,
-} from "./infrastructure/shutdown";
+} from "./infrastructure/shutdown/index.js";
 import {
   createTaskScheduling,
   TaskScheduling,
-} from "./infrastructure/task-scheduling/index";
-import { createTelemetry } from "./infrastructure/telemetry";
-import { createAppRouter } from "./presentation/http";
-import { createRepository } from "./repository";
+} from "./infrastructure/task-scheduling/index.js";
+import { createTelemetry } from "./infrastructure/telemetry/index.js";
+import { createAppRouter } from "./presentation/http/index.js";
+import { createRepository } from "./repository/index.js";
 
-export type { AppRouter } from "./presentation/http";
+export type { AppRouter } from "./presentation/http/index.js";
 
 export async function startApp(configOverride: Partial<Config> = {}) {
   const config = getConfig(configOverride);
@@ -112,10 +113,9 @@ export async function startApp(configOverride: Partial<Config> = {}) {
   };
 }
 
-// eslint-disable-next-line unicorn/prefer-module -- Not ESM yet
-if (require.main === module) {
-  // eslint-disable-next-line unicorn/prefer-top-level-await -- Not ESM yet
-  startApp().catch((error) => {
-    throw error;
-  });
+if (
+  import.meta.url.startsWith("file:") &&
+  process.argv[1] === url.fileURLToPath(import.meta.url)
+) {
+  await startApp();
 }

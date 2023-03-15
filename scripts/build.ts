@@ -1,20 +1,33 @@
 import path from "node:path";
 import fs from "node:fs/promises";
+import url from "node:url";
 import { context as esbuildContext } from "esbuild";
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 export async function getContext(
   onBuild: (isRebuild: boolean) => Promise<void> = async () => {}
 ) {
   const context = await esbuildContext({
     platform: "node",
-    target: "esnext",
-    format: "cjs",
+    target: "node18",
+    format: "esm",
     nodePaths: [path.join(__dirname, "../src")],
     sourcemap: true,
     external: ["pg-native"],
     bundle: true,
     outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
+    banner: {
+      js: `
+            import { createRequire } from 'module';
+            import path from 'path';
+            import { fileURLToPath } from 'url';
+            const require = createRequire(import.meta.url);
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+      `,
+    },
     plugins: [
       {
         name: "onBuild",
@@ -76,6 +89,8 @@ async function copyLuaCommands() {
   }
 }
 
-if (require.main === module) {
-  build();
+if (import.meta.url.startsWith("file:")) {
+  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
+    await build();
+  }
 }
