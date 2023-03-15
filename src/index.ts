@@ -113,12 +113,6 @@ export async function startApp(configOverride: Partial<Config> = {}) {
   };
 }
 
-console.log(
-  import.meta.url.startsWith("file:"),
-  process.argv[1],
-  url.fileURLToPath(import.meta.url),
-  process.argv[1] === url.fileURLToPath(import.meta.url)
-);
 if (
   import.meta.url.startsWith("file:") &&
   process.argv[1] === url.fileURLToPath(import.meta.url)
