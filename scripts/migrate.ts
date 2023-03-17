@@ -10,6 +10,7 @@ import {
   buildMigration,
   readMigrations,
 } from "../src/infrastructure/database/migration";
+import { match } from "ts-pattern";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
@@ -35,15 +36,13 @@ export async function migrate(args = process.argv.slice(2), exit = true) {
     .union([z.literal("up"), z.literal("create")])
     .parse(args[0]);
 
-  switch (command) {
-    case "up":
-      await umzug.up();
-      break;
-    case "create":
+  await match(command)
+    .with("up", async () => await umzug.up())
+    .with("create", async () => {
       const name = z.string().parse(args[1]);
       await create(name);
-      break;
-  }
+    })
+    .exhaustive();
 
   if (exit) {
     process.exit(0);

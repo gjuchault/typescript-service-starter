@@ -57,10 +57,7 @@ export async function createHttpServer({
     },
   });
 
-  await httpServer.register(
-    openTelemetryPlugin.default,
-    openTelemetryPluginOptions
-  );
+  await httpServer.register(openTelemetryPlugin, openTelemetryPluginOptions);
   await httpServer.register(metricsPlugin, telemetry);
 
   await httpServer.register(circuitBreaker);
@@ -70,7 +67,7 @@ export async function createHttpServer({
   await httpServer.register(helmet);
   await httpServer.register(formbody);
   await httpServer.register(multipart);
-  await httpServer.register(rateLimit.default, {
+  await httpServer.register(rateLimit, {
     redis: cache,
   });
   await httpServer.register(underPressure);

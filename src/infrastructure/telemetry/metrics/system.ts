@@ -1,5 +1,7 @@
 import perfHooks, { Histogram, NodeGCPerformanceDetail } from "node:perf_hooks";
 import { Meter, ValueType } from "@opentelemetry/api-metrics";
+import { match } from "ts-pattern";
+import { noop } from "../../../helpers/noop";
 
 // https://github.com/siimon/prom-client/blob/master/lib/metrics
 
@@ -23,30 +25,18 @@ export function bindSystemMetrics({ metrics }: { metrics: Meter }) {
     );
 
     gauge.addCallback((observableResult) => {
-      switch (key) {
-        case "min": {
-          observableResult.observe(eventLoopDelay.min / 1e9);
-          break;
-        }
-        case "max": {
-          observableResult.observe(eventLoopDelay.max / 1e9);
-          break;
-        }
-        case "mean": {
-          observableResult.observe(eventLoopDelay.mean / 1e9);
-          break;
-        }
-        case "stddev": {
-          observableResult.observe(eventLoopDelay.stddev / 1e9);
-          break;
-        }
-        case "exceeds":
-        case "percentile":
-        case "percentiles":
-        case "reset": {
-          break;
-        }
-      }
+      match(key)
+        .with("min", () => observableResult.observe(eventLoopDelay.min / 1e9))
+        .with("max", () => observableResult.observe(eventLoopDelay.max / 1e9))
+        .with("mean", () => observableResult.observe(eventLoopDelay.mean / 1e9))
+        .with("stddev", () =>
+          observableResult.observe(eventLoopDelay.stddev / 1e9)
+        )
+        .with("percentiles", noop)
+        .with("exceeds", noop)
+        .with("reset", noop)
+        .with("percentile", noop)
+        .exhaustive();
     });
   }
 
@@ -111,29 +101,24 @@ export function bindSystemMetrics({ metrics }: { metrics: Meter }) {
     );
 
     gauge.addCallback((observableResult) => {
-      switch (key) {
-        case "heapTotal": {
+      match(key)
+        .with("heapTotal", () => {
           try {
             sharedMemoryUsage = process.memoryUsage();
             observableResult.observe(sharedMemoryUsage.heapTotal);
           } catch {
             // ignore
           }
-          break;
-        }
-        case "heapUsed": {
+        })
+        .with("heapUsed", () => {
           observableResult.observe(sharedMemoryUsage.heapUsed);
-          break;
-        }
-        case "external": {
+        })
+        .with("external", () => {
           observableResult.observe(sharedMemoryUsage.external);
-          break;
-        }
-        case "rss":
-        case "arrayBuffers": {
-          break;
-        }
-      }
+        })
+        .with("rss", noop)
+        .with("arrayBuffers", noop)
+        .exhaustive();
     });
   }
 
