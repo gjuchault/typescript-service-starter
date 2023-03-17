@@ -1,10 +1,17 @@
-import { createMockPool, createMockQueryResult } from "slonik";
+import {
+  createMockPool,
+  createMockQueryResult,
+  type QueryResult,
+  type QueryResultRow,
+} from "slonik";
 import { beforeAll, describe, it, vi, expect } from "vitest";
 import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
 describe("getHealthcheck()", () => {
   describe("given a healthy database", () => {
-    const query = vi.fn().mockResolvedValue(createMockQueryResult([]));
+    const query = vi
+      .fn<[string], Promise<QueryResult<QueryResultRow>>>()
+      .mockResolvedValue(createMockQueryResult([]));
 
     const database = createMockPool({
       query,
@@ -33,9 +40,11 @@ describe("getHealthcheck()", () => {
   });
 
   describe("given an unhealthy database", () => {
-    const query = vi.fn().mockImplementation(() => {
-      throw new Error("error");
-    });
+    const query = vi
+      .fn<[string], Promise<QueryResult<QueryResultRow>>>()
+      .mockImplementation(() => {
+        throw new Error("error");
+      });
 
     const database = createMockPool({
       query,
