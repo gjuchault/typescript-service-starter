@@ -1,23 +1,30 @@
-import { createMockPool, createMockQueryResult } from "slonik";
+import {
+  type QueryResult,
+  type QueryResultRow,
+  createMockPool,
+  createMockQueryResult,
+} from "slonik";
 import { beforeAll, describe, it, vi, expect } from "vitest";
 import { createUserRepository, GetUserResult } from "../index.js";
 
 describe("getUsers()", () => {
   describe("given a database with users", () => {
-    const query = vi.fn().mockResolvedValue(
-      createMockQueryResult([
-        {
-          id: 1,
-          name: "John",
-          email: "john@mail.com",
-        },
-        {
-          id: 2,
-          name: "Doe",
-          email: "doe@mail.com",
-        },
-      ])
-    );
+    const query = vi
+      .fn<[string], Promise<QueryResult<QueryResultRow>>>()
+      .mockResolvedValue(
+        createMockQueryResult([
+          {
+            id: 1,
+            name: "John",
+            email: "john@mail.com",
+          },
+          {
+            id: 2,
+            name: "Doe",
+            email: "doe@mail.com",
+          },
+        ])
+      );
 
     const database = createMockPool({
       query,
