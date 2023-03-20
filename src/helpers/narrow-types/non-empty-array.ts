@@ -10,7 +10,9 @@ export function makeNonEmptyArray<T>(
   return isNonEmptyArray(input) ? some(input) : none;
 }
 
-export function isNonEmptyArray<T>(input: T[]): input is NonEmptyArray<T> {
+export function isNonEmptyArray<T>(
+  input: T[] | readonly T[]
+): input is NonEmptyArray<T> {
   return input.length > 0;
 }
 

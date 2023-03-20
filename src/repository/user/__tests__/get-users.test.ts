@@ -5,6 +5,7 @@ import {
   createMockQueryResult,
 } from "slonik";
 import { beforeAll, describe, it, vi, expect } from "vitest";
+import { createMockLogger } from "../../../infrastructure/logger/index.js";
 import { createUserRepository, GetUserResult } from "../index.js";
 
 describe("getUsers()", () => {
@@ -32,6 +33,7 @@ describe("getUsers()", () => {
 
     const repository = createUserRepository({
       database,
+      logger: createMockLogger(),
     });
 
     describe("when called", () => {
@@ -42,7 +44,19 @@ describe("getUsers()", () => {
       });
 
       it("returns outcome healthy", () => {
-        expect(result).toEqual([
+        expect(result.ok).toBe(true);
+
+        if (!result.ok) {
+          expect.fail();
+        }
+
+        expect(result.val.some).toBe(true);
+
+        if (!result.val.some) {
+          expect.fail();
+        }
+
+        expect(result.val.val).toEqual([
           {
             id: 1,
             name: "John",
@@ -58,7 +72,7 @@ describe("getUsers()", () => {
 
       it("called the database with the appropriate query", () => {
         expect(query).toBeCalledTimes(1);
-        expect(query.mock.calls[0][0]).toEqual("select * from users");
+        expect(query.mock.calls[0][0].trim()).toEqual("select * from users");
       });
     });
   });
