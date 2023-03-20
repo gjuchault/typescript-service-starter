@@ -4,9 +4,17 @@ import { pinoMixin as telemetryMixin } from "../telemetry/instrumentations/pino.
 
 export type Logger = PinoLogger;
 
+export function createMockLogger(): Logger {
+  return createLogger("mock-logger", {
+    config: {
+      logLevel: "error",
+    },
+  });
+}
+
 export function createLogger(
   serviceName: string,
-  { config }: { config: Config }
+  { config }: { config: Pick<Config, "logLevel"> }
 ): Logger {
   const logger = pino({
     name: "app",
