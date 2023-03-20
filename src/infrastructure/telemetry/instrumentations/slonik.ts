@@ -4,7 +4,7 @@ import {
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
 import { Interceptor, QueryContext } from "slonik";
-import { getConfig } from "../../../config.js";
+import { config } from "../../../config.js";
 import type { Telemetry } from "../index.js";
 
 export const PG_VALUES = "db.postgresql.values";
@@ -69,7 +69,6 @@ export function createSlonikTelemetryInterceptor({
 }
 
 export function getCommonSpanOptions() {
-  const config = getConfig();
   const databaseUrl = new URL(config.databaseUrl);
   databaseUrl.password = "";
 

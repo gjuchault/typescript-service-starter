@@ -21,7 +21,7 @@ export interface Config {
   redisUrl: string;
 }
 
-const config: Config = {
+export const config: Config = {
   name: "app",
   version,
   description,
@@ -90,13 +90,6 @@ const config: Config = {
     .transform(Number)
     .parse(process.env.TRACING_SAMPLING),
 };
-
-export function getConfig(configOverride: Partial<Config> = {}): Config {
-  return {
-    ...config,
-    ...configOverride,
-  };
-}
 
 export function refineMs(value: string): boolean {
   try {

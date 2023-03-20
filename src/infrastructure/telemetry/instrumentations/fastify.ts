@@ -4,7 +4,7 @@ import {
   SemanticAttributes,
 } from "@opentelemetry/semantic-conventions";
 import type { FastifyRequest } from "fastify";
-import { getConfig } from "../../../config.js";
+import { config } from "../../../config.js";
 
 export const ATTRIBUTE_ERROR_NAME = "error.name";
 export const ATTRIBUTE_ERROR_MESSAGE = "error.message";
@@ -23,7 +23,6 @@ export const openTelemetryPluginOptions: OpenTelemetryPluginOptions = {
   },
   formatSpanAttributes: {
     request(request) {
-      const config = getConfig();
       const requestUrl = getAbsoluteUrl(request);
       const headers = request.headers;
       const userAgent = headers["user-agent"];

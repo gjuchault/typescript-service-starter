@@ -29,10 +29,7 @@ export function getHttpClient() {
 }
 
 beforeAll(async () => {
-  const app = await startApp({
-    port: 1987,
-    logLevel: "error",
-  });
+  const app = await startApp();
 
   const {
     database,

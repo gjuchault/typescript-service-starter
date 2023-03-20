@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import url from "node:url";
 import { createHealthcheckApplication } from "./application/healthcheck/index.js";
-import { Config, getConfig } from "./config.js";
+import { config } from "./config.js";
 import { createCacheStorage, Cache } from "./infrastructure/cache/index.js";
 import { createDatabase, Database } from "./infrastructure/database/index.js";
 import { createHttpServer, HttpServer } from "./infrastructure/http/index.js";
@@ -20,8 +20,7 @@ import { createRepository } from "./repository/index.js";
 
 export type { AppRouter } from "./presentation/http/index.js";
 
-export async function startApp(configOverride: Partial<Config> = {}) {
-  const config = getConfig(configOverride);
+export async function startApp() {
   const telemetry = await createTelemetry({ config });
 
   const logger = createLogger("app", { config });
