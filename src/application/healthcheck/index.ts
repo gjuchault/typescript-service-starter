@@ -1,5 +1,4 @@
-import type { Cache } from "../../infrastructure/cache/index.js";
-import type { TaskScheduling } from "../../infrastructure/task-scheduling/index.js";
+import type { Cache, TaskScheduling } from "@gjuchault/typescript-service-sdk";
 import type { HealthcheckRepository } from "../../repository/healthcheck/index.js";
 import type { GetHealthcheckResult } from "./get-healthcheck.js";
 import { getHealthcheck } from "./get-healthcheck.js";

@@ -5,11 +5,11 @@ import "dotenv/config";
 import { createPool } from "slonik";
 import launchEditor from "launch-editor";
 import { z } from "zod";
-import { getConfig } from "../src/config";
+import { config } from "../src/config";
 import {
   buildMigration,
-  readMigrations,
-} from "../src/infrastructure/database/migration";
+  extractMigrations,
+} from "@gjuchault/typescript-service-sdk";
 import { match } from "ts-pattern";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
@@ -17,8 +17,12 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const migrationsPath = path.join(__dirname, "../migrations");
 
 export async function migrate(args = process.argv.slice(2), exit = true) {
-  const database = await createPool(getConfig().databaseUrl);
-  const migrationFiles = await readMigrations(database);
+  const database = await createPool(config.databaseUrl);
+  const rawMigrationsFiles = await fs.readdir(migrationsPath);
+  const migrationFiles = await extractMigrations(
+    database,
+    rawMigrationsFiles.map((file) => path.resolve(migrationsPath, file))
+  );
   const umzug = buildMigration({
     migrationFiles,
     database,

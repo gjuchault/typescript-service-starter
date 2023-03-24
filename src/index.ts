@@ -1,20 +1,21 @@
 #!/usr/bin/env node
 import url from "node:url";
+import {
+  createCacheStorage,
+  createDatabase,
+  createLogger,
+  createHttpServer,
+  createTaskScheduling,
+  createTelemetry,
+  createShutdownManager,
+  type Cache,
+  type Database,
+  type HttpServer,
+  type TaskScheduling,
+  type ShutdownManager,
+} from "@gjuchault/typescript-service-sdk";
 import { createHealthcheckApplication } from "./application/healthcheck/index.js";
 import { config } from "./config.js";
-import { createCacheStorage, Cache } from "./infrastructure/cache/index.js";
-import { createDatabase, Database } from "./infrastructure/database/index.js";
-import { createHttpServer, HttpServer } from "./infrastructure/http/index.js";
-import { createLogger } from "./infrastructure/logger/index.js";
-import {
-  createShutdownManager,
-  ShutdownManager,
-} from "./infrastructure/shutdown/index.js";
-import {
-  createTaskScheduling,
-  TaskScheduling,
-} from "./infrastructure/task-scheduling/index.js";
-import { createTelemetry } from "./infrastructure/telemetry/index.js";
 import { createAppRouter } from "./presentation/http/index.js";
 import { createRepository } from "./repository/index.js";
 

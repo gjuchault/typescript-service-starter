@@ -1,16 +1,21 @@
-import { createTRPCProxyClient, httpLink } from "@trpc/client";
-import { sql } from "slonik";
-import { beforeAll } from "vitest";
-import { z } from "zod";
-import { startApp, AppRouter } from "../index.js";
+import fs from "node:fs/promises";
+import path from "node:path";
+import url from "node:url";
 import {
+  dropAllTables,
   buildMigration,
-  readMigrations,
-} from "../infrastructure/database/migration.js";
-import type { HttpServer } from "../infrastructure/http/index.js";
+  extractMigrations,
+  type HttpServer,
+} from "@gjuchault/typescript-service-sdk";
+import { createTRPCProxyClient, httpLink } from "@trpc/client";
+import { beforeAll } from "vitest";
+import { startApp, AppRouter } from "../index.js";
 
 let http: HttpServer | undefined;
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>> | undefined;
+
+const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const migrationsPath = path.join(__dirname, "../../migrations");
 
 export function getHttpTestContext() {
   if (!http) {
@@ -47,19 +52,14 @@ beforeAll(async () => {
     ],
   });
 
-  await database.query(
-    sql.type(z.unknown())`
-      do $$ declare
-          r record;
-      begin
-          for r in (select tablename from pg_tables where schemaname not in ('pg_catalog', 'information_schema')) loop
-              execute 'drop table if exists ' || quote_ident(r.tablename) || ' cascade';
-          end loop;
-      end $$;
-    `
-  );
+  await database.query(dropAllTables());
 
-  const migrationFiles = await readMigrations(database);
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
+  const rawMigrationsFiles = await fs.readdir(migrationsPath);
+  const migrationFiles = await extractMigrations(
+    database,
+    rawMigrationsFiles.map((file) => path.resolve(migrationsPath, file))
+  );
 
   const migration = buildMigration({
     database,

@@ -1,35 +1,24 @@
 import {
-  type QueryResult,
-  type QueryResultRow,
-  createMockPool,
-  createMockQueryResult,
-} from "slonik";
-import { beforeAll, describe, it, vi, expect } from "vitest";
-import { createMockLogger } from "../../../infrastructure/logger/index.js";
-import { createUserRepository, GetUserResult } from "../index.js";
+  createMockDatabase,
+  createMockLogger,
+} from "@gjuchault/typescript-service-sdk";
+import { beforeAll, describe, it, expect } from "vitest";
+import { createUserRepository, GetResult } from "../index.js";
 
-describe("getUsers()", () => {
+describe("get()", () => {
   describe("given a database with users", () => {
-    const query = vi
-      .fn<[string], Promise<QueryResult<QueryResultRow>>>()
-      .mockResolvedValue(
-        createMockQueryResult([
-          {
-            id: 1,
-            name: "John",
-            email: "john@mail.com",
-          },
-          {
-            id: 2,
-            name: "Doe",
-            email: "doe@mail.com",
-          },
-        ])
-      );
-
-    const database = createMockPool({
-      query,
-    });
+    const { query, database } = createMockDatabase([
+      {
+        id: 1,
+        name: "John",
+        email: "john@mail.com",
+      },
+      {
+        id: 2,
+        name: "Doe",
+        email: "doe@mail.com",
+      },
+    ]);
 
     const repository = createUserRepository({
       database,
@@ -37,13 +26,13 @@ describe("getUsers()", () => {
     });
 
     describe("when called", () => {
-      let result: GetUserResult;
+      let result: GetResult;
 
       beforeAll(async () => {
-        result = await repository.getUsers();
+        result = await repository.get();
       });
 
-      it("returns outcome healthy", () => {
+      it("returns the data", () => {
         expect(result.ok).toBe(true);
 
         if (!result.ok) {
