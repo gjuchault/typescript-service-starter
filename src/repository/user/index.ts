@@ -1,5 +1,15 @@
+import {
+  Result,
+  Option,
+  err,
+  ok,
+  prepareBulkInsert,
+  PrepareBulkInsertError,
+  NonEmptyArray,
+  makeNonEmptyArray,
+  Logger,
+} from "@gjuchault/typescript-service-sdk";
 import { DatabasePool, sql } from "slonik";
-import { Result, Option, Err as error, Ok as ok } from "ts-results";
 import { z } from "zod";
 import {
   makeUserEmail,
@@ -7,14 +17,10 @@ import {
   makeUserName,
   type User,
 } from "../../domain/user.js";
-import {
-  NonEmptyArray,
-  makeNonEmptyArray,
-} from "../../helpers/narrow-types/non-empty-array.js";
-import { Logger } from "../../infrastructure/logger/index.js";
 
 export interface UserRepository {
-  getUsers(filters?: GetUsersFilters): Promise<GetUserResult>;
+  get(filters?: GetUsersFilters): Promise<GetResult>;
+  bulkAdd(users: User[]): Promise<BulkAddResult>;
 }
 
 export interface GetUsersFilters {
@@ -25,7 +31,8 @@ export interface GetUsersError {
   reason: "queryFailed";
 }
 
-export type GetUserResult = Result<Option<NonEmptyArray<User>>, GetUsersError>;
+export type GetResult = Result<Option<NonEmptyArray<User>>, GetUsersError>;
+export type BulkAddResult = Result<User[], PrepareBulkInsertError>;
 
 const databaseUserSchema = z.object({
   id: z.number().transform((id) => makeUserId(id)),
@@ -40,7 +47,7 @@ export function createUserRepository({
   database: DatabasePool;
   logger: Logger;
 }): UserRepository {
-  async function getUsers(filters?: GetUsersFilters): Promise<GetUserResult> {
+  async function get(filters?: GetUsersFilters): Promise<GetResult> {
     const idsFragment =
       filters?.ids === undefined
         ? sql.fragment``
@@ -60,9 +67,34 @@ export function createUserRepository({
         error: rawError,
       });
 
-      return error({ reason: "queryFailed" });
+      return err({ reason: "queryFailed" });
     }
   }
 
-  return { getUsers };
+  async function bulkAdd(users: User[]): Promise<BulkAddResult> {
+    const prepareBulkInsertResult = prepareBulkInsert(
+      [
+        ["id", "bool"],
+        ["name", "text"],
+        ["email", "text"],
+      ],
+      users,
+      (user) => ({ ...user })
+    );
+
+    if (prepareBulkInsertResult.err) {
+      return prepareBulkInsertResult;
+    }
+
+    const { columns, rows } = prepareBulkInsertResult.val;
+
+    await database.query(sql.type(z.unknown())`
+      insert into "users"(${columns})
+      select * from ${rows}
+    `);
+
+    return ok(users);
+  }
+
+  return { get, bulkAdd };
 }

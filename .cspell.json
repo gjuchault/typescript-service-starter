@@ -21,10 +21,11 @@
     "slonik",
     "socio",
     "tablename",
-    "trpc",
     "traceparent",
+    "trpc",
     "umzug",
     "unlog",
+    "unnest",
     "weakcb"
   ],
   "flagWords": [],

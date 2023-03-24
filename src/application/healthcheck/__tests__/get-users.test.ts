@@ -8,13 +8,14 @@ import type { UserRepository } from "../../../repository/user/index.js";
 import { getUsers, GetUsersResult } from "../get-users.js";
 
 const mockRepository: UserRepository = {
-  getUsers: vi.fn().mockResolvedValue([
+  get: vi.fn().mockResolvedValue([
     {
       id: makeUserId(1),
       name: makeUserName("John"),
       email: makeUserEmail("john@mail.com"),
     },
   ]),
+  bulkAdd: vi.fn(),
 };
 
 describe("getUsers()", () => {

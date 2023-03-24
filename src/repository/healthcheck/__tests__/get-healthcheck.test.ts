@@ -1,21 +1,13 @@
 import {
-  createMockPool,
-  createMockQueryResult,
-  type QueryResult,
-  type QueryResultRow,
-} from "slonik";
-import { beforeAll, describe, it, vi, expect } from "vitest";
+  createFailingQueryMockDatabase,
+  createMockDatabase,
+} from "@gjuchault/typescript-service-sdk";
+import { beforeAll, describe, it, expect } from "vitest";
 import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
 describe("getHealthcheck()", () => {
   describe("given a healthy database", () => {
-    const query = vi
-      .fn<[string], Promise<QueryResult<QueryResultRow>>>()
-      .mockResolvedValue(createMockQueryResult([]));
-
-    const database = createMockPool({
-      query,
-    });
+    const { query, database } = createMockDatabase([]);
 
     const repository = createHealthcheckRepository({
       database,
@@ -40,15 +32,7 @@ describe("getHealthcheck()", () => {
   });
 
   describe("given an unhealthy database", () => {
-    const query = vi
-      .fn<[string], Promise<QueryResult<QueryResultRow>>>()
-      .mockImplementation(() => {
-        throw new Error("error");
-      });
-
-    const database = createMockPool({
-      query,
-    });
+    const { query, database } = createFailingQueryMockDatabase();
 
     const repository = createHealthcheckRepository({
       database,

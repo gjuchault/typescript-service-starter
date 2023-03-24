@@ -1,6 +1,9 @@
-import { Option, Result } from "ts-results";
+import type {
+  NonEmptyArray,
+  Option,
+  Result,
+} from "@gjuchault/typescript-service-sdk";
 import type { User } from "../../domain/user.js";
-import { NonEmptyArray } from "../../helpers/narrow-types/non-empty-array.js";
 import type {
   GetUsersError as GetUsersRepositoryError,
   UserRepository,
@@ -16,7 +19,7 @@ export async function getUsers({
 }: {
   userRepository: UserRepository;
 }): Promise<GetUsersResult> {
-  const users = await userRepository.getUsers();
+  const users = await userRepository.get();
 
   return users;
 }

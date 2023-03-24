@@ -1,5 +1,8 @@
-import ms from "ms";
 import "dotenv/config";
+import {
+  zodStringifiedMs,
+  zodStringifiedNumber,
+} from "@gjuchault/typescript-service-sdk";
 import { z } from "zod";
 
 import { version, description } from "../package.json";
@@ -48,71 +51,33 @@ export const config: Config = {
    */
   secret: z.string().uuid().parse(process.env.SECRET),
 
-  port: z
-    .string()
-    .refine((databaseMaximumPoolSize) =>
-      refineMinMaxInteger(databaseMaximumPoolSize, { min: 10, max: 65_536 })
-    )
-    .transform(Number)
-    .parse(process.env.PORT),
+  port: zodStringifiedNumber({
+    integer: true,
+    min: 10,
+    max: 65_536,
+  }).parse(process.env.PORT),
 
   databaseUrl: z.string().parse(process.env.DATABASE_URL),
 
-  databaseMaximumPoolSize: z
-    .string()
-    .refine((databaseMaximumPoolSize) =>
-      refineMinMaxInteger(databaseMaximumPoolSize, { min: 0, max: 5000 })
-    )
-    .transform(Number)
-    .parse(process.env.DATABASE_MAXIMUM_POOL_SIZE),
+  databaseMaximumPoolSize: zodStringifiedNumber({
+    integer: true,
+    min: 0,
+    max: 5000,
+  }).parse(process.env.DATABASE_MAXIMUM_POOL_SIZE),
 
-  databaseIdleTimeout: z
-    .string()
-    .min(1)
-    .refine((databaseIdleTimeout) => refineMs(databaseIdleTimeout))
-    .transform((databaseIdleTimeout) => ms(databaseIdleTimeout))
-    .parse(process.env.DATABASE_IDLE_TIMEOUT),
+  databaseIdleTimeout: zodStringifiedMs().parse(
+    process.env.DATABASE_IDLE_TIMEOUT
+  ),
 
-  databaseStatementTimeout: z
-    .string()
-    .min(1)
-    .refine((databaseStatementTimeout) => refineMs(databaseStatementTimeout))
-    .transform((databaseStatementTimeout) => ms(databaseStatementTimeout))
-    .parse(process.env.DATABASE_STATEMENT_TIMEOUT),
+  databaseStatementTimeout: zodStringifiedMs().parse(
+    process.env.DATABASE_STATEMENT_TIMEOUT
+  ),
 
   redisUrl: z.string().parse(process.env.REDIS_URL),
 
-  tracingSampling: z
-    .string()
-    .refine((tracingSampling) =>
-      refineMinMaxFloat(tracingSampling, { min: 0, max: 1 })
-    )
-    .transform(Number)
-    .parse(process.env.TRACING_SAMPLING),
+  tracingSampling: zodStringifiedNumber({
+    integer: false,
+    min: 0,
+    max: 1,
+  }).parse(process.env.TRACING_SAMPLING),
 };
-
-export function refineMs(value: string): boolean {
-  try {
-    return Number.isSafeInteger(ms(value));
-  } catch {
-    return false;
-  }
-}
-
-export function refineMinMaxInteger(
-  valueAsString: string,
-  { min, max }: { min: number; max: number }
-): boolean {
-  const value = Number(valueAsString);
-
-  return Number.isSafeInteger(value) && value >= min && value <= max;
-}
-
-export function refineMinMaxFloat(
-  valueAsString: string,
-  { min, max }: { min: number; max: number }
-): boolean {
-  const value = Number(valueAsString);
-
-  return value >= min && value <= max;
-}
