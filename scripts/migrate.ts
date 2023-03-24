@@ -5,7 +5,7 @@ import "dotenv/config";
 import { createPool } from "slonik";
 import launchEditor from "launch-editor";
 import { z } from "zod";
-import { getConfig } from "../src/config";
+import { config } from "../src/config";
 import {
   buildMigration,
   readMigrations,
