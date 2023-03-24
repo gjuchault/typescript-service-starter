@@ -2,12 +2,12 @@ import {
   createFailingQueryMockDatabase,
   createMockDatabase,
 } from "@gjuchault/typescript-service-sdk";
-import { beforeAll, describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect, vi } from "vitest";
 import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
 describe("getHealthcheck()", () => {
   describe("given a healthy database", () => {
-    const { query, database } = createMockDatabase([]);
+    const { query, database } = createMockDatabase(vi, []);
 
     const repository = createHealthcheckRepository({
       database,
@@ -32,7 +32,7 @@ describe("getHealthcheck()", () => {
   });
 
   describe("given an unhealthy database", () => {
-    const { query, database } = createFailingQueryMockDatabase();
+    const { query, database } = createFailingQueryMockDatabase(vi);
 
     const repository = createHealthcheckRepository({
       database,

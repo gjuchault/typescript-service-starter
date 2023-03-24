@@ -2,12 +2,12 @@ import {
   createMockDatabase,
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
-import { beforeAll, describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect, vi } from "vitest";
 import { createUserRepository, GetResult } from "../index.js";
 
 describe("get()", () => {
   describe("given a database with users", () => {
-    const { query, database } = createMockDatabase([
+    const { query, database } = createMockDatabase(vi, [
       {
         id: 1,
         name: "John",

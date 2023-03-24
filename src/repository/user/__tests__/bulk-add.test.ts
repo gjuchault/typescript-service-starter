@@ -2,7 +2,7 @@ import {
   createMockDatabase,
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
-import { beforeAll, describe, it, expect } from "vitest";
+import { beforeAll, describe, it, expect, vi } from "vitest";
 import {
   makeUserEmail,
   makeUserId,
@@ -12,7 +12,7 @@ import { createUserRepository, BulkAddResult } from "../index.js";
 
 describe("getUsers()", () => {
   describe("given a database with users", () => {
-    const { query, database } = createMockDatabase([]);
+    const { query, database } = createMockDatabase(vi, []);
 
     const repository = createUserRepository({
       database,
