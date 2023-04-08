@@ -98,7 +98,7 @@
     "@fastify/etag": "^4.2.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/helmet": "^10.1.0",
-    "@fastify/multipart": "^7.5.0",
+    "@fastify/multipart": "^7.6.0",
     "@fastify/rate-limit": "^8.0.0",
     "@fastify/under-pressure": "^8.2.0",
     "@gjuchault/typescript-service-sdk": "^1.4.6",
