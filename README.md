@@ -1,10 +1,10 @@
-# Typescript Service Starter
+# TypeScript Service Starter
 
 ![NPM](https://img.shields.io/npm/l/@gjuchault/typescript-service-starter)
 ![NPM](https://img.shields.io/npm/v/@gjuchault/typescript-service-starter)
 ![GitHub Workflow Status](https://github.com/gjuchault/typescript-service-starter/actions/workflows/typescript-service-starter.yml/badge.svg?branch=main)
 
-Yet another (opinionated) typescript service starter template.
+Yet another (opinionated) TypeScript service starter template.
 
 ## Opinions and limitations
 
@@ -16,12 +16,12 @@ Yet another (opinionated) typescript service starter template.
 And extends the ones from [typescript-library-starter](https://github.com/gjuchault/typescript-library-starter)
 
 1. Relies as much as possible on each included library's defaults
-2. Only rely on GitHub Actions
-3. Do not include documentation generation
+2. Only relies on GitHub Actions
+3. Does not include documentation generation
 
 ## Getting started
 
-1. `npx degit gjuchault/typescript-service-starter my-project` or click on `Use this template` button on GitHub!
+1. `npx degit gjuchault/typescript-service-starter my-project` or click on the `Use this template` button on GitHub!
 2. `cd my-project`
 3. `npm install`
 4. `git init` (if you used degit)
@@ -29,14 +29,14 @@ And extends the ones from [typescript-library-starter](https://github.com/gjucha
 
 To enable deployment, you will need to:
 
-1. Setup `NPM_TOKEN` secret in GitHub actions ([Settings > Secrets > Actions](https://github.com/gjuchault/typescript-service-starter/settings/secrets/actions))
+1. Set up the `NPM_TOKEN` secret in GitHub Actions ([Settings > Secrets > Actions](https://github.com/gjuchault/typescript-service-starter/settings/secrets/actions))
 2. Give `GITHUB_TOKEN` write permissions for GitHub releases ([Settings > Actions > General](https://github.com/gjuchault/typescript-service-starter/settings/actions) > Workflow permissions)
 
 ## Features
 
 ### Ecosystem
 
-This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [trpc](https://trpc.io/) is used to have nice routes & automatic client generations with zod and typescript.
+This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [trpc](https://trpc.io/) is used to have nice routes & automatic client generations with zod and TypeScript.
 It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis)).
 
 For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both prometheus-like metrics & tracing). To handle distributed tracing, it expects [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id.
@@ -51,7 +51,7 @@ This template also tries to be easy to deploy through esbuild's bundling. This m
 migrations         # database migrations (.sql files, no rollback)
 src/
 ├── application    # service code
-├── domain         # pure functions & typescript models of your entities
+├── domain         # pure functions & TypeScript models of your entities
 ├── presentation   # communication layer (http)
 ├── repository     # storage of your entities
 ├── infrastructure # technical components (cache, database connection, etc.)
@@ -65,51 +65,51 @@ You can check [trpc's documentation](https://trpc.io/docs/client) to have an aut
 
 ### Node.js, npm version
 
-Typescript Service Starter relies on [volta](https://volta.sh/) to ensure node version to be consistent across developers. It's also used in the GitHub workflow file.
+TypeScript Service Starter relies on [Volta](https://volta.sh/) to ensure Node.js version to be consistent across developers. It's also used in the GitHub workflow file.
 
-### Typescript
+### TypeScript
 
 Leverages [esbuild](https://github.com/evanw/esbuild) for blazing fast builds, but keeps `tsc` to generate `.d.ts` files.
 Generates a single ESM build.
 
 Commands:
 
-- `build`: runs typechecking then ESM and `d.ts` files in the `build/` directory
+- `build`: runs type checking then ESM and `d.ts` files in the `build/` directory
 - `clean`: removes the `build/` directory
 - `type:dts`: only generates `d.ts`
-- `type:check`: only run typechecking
+- `type:check`: only runs type checking
 - `type:build`: only generates ESM
 
 ### Tests
 
-typescript-service-starter uses [vitest](https://vitest.dev/). The coverage is done through vitest, using [c8](https://github.com/bcoe/c8).
+TypeScript Service Starter uses [Vitest](https://vitest.dev/). Coverage is done through Vitest, using [c8](https://github.com/bcoe/c8).
 
 Commands:
 
-- `test`: runs vitest test runner
-- `test:watch`: runs vitest test runner in watch mode
-- `test:coverage`: runs vitest test runner and generates coverage reports
+- `test`: runs Vitest test runner
+- `test:watch`: runs Vitest test runner in watch mode
+- `test:coverage`: runs Vitest test runner and generates coverage reports
 
 ### Format & lint
 
-This template relies on the combination of [eslint](https://github.com/eslint/eslint) — through [typescript-eslint](https://github.com/typescript-eslint/typescript-eslint) for linting and [prettier](https://github.com/prettier/prettier) for formatting.
-It also uses [cspell](https://github.com/streetsidesoftware/cspell) to ensure spelling
+This template relies on the combination of [ESLint](https://github.com/eslint/eslint) — through [Typescript-ESLint](https://github.com/typescript-eslint/typescript-eslint) for linting and [Prettier](https://github.com/prettier/prettier) for formatting.
+It also uses [cspell](https://github.com/streetsidesoftware/cspell) to ensure correct spelling.
 
 Commands:
 
-- `format`: runs prettier with automatic fixing
-- `format:check`: runs prettier without automatic fixing (used in CI)
-- `lint`: runs eslint with automatic fixing
-- `lint:check`: runs eslint without automatic fixing (used in CI)
-- `spell:check`: runs spellchecking
+- `format`: runs Prettier with automatic fixing
+- `format:check`: runs Prettier without automatic fixing (used in CI)
+- `lint`: runs ESLint with automatic fixing
+- `lint:check`: runs ESLint without automatic fixing (used in CI)
+- `spell:check`: runs spell checking
 
 ### Releasing
 
-Under the hood, this service uses [semantic-release](https://github.com/semantic-release/semantic-release) and [commitizen](https://github.com/commitizen/cz-cli).
-The goal is to avoid manual release process. Using `semantic-release` will automatically create a github release (hence tags) as well as an npm release.
+Under the hood, this service uses [semantic-release](https://github.com/semantic-release/semantic-release) and [Commitizen](https://github.com/commitizen/cz-cli).
+The goal is to avoid manual release processes. Using `semantic-release` will automatically create a GitHub release (hence tags) as well as an npm release.
 Based on your commit history, `semantic-release` will automatically create a patch, feature or breaking release.
 
 Commands:
 
-- `cz`: interactive CLI that helps you generate a proper git commit message, using [commitizen](https://github.com/commitizen/cz-cli)
+- `cz`: interactive CLI that helps you generate a proper git commit message, using [Commitizen](https://github.com/commitizen/cz-cli)
 - `semantic-release`: triggers a release (used in CI)
