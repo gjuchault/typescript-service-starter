@@ -1,15 +1,17 @@
-import { type Brand, make } from "ts-brand";
+import { z } from "zod";
 
-export type UserId = Brand<number, "id">;
-export type UserName = Brand<string, "name">;
-export type UserEmail = Brand<string, "email">;
+export const userIdSchema = z.number().brand<"UserId">();
+export const userNameSchema = z.string().brand<"UserName">();
+export const userEmailSchema = z.string().brand<"UserEmail">();
 
-export interface User {
-  id: UserId;
-  name: UserName;
-  email: UserEmail;
-}
+export type UserId = z.infer<typeof userIdSchema>;
+export type UserName = z.infer<typeof userNameSchema>;
+export type UserEmail = z.infer<typeof userEmailSchema>;
 
-export const makeUserId = make<UserId>();
-export const makeUserName = make<UserName>();
-export const makeUserEmail = make<UserEmail>();
+export const userSchema = z.object({
+  id: userIdSchema,
+  name: userNameSchema,
+  email: userEmailSchema,
+});
+
+export type User = z.infer<typeof userSchema>;
