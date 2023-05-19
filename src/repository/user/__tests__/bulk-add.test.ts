@@ -2,13 +2,14 @@ import {
   createMockDatabase,
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
-import { beforeAll, describe, it, expect, vi } from "vitest";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   userEmailSchema,
   userIdSchema,
   userNameSchema,
 } from "../../../domain/user.js";
-import { createUserRepository, BulkAddResult } from "../index.js";
+import { BulkAddResult,createUserRepository } from "../index.js";
 
 describe("getUsers()", () => {
   describe("given a database with users", () => {

@@ -1,6 +1,8 @@
 import os from "node:os";
 import v8 from "node:v8";
+
 import type { Redis } from "ioredis";
+
 import type { HealthcheckRepository } from "../../repository/healthcheck/index.js";
 
 export interface GetHealthcheckResult {

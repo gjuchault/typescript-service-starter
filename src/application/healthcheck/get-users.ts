@@ -1,4 +1,5 @@
 import type { NonEmptyArray, Result } from "@gjuchault/typescript-service-sdk";
+
 import type { User } from "../../domain/user.js";
 import type {
   GetUsersError as GetUsersRepositoryError,

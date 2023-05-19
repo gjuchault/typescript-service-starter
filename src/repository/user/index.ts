@@ -1,16 +1,17 @@
 import {
-  Result,
+  createNonEmptyArraySchema,
   err,
+  Logger,
+  NonEmptyArray,
   ok,
   prepareBulkInsert,
   PrepareBulkInsertError,
-  NonEmptyArray,
-  createNonEmptyArraySchema,
-  Logger,
+  Result,
 } from "@gjuchault/typescript-service-sdk";
 import { DatabasePool, sql } from "slonik";
 import { z } from "zod";
-import { userSchema, type User } from "../../domain/user.js";
+
+import { type User,userSchema } from "../../domain/user.js";
 
 export interface UserRepository {
   get(filters?: GetUsersFilters): Promise<GetResult>;

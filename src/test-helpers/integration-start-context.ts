@@ -1,15 +1,17 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import url from "node:url";
+
 import {
-  dropAllTables,
   buildMigration,
+  dropAllTables,
   extractMigrations,
   type HttpServer,
 } from "@gjuchault/typescript-service-sdk";
 import { createTRPCProxyClient, httpLink } from "@trpc/client";
 import { beforeAll } from "vitest";
-import { startApp, AppRouter } from "../index.js";
+
+import { AppRouter,startApp } from "../index.js";
 
 let http: HttpServer | undefined;
 let client: ReturnType<typeof createTRPCProxyClient<AppRouter>> | undefined;
