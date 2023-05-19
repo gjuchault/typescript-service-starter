@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import type { HealthcheckApplication } from "../../../../application/healthcheck/index.js";
 import type { RootRouter } from "../../index.js";
 

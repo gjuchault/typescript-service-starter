@@ -1,11 +1,12 @@
 import "dotenv/config";
+
 import {
   zodStringifiedMs,
   zodStringifiedNumber,
 } from "@gjuchault/typescript-service-sdk";
 import { z } from "zod";
 
-import { version, description } from "../package.json";
+import { description, version } from "../package.json";
 
 export interface Config {
   name: string;

@@ -1,8 +1,9 @@
 import type { LightMyRequestResponse } from "fastify";
 import { beforeAll, describe, expect, it } from "vitest";
+
 import {
-  getHttpTestContext,
   getHttpClient,
+  getHttpTestContext,
 } from "../../../../../test-helpers/integration-start-context.js";
 import type { HealthcheckResponseSchema } from "../index.js";
 

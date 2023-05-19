@@ -1,4 +1,5 @@
 import { initTRPC } from "@trpc/server";
+
 import type { HealthcheckApplication } from "../../application/healthcheck/index.js";
 import { bindHealthcheckRoutes } from "./routes/healthcheck/index.js";
 
