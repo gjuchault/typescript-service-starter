@@ -4,9 +4,9 @@ import {
 } from "@gjuchault/typescript-service-sdk";
 import { beforeAll, describe, it, expect, vi } from "vitest";
 import {
-  makeUserEmail,
-  makeUserId,
-  makeUserName,
+  userEmailSchema,
+  userIdSchema,
+  userNameSchema,
 } from "../../../domain/user.js";
 import { createUserRepository, BulkAddResult } from "../index.js";
 
@@ -25,14 +25,14 @@ describe("getUsers()", () => {
       beforeAll(async () => {
         result = await repository.bulkAdd([
           {
-            id: makeUserId(1),
-            email: makeUserEmail("foo@bar.com"),
-            name: makeUserName("Foo"),
+            id: userIdSchema.parse(1),
+            email: userEmailSchema.parse("foo@bar.com"),
+            name: userNameSchema.parse("Foo"),
           },
           {
-            id: makeUserId(2),
-            email: makeUserEmail("john@doe.com"),
-            name: makeUserName("John Doe"),
+            id: userIdSchema.parse(2),
+            email: userEmailSchema.parse("john@doe.com"),
+            name: userNameSchema.parse("John Doe"),
           },
         ]);
       });

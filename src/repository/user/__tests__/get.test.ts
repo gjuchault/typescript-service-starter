@@ -3,20 +3,25 @@ import {
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
 import { beforeAll, describe, it, expect, vi } from "vitest";
+import {
+  userEmailSchema,
+  userIdSchema,
+  userNameSchema,
+} from "../../../domain/user.js";
 import { createUserRepository, GetResult } from "../index.js";
 
 describe("get()", () => {
   describe("given a database with users", () => {
     const { query, database } = createMockDatabase(vi, [
       {
-        id: 1,
-        name: "John",
-        email: "john@mail.com",
+        id: userIdSchema.parse(1),
+        name: userNameSchema.parse("John"),
+        email: userEmailSchema.parse("john@mail.com"),
       },
       {
-        id: 2,
-        name: "Doe",
-        email: "doe@mail.com",
+        id: userIdSchema.parse(2),
+        name: userNameSchema.parse("Doe"),
+        email: userEmailSchema.parse("doe@mail.com"),
       },
     ]);
 
@@ -39,13 +44,7 @@ describe("get()", () => {
           expect.fail();
         }
 
-        expect(result.val.some).toBe(true);
-
-        if (!result.val.some) {
-          expect.fail();
-        }
-
-        expect(result.val.val).toEqual([
+        expect(result.val).toEqual([
           {
             id: 1,
             name: "John",

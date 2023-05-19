@@ -1,18 +1,13 @@
 import { beforeAll, describe, it, vi, expect } from "vitest";
-import {
-  makeUserEmail,
-  makeUserId,
-  makeUserName,
-} from "../../../domain/user.js";
 import type { UserRepository } from "../../../repository/user/index.js";
 import { getUsers, GetUsersResult } from "../get-users.js";
 
 const mockRepository: UserRepository = {
   get: vi.fn().mockResolvedValue([
     {
-      id: makeUserId(1),
-      name: makeUserName("John"),
-      email: makeUserEmail("john@mail.com"),
+      id: 1,
+      name: "John",
+      email: "john@mail.com",
     },
   ]),
   bulkAdd: vi.fn(),

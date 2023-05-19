@@ -1,22 +1,16 @@
 import {
   Result,
-  Option,
   err,
   ok,
   prepareBulkInsert,
   PrepareBulkInsertError,
   NonEmptyArray,
-  makeNonEmptyArray,
+  createNonEmptyArraySchema,
   Logger,
 } from "@gjuchault/typescript-service-sdk";
 import { DatabasePool, sql } from "slonik";
 import { z } from "zod";
-import {
-  makeUserEmail,
-  makeUserId,
-  makeUserName,
-  type User,
-} from "../../domain/user.js";
+import { userSchema, type User } from "../../domain/user.js";
 
 export interface UserRepository {
   get(filters?: GetUsersFilters): Promise<GetResult>;
@@ -31,14 +25,12 @@ export interface GetUsersError {
   reason: "queryFailed";
 }
 
-export type GetResult = Result<Option<NonEmptyArray<User>>, GetUsersError>;
+export type GetResult = Result<NonEmptyArray<User>, GetUsersError>;
 export type BulkAddResult = Result<User[], PrepareBulkInsertError>;
 
-const databaseUserSchema = z.object({
-  id: z.number().transform((id) => makeUserId(id)),
-  name: z.string().transform((name) => makeUserName(name)),
-  email: z.string().transform((email) => makeUserEmail(email)),
-});
+const nonEmptyUserArraySchema = createNonEmptyArraySchema(userSchema);
+
+const databaseUserSchema = userSchema;
 
 export function createUserRepository({
   database,
@@ -54,7 +46,7 @@ export function createUserRepository({
         : sql.fragment`where id = any(${sql.array(filters.ids, "int4")})`;
 
     try {
-      const users = makeNonEmptyArray(
+      const users = nonEmptyUserArraySchema.parse(
         await database.any(
           sql.type(databaseUserSchema)`select * from users ${idsFragment}`
         )

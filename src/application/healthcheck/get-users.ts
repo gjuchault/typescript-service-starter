@@ -1,8 +1,4 @@
-import type {
-  NonEmptyArray,
-  Option,
-  Result,
-} from "@gjuchault/typescript-service-sdk";
+import type { NonEmptyArray, Result } from "@gjuchault/typescript-service-sdk";
 import type { User } from "../../domain/user.js";
 import type {
   GetUsersError as GetUsersRepositoryError,
@@ -10,7 +6,7 @@ import type {
 } from "../../repository/user/index.js";
 
 export type GetUsersResult = Result<
-  Option<NonEmptyArray<User>>,
+  NonEmptyArray<User>,
   GetUsersRepositoryError
 >;
 
