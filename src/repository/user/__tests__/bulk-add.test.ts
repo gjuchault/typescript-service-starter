@@ -39,13 +39,13 @@ describe("getUsers()", () => {
       });
 
       it("returns the users", () => {
-        expect(result.ok).toBe(true);
+        expect(result.isOk()).toBe(true);
 
-        if (!result.ok) {
+        if (!result.isOk()) {
           expect.fail();
         }
 
-        expect(result.val).toEqual([
+        expect(result.value).toEqual([
           {
             id: 1,
             name: "Foo",

@@ -1,14 +1,12 @@
 import {
   createNonEmptyArraySchema,
-  err,
   Logger,
   NonEmptyArray,
-  ok,
   prepareBulkInsert,
   PrepareBulkInsertError,
-  Result,
 } from "@gjuchault/typescript-service-sdk";
-import { DatabasePool, sql } from "slonik";
+import { err, fromPromise, ok, Result } from "neverthrow";
+import { DatabasePool, SlonikError, sql } from "slonik";
 import { z } from "zod";
 
 import { type User, userSchema } from "../../domain/user.js";
@@ -26,8 +24,21 @@ export interface GetUsersError {
   reason: "queryFailed";
 }
 
+export interface SQLError {
+  reason: "queryFailed";
+  error: SlonikError;
+}
+
+export interface UnknownError {
+  reason: "unknown";
+  error: unknown;
+}
+
 export type GetResult = Result<NonEmptyArray<User>, GetUsersError>;
-export type BulkAddResult = Result<User[], PrepareBulkInsertError>;
+export type BulkAddResult = Result<
+  User[],
+  PrepareBulkInsertError | SQLError | UnknownError
+>;
 
 const nonEmptyUserArraySchema = createNonEmptyArraySchema(userSchema);
 
@@ -75,18 +86,45 @@ export function createUserRepository({
       (user) => ({ ...user })
     );
 
-    if (prepareBulkInsertResult.err) {
-      return prepareBulkInsertResult;
-    }
+    // Procedural version of the functional below:
+    // if (prepareBulkInsertResult.isErr()) {
+    //   return err(prepareBulkInsertResult.error);
+    // }
 
-    const { columns, rows } = prepareBulkInsertResult.val;
+    // const { columns, rows } = prepareBulkInsertResult.value;
 
-    await database.query(sql.type(z.unknown())`
-      insert into "users"(${columns})
-      select * from ${rows}
-    `);
+    // try {
+    //   await database.query(sql.type(z.unknown())`
+    //     insert into "users"(${columns})
+    //     select * from ${rows}
+    //   `);
+    // } catch (error) {
+    //   if (error instanceof SlonikError) {
+    //     return err({ reason: "queryFailed", error });
+    //   }
 
-    return ok(users);
+    //   return err({ reason: "unknown", error });
+    // }
+
+    // return ok(users);
+
+    return prepareBulkInsertResult
+      .asyncAndThen(({ columns, rows }) => {
+        return fromPromise(
+          database.query(sql.type(z.unknown())`
+            insert into "users"(${columns})
+            select * from ${rows}
+          `),
+          (error: unknown): SQLError | UnknownError => {
+            if (error instanceof SlonikError) {
+              return { reason: "queryFailed", error };
+            }
+
+            return { reason: "unknown", error };
+          }
+        );
+      })
+      .map(() => users);
   }
 
   return { get, bulkAdd };
