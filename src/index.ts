@@ -24,7 +24,7 @@ import { createRepository } from "./repository/index.js";
 export type { AppRouter } from "./presentation/http/index.js";
 
 export async function startApp() {
-  const telemetry = await createTelemetry({ config });
+  const telemetry = createTelemetry({ config });
 
   const logger = createLogger("app", { config });
 
