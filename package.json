@@ -78,7 +78,7 @@
     "eslint-plugin-security": "^1.7.1",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "eslint-plugin-unicorn": "^47.0.0",
-    "get-port": "^6.1.2",
+    "get-port": "^7.0.0",
     "launch-editor": "^2.6.0",
     "nyc": "^15.1.0",
     "pino-pretty": "^10.0.0",
