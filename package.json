@@ -113,7 +113,7 @@
     "@opentelemetry/semantic-conventions": "^1.14.0",
     "@trpc/server": "^10.30.0",
     "bullmq": "^3.15.8",
-    "dotenv": "^16.1.4",
+    "dotenv": "^16.3.1",
     "fastify": "^4.18.0",
     "fastify-plugin": "^4.5.0",
     "http-terminator": "^3.2.0",
