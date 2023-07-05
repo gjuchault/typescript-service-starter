@@ -21,7 +21,7 @@ export async function createHealthcheckApplication({
     "someTask",
     async (job) => {
       await Promise.resolve(job.data.id);
-    }
+    },
   );
 
   await enqueueSomeTask([{ id: "123" }]);

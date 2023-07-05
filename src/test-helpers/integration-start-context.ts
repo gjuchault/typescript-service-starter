@@ -60,7 +60,7 @@ beforeAll(async () => {
   const rawMigrationsFiles = await fs.readdir(migrationsPath);
   const migrationFiles = await extractMigrations(
     database,
-    rawMigrationsFiles.map((file) => path.resolve(migrationsPath, file))
+    rawMigrationsFiles.map((file) => path.resolve(migrationsPath, file)),
   );
 
   const migration = buildMigration({

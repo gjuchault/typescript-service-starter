@@ -67,11 +67,11 @@ export const config: Config = {
   }).parse(process.env.DATABASE_MAXIMUM_POOL_SIZE),
 
   databaseIdleTimeout: zodStringifiedMs().parse(
-    process.env.DATABASE_IDLE_TIMEOUT
+    process.env.DATABASE_IDLE_TIMEOUT,
   ),
 
   databaseStatementTimeout: zodStringifiedMs().parse(
-    process.env.DATABASE_STATEMENT_TIMEOUT
+    process.env.DATABASE_STATEMENT_TIMEOUT,
   ),
 
   redisUrl: z.string().parse(process.env.REDIS_URL),

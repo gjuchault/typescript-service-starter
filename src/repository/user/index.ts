@@ -60,8 +60,8 @@ export function createUserRepository({
     try {
       const users = nonEmptyUserArraySchema.parse(
         await database.any(
-          sql.type(databaseUserSchema)`select * from users ${idsFragment}`
-        )
+          sql.type(databaseUserSchema)`select * from users ${idsFragment}`,
+        ),
       );
 
       return ok(users);
@@ -83,7 +83,7 @@ export function createUserRepository({
         ["email", "text"],
       ],
       users,
-      (user) => ({ ...user })
+      (user) => ({ ...user }),
     );
 
     // Procedural version of the functional below:
@@ -121,7 +121,7 @@ export function createUserRepository({
             }
 
             return { reason: "unknown", error };
-          }
+          },
         );
       })
       .map(() => users);
