@@ -108,7 +108,7 @@
     "@opentelemetry/core": "^1.14.0",
     "@opentelemetry/exporter-prometheus": "^0.40.0",
     "@opentelemetry/resources": "^1.14.0",
-    "@opentelemetry/sdk-node": "^0.40.0",
+    "@opentelemetry/sdk-node": "^0.41.0",
     "@opentelemetry/sdk-trace-base": "^1.14.0",
     "@opentelemetry/semantic-conventions": "^1.14.0",
     "@trpc/server": "^10.33.1",
