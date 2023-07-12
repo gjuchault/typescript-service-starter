@@ -112,7 +112,7 @@
     "@opentelemetry/sdk-trace-base": "^1.15.0",
     "@opentelemetry/semantic-conventions": "^1.15.0",
     "@trpc/server": "^10.34.0",
-    "bullmq": "^4.2.0",
+    "bullmq": "^4.2.1",
     "dotenv": "^16.3.1",
     "fastify": "^4.19.2",
     "fastify-plugin": "^4.5.0",
