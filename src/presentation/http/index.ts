@@ -1,24 +1,32 @@
-import { initTRPC } from "@trpc/server";
+import { AppRouter, initContract } from "@ts-rest/core";
+import { initServer } from "@ts-rest/fastify";
 
 import type { HealthcheckApplication } from "../../application/healthcheck/index.js";
-import { bindHealthcheckRoutes } from "./routes/healthcheck/index.js";
+import {
+  bindHealthcheckRoutes,
+  healthcheckRouterContract,
+} from "./routes/healthcheck/index.js";
 
-export type AppRouter = ReturnType<typeof createAppRouter>;
-export type RootRouter = ReturnType<typeof initTRPC.create>;
+const c = initContract();
+const s = initServer();
+
+const contract = {
+  ...healthcheckRouterContract,
+};
+
+export const routerContract = c.router(contract);
 
 export function createAppRouter({
   healthcheckApplication,
 }: {
   healthcheckApplication: HealthcheckApplication;
-}) {
-  const t = initTRPC.create();
-
+}): ReturnType<typeof s.router> {
   const healthcheckRouter = bindHealthcheckRoutes({
-    t,
     healthcheckApplication,
   });
 
-  return t.router({
-    healthcheck: healthcheckRouter,
-  });
+  // FIXME: we should not cast here
+  return s.router(contract, {
+    ...healthcheckRouter,
+  }) as unknown as ReturnType<typeof s.router>;
 }
