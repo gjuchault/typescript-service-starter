@@ -17,7 +17,7 @@
   "types": "./build/src/index.d.ts",
   "license": "MIT",
   "engines": {
-    "node": "^18.16.1",
+    "node": "^20.5.0",
     "npm": "^9.5.1"
   },
   "volta": {
