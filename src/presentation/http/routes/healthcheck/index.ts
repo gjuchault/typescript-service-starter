@@ -1,19 +1,18 @@
-import type { ServerInferResponses } from "@ts-rest/core";
+import type {
+  ServerInferResponseBody,
+  ServerInferResponses,
+} from "@ts-rest/core";
 import { z } from "zod";
 
 import { GetHealthcheckResult } from "../../../../application/healthcheck/get-healthcheck.js";
 import type { HealthcheckApplication } from "../../../../application/healthcheck/index.js";
 
-const healthcheckResponseSchema = z.object({
-  http: z.literal("healthy"),
-  database: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-  cache: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-  systemMemory: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-  processMemory: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-});
+export type RouterGetHealthcheckResult = ServerInferResponses<
+  (typeof healthcheckRouterContract)["getHealthcheck"]
+>;
 
-export type HealthcheckResponseSchema = z.infer<
-  typeof healthcheckResponseSchema
+export type RouterGetHealthcheckBody = ServerInferResponseBody<
+  (typeof healthcheckRouterContract)["getHealthcheck"]
 >;
 
 export const healthcheckRouterContract = {
@@ -46,9 +45,7 @@ export function bindHealthcheckRoutes({
   healthcheckApplication: HealthcheckApplication;
 }) {
   return {
-    async getHealthcheck(): Promise<
-      ServerInferResponses<(typeof healthcheckRouterContract)["getHealthcheck"]>
-    > {
+    async getHealthcheck(): Promise<RouterGetHealthcheckResult> {
       const healthcheck = await healthcheckApplication.getHealthcheck();
 
       if (!isHealthcheckFullyHealthy(healthcheck)) {
@@ -73,7 +70,7 @@ export function bindHealthcheckRoutes({
 }
 
 function isHealthcheckFullyHealthy(
-  healthcheck: GetHealthcheckResult,
+  healthcheck: GetHealthcheckResult
 ): healthcheck is Record<keyof GetHealthcheckResult, "healthy"> {
   return !Object.values(healthcheck).includes("unhealthy");
 }
