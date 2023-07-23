@@ -99,7 +99,7 @@
     "@fastify/formbody": "^7.4.0",
     "@fastify/helmet": "^11.0.0",
     "@fastify/multipart": "^7.7.0",
-    "@fastify/rate-limit": "^8.0.1",
+    "@fastify/rate-limit": "^8.0.3",
     "@fastify/under-pressure": "^8.3.0",
     "@gjuchault/typescript-service-sdk": "^3.1.1",
     "@opentelemetry/api": "^1.4.1",
