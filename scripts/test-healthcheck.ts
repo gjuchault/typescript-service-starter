@@ -19,9 +19,7 @@ async function testHealthcheck() {
 
   let interval = setInterval(async () => {
     try {
-      const fetchResult = await fetch(
-        "http://127.0.0.1:8080/api/healthcheck.healthcheck"
-      );
+      const fetchResult = await fetch("http://127.0.0.1:8080/api/healthcheck");
 
       if (fetchResult.ok) {
         process.exit(0);

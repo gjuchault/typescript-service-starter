@@ -36,7 +36,7 @@ To enable deployment, you will need to:
 
 ### Ecosystem
 
-This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [trpc](https://trpc.io/) is used to have nice routes & automatic client generations with zod and TypeScript.
+This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [ts-rest](https://ts-rest.com/) is used to have nice routes & automatic client generations with zod and TypeScript.
 It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis)).
 
 For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both prometheus-like metrics & tracing). To handle distributed tracing, it expects [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id.
@@ -61,7 +61,7 @@ src/
 
 ### Client generation
 
-You can check [trpc's documentation](https://trpc.io/docs/client) to have an automatic client with typing. `AppRouter` is exported on the index file. If you wish to use your own client, remember that nested routers in trpc are using dot instead of slash (eg.: `GET http://localhost:8080/api/healthcheck.healthcheck`).
+You can check [ts-rest's documentation](https://ts-rest.com/docs/core/fetch) to have an automatic client with typing. `routerContract` is exported on the index file.
 
 ### Node.js, npm version
 

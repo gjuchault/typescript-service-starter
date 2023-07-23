@@ -1,37 +1,76 @@
+import type {
+  ServerInferResponseBody,
+  ServerInferResponses,
+} from "@ts-rest/core";
 import { z } from "zod";
 
+import { GetHealthcheckResult } from "../../../../application/healthcheck/get-healthcheck.js";
 import type { HealthcheckApplication } from "../../../../application/healthcheck/index.js";
-import type { RootRouter } from "../../index.js";
 
-const healthcheckResponseSchema = z.object({
-  http: z.literal("healthy"),
-  database: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-  cache: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-  systemMemory: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-  processMemory: z.union([z.literal("healthy"), z.literal("unhealthy")]),
-});
-
-export type HealthcheckResponseSchema = z.infer<
-  typeof healthcheckResponseSchema
+export type RouterGetHealthcheckResult = ServerInferResponses<
+  (typeof healthcheckRouterContract)["getHealthcheck"]
 >;
 
+export type RouterGetHealthcheckBody = ServerInferResponseBody<
+  (typeof healthcheckRouterContract)["getHealthcheck"]
+>;
+
+export const healthcheckRouterContract = {
+  getHealthcheck: {
+    method: "GET",
+    path: "/healthcheck",
+    responses: {
+      200: z.object({
+        database: z.literal("healthy"),
+        cache: z.literal("healthy"),
+        systemMemory: z.literal("healthy"),
+        processMemory: z.literal("healthy"),
+        http: z.literal("healthy"),
+      }),
+      500: z.object({
+        database: z.union([z.literal("healthy"), z.literal("unhealthy")]),
+        cache: z.union([z.literal("healthy"), z.literal("unhealthy")]),
+        systemMemory: z.union([z.literal("healthy"), z.literal("unhealthy")]),
+        processMemory: z.union([z.literal("healthy"), z.literal("unhealthy")]),
+        http: z.union([z.literal("healthy"), z.literal("unhealthy")]),
+      }),
+    },
+    summary: "Healthcheck information",
+  },
+} as const;
+
 export function bindHealthcheckRoutes({
-  t,
   healthcheckApplication,
 }: {
-  t: RootRouter;
   healthcheckApplication: HealthcheckApplication;
 }) {
-  return t.router({
-    healthcheck: t.procedure
-      .output(healthcheckResponseSchema)
-      .query(async () => {
-        const healthcheck = await healthcheckApplication.getHealthcheck();
+  return {
+    async getHealthcheck(): Promise<RouterGetHealthcheckResult> {
+      const healthcheck = await healthcheckApplication.getHealthcheck();
 
+      if (!isHealthcheckFullyHealthy(healthcheck)) {
         return {
+          status: 500,
+          body: {
+            ...healthcheck,
+            http: "healthy",
+          },
+        };
+      }
+
+      return {
+        status: 200,
+        body: {
           ...healthcheck,
           http: "healthy",
-        };
-      }),
-  });
+        },
+      };
+    },
+  };
+}
+
+function isHealthcheckFullyHealthy(
+  healthcheck: GetHealthcheckResult,
+): healthcheck is Record<keyof GetHealthcheckResult, "healthy"> {
+  return !Object.values(healthcheck).includes("unhealthy");
 }

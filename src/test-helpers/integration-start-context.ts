@@ -2,25 +2,26 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import url from "node:url";
 
+import type { HttpServer } from "@gjuchault/typescript-service-sdk";
 import {
   buildMigration,
   dropAllTables,
   extractMigrations,
-  type HttpServer,
 } from "@gjuchault/typescript-service-sdk";
-import { createTRPCProxyClient, httpLink } from "@trpc/client";
+import { initClient } from "@ts-rest/core";
 import { beforeAll } from "vitest";
 
-import { AppRouter, startApp } from "../index.js";
+import { startApp } from "../index.js";
+import { routerContract } from "../presentation/http/index.js";
 
 let http: HttpServer | undefined;
-let client: ReturnType<typeof createTRPCProxyClient<AppRouter>> | undefined;
+let client: ReturnType<typeof initTestClient> | undefined;
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 const migrationsPath = path.join(__dirname, "../../migrations");
 
 export function getHttpTestContext() {
-  if (!http) {
+  if (http === undefined) {
     throw new Error("http not yet initialized");
   }
 
@@ -28,11 +29,18 @@ export function getHttpTestContext() {
 }
 
 export function getHttpClient() {
-  if (!client) {
+  if (client === undefined) {
     throw new Error("client not yet initialized");
   }
 
   return client;
+}
+
+function initTestClient() {
+  return initClient(routerContract, {
+    baseUrl: "http://0.0.0.0:1987/api",
+    baseHeaders: {},
+  });
 }
 
 beforeAll(async () => {
@@ -46,13 +54,7 @@ beforeAll(async () => {
 
   http = httpServer;
 
-  client = createTRPCProxyClient<AppRouter>({
-    links: [
-      httpLink({
-        url: "http://0.0.0.0:1987/api",
-      }),
-    ],
-  });
+  client = initTestClient();
 
   await database.query(dropAllTables());
 

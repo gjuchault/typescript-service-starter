@@ -1,8 +1,14 @@
 #!/usr/bin/env node
 import url from "node:url";
 
+import type {
+  Cache,
+  Database,
+  HttpServer,
+  ShutdownManager,
+  TaskScheduling,
+} from "@gjuchault/typescript-service-sdk";
 import {
-  type Cache,
   createCacheStorage,
   createDatabase,
   createHttpServer,
@@ -10,18 +16,12 @@ import {
   createShutdownManager,
   createTaskScheduling,
   createTelemetry,
-  type Database,
-  type HttpServer,
-  type ShutdownManager,
-  type TaskScheduling,
 } from "@gjuchault/typescript-service-sdk";
 
 import { createHealthcheckApplication } from "./application/healthcheck/index.js";
 import { config } from "./config.js";
 import { createAppRouter } from "./presentation/http/index.js";
 import { createRepository } from "./repository/index.js";
-
-export type { AppRouter } from "./presentation/http/index.js";
 
 export async function startApp() {
   const telemetry = createTelemetry({ config });
