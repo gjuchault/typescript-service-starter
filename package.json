@@ -80,7 +80,7 @@
     "get-port": "^7.0.0",
     "launch-editor": "^2.6.0",
     "nyc": "^15.1.0",
-    "pino-pretty": "^10.0.1",
+    "pino-pretty": "^10.1.0",
     "prettier": "^3.0.0",
     "prompts": "^2.4.2",
     "semantic-release": "^21.0.7",
