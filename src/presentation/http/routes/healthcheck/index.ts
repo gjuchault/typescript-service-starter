@@ -70,7 +70,7 @@ export function bindHealthcheckRoutes({
 }
 
 function isHealthcheckFullyHealthy(
-  healthcheck: GetHealthcheckResult
+  healthcheck: GetHealthcheckResult,
 ): healthcheck is Record<keyof GetHealthcheckResult, "healthy"> {
   return !Object.values(healthcheck).includes("unhealthy");
 }
