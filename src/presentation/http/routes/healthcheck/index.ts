@@ -1,7 +1,7 @@
-import { type RouterImplementation } from "@gjuchault/typescript-service-sdk";
-import { type AppRoute } from "@ts-rest/core";
+import type { ServerInferResponses } from "@ts-rest/core";
 import { z } from "zod";
 
+import { GetHealthcheckResult } from "../../../../application/healthcheck/get-healthcheck.js";
 import type { HealthcheckApplication } from "../../../../application/healthcheck/index.js";
 
 const healthcheckResponseSchema = z.object({
@@ -16,7 +16,7 @@ export type HealthcheckResponseSchema = z.infer<
   typeof healthcheckResponseSchema
 >;
 
-export const healthcheckRouterContract: Record<"getHealthcheck", AppRoute> = {
+export const healthcheckRouterContract = {
   getHealthcheck: {
     method: "GET",
     path: "/healthcheck",
@@ -38,21 +38,20 @@ export const healthcheckRouterContract: Record<"getHealthcheck", AppRoute> = {
     },
     summary: "Healthcheck information",
   },
-};
+} as const;
 
 export function bindHealthcheckRoutes({
   healthcheckApplication,
 }: {
   healthcheckApplication: HealthcheckApplication;
-}): RouterImplementation<typeof healthcheckRouterContract> {
+}) {
   return {
-    async getHealthcheck() {
+    async getHealthcheck(): Promise<
+      ServerInferResponses<(typeof healthcheckRouterContract)["getHealthcheck"]>
+    > {
       const healthcheck = await healthcheckApplication.getHealthcheck();
 
-      const hasFailingHealthcheck =
-        Object.values(healthcheck).includes("unhealthy");
-
-      if (hasFailingHealthcheck) {
+      if (!isHealthcheckFullyHealthy(healthcheck)) {
         return {
           status: 500,
           body: {
@@ -71,4 +70,10 @@ export function bindHealthcheckRoutes({
       };
     },
   };
+}
+
+function isHealthcheckFullyHealthy(
+  healthcheck: GetHealthcheckResult,
+): healthcheck is Record<keyof GetHealthcheckResult, "healthy"> {
+  return !Object.values(healthcheck).includes("unhealthy");
 }

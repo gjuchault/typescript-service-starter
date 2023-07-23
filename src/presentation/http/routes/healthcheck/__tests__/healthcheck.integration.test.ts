@@ -38,12 +38,13 @@ describe("GET /healthcheck", () => {
     });
   });
 
-  describe("when called with trpc client", () => {
+  describe("when called with ts-rest client", () => {
     let response: HealthcheckResponseSchema;
 
     beforeAll(async () => {
       const client = getHttpClient();
-      response = await client.healthcheck.healthcheck.query();
+      client.f();
+      response = await client;
     });
 
     it("returns 200", () => {

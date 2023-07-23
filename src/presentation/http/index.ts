@@ -1,4 +1,5 @@
-import { AppRouter, initContract } from "@ts-rest/core";
+import type { InitializedRouter } from "@gjuchault/typescript-service-sdk";
+import { initContract } from "@ts-rest/core";
 import { initServer } from "@ts-rest/fastify";
 
 import type { HealthcheckApplication } from "../../application/healthcheck/index.js";
@@ -10,23 +11,24 @@ import {
 const c = initContract();
 const s = initServer();
 
-const contract = {
+export const contract = {
   ...healthcheckRouterContract,
 };
 
 export const routerContract = c.router(contract);
 
+export type AppRouter = InitializedRouter<typeof contract>;
+
 export function createAppRouter({
   healthcheckApplication,
 }: {
   healthcheckApplication: HealthcheckApplication;
-}): ReturnType<typeof s.router> {
+}): AppRouter {
   const healthcheckRouter = bindHealthcheckRoutes({
     healthcheckApplication,
   });
 
-  // FIXME: we should not cast here
   return s.router(contract, {
     ...healthcheckRouter,
-  }) as unknown as ReturnType<typeof s.router>;
+  });
 }
