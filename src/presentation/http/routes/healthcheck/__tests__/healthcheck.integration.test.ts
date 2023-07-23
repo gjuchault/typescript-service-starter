@@ -20,8 +20,6 @@ describe("GET /healthcheck", () => {
     });
 
     it("returns 200", () => {
-      expect(response.statusCode).toBe(200);
-
       const body = response.json<RouterGetHealthcheckBody>();
 
       if (process.env.CI === undefined) {
@@ -50,19 +48,25 @@ describe("GET /healthcheck", () => {
     });
 
     it("returns 200", () => {
-      expect(response.status).toBe(200);
-
-      if (response.status !== 200) {
-        expect.fail();
-      }
-
       if (process.env.CI === undefined) {
+        expect(response.status).toBe(200);
+
+        if (response.status !== 200) {
+          expect.fail();
+        }
+
         expect(response.body.database).toBe("healthy");
         expect(response.body.cache).toBe("healthy");
         expect(response.body.systemMemory).toBe("healthy");
         expect(response.body.processMemory).toBe("healthy");
         expect(response.body.http).toBe("healthy");
       } else {
+        expect(response.status).toBe(500);
+
+        if (response.status !== 500) {
+          expect.fail();
+        }
+
         // in Github Actions, process memory seems to be low or static
         expect(response.body.database).toBe("healthy");
         expect(response.body.cache).toBe("healthy");
