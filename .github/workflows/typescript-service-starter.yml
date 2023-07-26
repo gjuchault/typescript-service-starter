@@ -101,7 +101,7 @@ jobs:
           REDIS_URL: ${{ env.REDIS_URL }}
           SECRET: 00000000-0000-0000-0000-000000000000
           TRACING_SAMPLING: 0.2
-      - name: Healthcheck test
+      - name: ⚡ Healthcheck test
         run: npm run test:healthcheck
         env:
           NODE_ENV: test
