@@ -19,11 +19,11 @@ const setupPath = __filename;
 const testSetupPath = path.join(rootPath, "scripts/test-setup.ts");
 const workflowPath = path.join(
   rootPath,
-  ".github/workflows/typescript-service-starter.yml"
+  ".github/workflows/typescript-service-starter.yml",
 );
 const issueConfigPath = path.join(
   rootPath,
-  ".github/ISSUE_TEMPLATE/config.yml"
+  ".github/ISSUE_TEMPLATE/config.yml",
 );
 const codeOfConductPath = path.join(rootPath, "CODE_OF_CONDUCT.md");
 
@@ -98,16 +98,27 @@ async function applyPackageName({
 }) {
   const packageSlug = slugify(packageName);
 
+  const setupAction = `  test-setup:
+    name: ⚡ Setup tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: ⚡ Tests
+        run: npm run test:setup\n\n`;
+
   await logAsyncTask(
     "Changing GitHub workflow file",
     replaceInFile(
       workflowPath,
-      new Map([
+      new Map<RegExp | string, string>([
         [/Typescript Service Starter/, packageName],
         [/typescript-service-starter/, packageSlug],
-        [/\s+- name: Setup test\s+run:[\w :]+/i, ""],
-      ])
-    )
+        [setupAction, ""],
+        [/, test-setup/i, ""],
+      ]),
+    ),
   );
 
   await logAsyncTask(
@@ -119,8 +130,8 @@ async function applyPackageName({
           "gjuchault/typescript-service-starter",
           `${githubUserName}/${packageName}`,
         ],
-      ])
-    )
+      ]),
+    ),
   );
 
   await logAsyncTask(
@@ -132,16 +143,16 @@ async function applyPackageName({
           /gjuchault\/typescript-service-starter/g,
           `${githubUserName}/${packageName}`,
         ],
-      ])
-    )
+      ]),
+    ),
   );
 
   await logAsyncTask(
     "Renaming GitHub workflow file",
     fs.rename(
       workflowPath,
-      path.join(rootPath, `.github/workflows/${packageName}.yml`)
-    )
+      path.join(rootPath, `.github/workflows/${packageName}.yml`),
+    ),
   );
 
   await logAsyncTask(
@@ -153,16 +164,16 @@ async function applyPackageName({
           "gjuchault/typescript-service-starter",
           `${githubUserName}/${packageName}`,
         ],
-      ])
-    )
+      ]),
+    ),
   );
 
   await logAsyncTask(
     "Editing CODE_OF_CONDUCT.md",
     replaceInFile(
       codeOfConductPath,
-      new Map([["gabriel.juchault@gmail.com", userMail]])
-    )
+      new Map([["gabriel.juchault@gmail.com", userMail]]),
+    ),
   );
 
   await logAsyncTask(
@@ -179,20 +190,20 @@ async function applyPackageName({
         [/[^\n]+"author[^\n]+\n/, ""],
         [/[^\n]+"repository[^\n]+\n/, ""],
         [/[^\n]+"setup[^\n]+\n/, ""],
-      ])
-    )
+      ]),
+    ),
   );
 }
 
 async function cleanup({ packageName }: { packageName: string }) {
   await logAsyncTask(
     "Removing dependencies",
-    exec("npm uninstall slugify prompts")
+    exec("npm uninstall slugify prompts"),
   );
 
   await logAsyncTask(
     "Cleaning cspell",
-    replaceInFile(cspellPath, new Map([["gjuchault", packageName]]))
+    replaceInFile(cspellPath, new Map([["gjuchault", packageName]])),
   );
 
   await logAsyncTask("Removing setup.ts script", fs.rm(setupPath));
@@ -201,7 +212,7 @@ async function cleanup({ packageName }: { packageName: string }) {
 
 async function replaceInFile(
   filePath: string,
-  replacers: Map<string | RegExp, string>
+  replacers: Map<string | RegExp, string>,
 ) {
   const fileContent = await fs.readFile(filePath, "utf8");
 
@@ -217,13 +228,13 @@ async function commitAll(message: string) {
   await exec("git add .");
   await logAsyncTask(
     `Committing changes: ${message}`,
-    exec(`git commit -m "${message}"`)
+    exec(`git commit -m "${message}"`),
   );
 }
 
 async function logAsyncTask<TResolve>(
   message: string,
-  promise: Promise<TResolve>
+  promise: Promise<TResolve>,
 ) {
   process.stdout.write(message);
 

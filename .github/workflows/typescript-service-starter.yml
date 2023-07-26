@@ -6,13 +6,56 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
-  typescript-service-starter:
+  lint:
+    name: ⬣ ESLint
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: ⬣ ESLint
+        run: npm run lint:check
 
-    concurrency:
-      group: ${{ github.ref }}
-      cancel-in-progress: true
+  audit:
+    name: 🛡️ Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - name: 🛡️ Audit
+        run: npm audit --audit-level=high
 
+  format:
+    name: 🔬 Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: 🔬 Format
+        run: npm run format:check
+
+  spell:
+    name: 🈸 Spellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: 🈸 Spellcheck
+        run: npm run spell:check
+
+  type:
+    name: ʦ Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: ʦ Typecheck
+        run: npm run type:check
+
+  test:
     services:
       postgres:
         image: postgres
@@ -33,6 +76,8 @@ jobs:
           - 6379:6379
         options: --entrypoint redis-server
 
+    name: ⚡ Tests
+    runs-on: ubuntu-latest
     steps:
       - name: Build services urls
         run: |
@@ -41,24 +86,8 @@ jobs:
 
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
-      - run: npm ci
-
-      - name: Dependencies audit
-        run: npm audit --audit-level=high
-
-      - name: Build
-        run: npm run build
-
-      - name: Format check
-        run: npm run format:check
-
-      - name: Lint check
-        run: npm run lint:check
-
-      - name: Spell check
-        run: npm run spell:check
-
-      - name: Test
+      - uses: bahmutov/npm-install@v1
+      - name: ⚡ Tests
         run: npm run test
         env:
           NODE_ENV: test
@@ -72,8 +101,7 @@ jobs:
           REDIS_URL: ${{ env.REDIS_URL }}
           SECRET: 00000000-0000-0000-0000-000000000000
           TRACING_SAMPLING: 0.2
-
-      - name: Healthcheck test
+      - name: ⚡ Healthcheck test
         run: npm run test:healthcheck
         env:
           NODE_ENV: test
@@ -88,10 +116,27 @@ jobs:
           SECRET: 00000000-0000-0000-0000-000000000000
           TRACING_SAMPLING: 0.2
 
-      - name: Setup test
+  test-setup:
+    name: ⚡ Setup tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: ⚡ Tests
         run: npm run test:setup
 
-      - name: Release
+  build-and-release:
+    name: 🚀 Build & release
+    needs: [lint, audit, format, spell, type, test, test-setup]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: bahmutov/npm-install@v1
+      - name: 🔨 Build
+        run: npm run build
+      - name: 🚀 Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
