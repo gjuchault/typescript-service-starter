@@ -1,4 +1,3 @@
-import type { InitializedRouter } from "@gjuchault/typescript-service-sdk";
 import { initContract } from "@ts-rest/core";
 import { initServer } from "@ts-rest/fastify";
 
@@ -17,13 +16,13 @@ export const contract = {
 
 export const routerContract = c.router(contract);
 
-export type AppRouter = InitializedRouter<typeof contract>;
+export type AppRouter = ReturnType<typeof createAppRouter>;
 
 export function createAppRouter({
   healthcheckApplication,
 }: {
   healthcheckApplication: HealthcheckApplication;
-}): AppRouter {
+}) {
   const healthcheckRouter = bindHealthcheckRoutes({
     healthcheckApplication,
   });
