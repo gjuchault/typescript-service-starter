@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { UserRepository } from "../../../repository/user/index.js";
+import type { UserRepository } from "~/repository/user/index.js";
+
 import { getUsers, GetUsersResult } from "../get-users.js";
 
 const mockRepository: UserRepository = {

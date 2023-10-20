@@ -1,7 +1,8 @@
 import type { Redis } from "ioredis";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
-import type { HealthcheckRepository } from "../../../repository/healthcheck/index.js";
+import type { HealthcheckRepository } from "~/repository/healthcheck/index.js";
+
 import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck.js";
 
 const mockHealthyCache = {

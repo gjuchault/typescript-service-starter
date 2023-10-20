@@ -4,8 +4,8 @@ import type {
 } from "@ts-rest/core";
 import { z } from "zod";
 
-import { GetHealthcheckResult } from "../../../../application/healthcheck/get-healthcheck.js";
-import type { HealthcheckApplication } from "../../../../application/healthcheck/index.js";
+import { GetHealthcheckResult } from "~/application/healthcheck/get-healthcheck.js";
+import type { HealthcheckApplication } from "~/application/healthcheck/index.js";
 
 export type RouterGetHealthcheckResult = ServerInferResponses<
   (typeof healthcheckRouterContract)["getHealthcheck"]

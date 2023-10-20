@@ -18,10 +18,10 @@ import {
   createTelemetry,
 } from "@gjuchault/typescript-service-sdk";
 
-import { createHealthcheckApplication } from "./application/healthcheck/index.js";
-import { config } from "./config.js";
-import { createAppRouter } from "./presentation/http/index.js";
-import { createRepository } from "./repository/index.js";
+import { createHealthcheckApplication } from "~/application/healthcheck/index.js";
+import { config } from "~/config.js";
+import { createAppRouter } from "~/presentation/http/index.js";
+import { createRepository } from "~/repository/index.js";
 
 export async function startApp() {
   const telemetry = createTelemetry({ config });

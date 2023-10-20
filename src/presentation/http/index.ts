@@ -1,7 +1,8 @@
 import { initContract } from "@ts-rest/core";
 import { initServer } from "@ts-rest/fastify";
 
-import type { HealthcheckApplication } from "../../application/healthcheck/index.js";
+import type { HealthcheckApplication } from "~/application/healthcheck/index.js";
+
 import {
   bindHealthcheckRoutes,
   healthcheckRouterContract,

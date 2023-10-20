@@ -4,7 +4,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import {
   getHttpClient,
   getHttpTestContext,
-} from "../../../../../test-helpers/integration-start-context.js";
+} from "~/test-helpers/integration-start-context.js";
+
 import type {
   RouterGetHealthcheckBody,
   RouterGetHealthcheckResult,

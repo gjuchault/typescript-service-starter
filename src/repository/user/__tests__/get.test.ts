@@ -8,7 +8,8 @@ import {
   userEmailSchema,
   userIdSchema,
   userNameSchema,
-} from "../../../domain/user.js";
+} from "~/domain/user.js";
+
 import { createUserRepository, GetResult } from "../index.js";
 
 describe("get()", () => {

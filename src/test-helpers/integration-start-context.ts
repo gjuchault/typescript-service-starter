@@ -11,8 +11,9 @@ import {
 import { initClient } from "@ts-rest/core";
 import { beforeAll } from "vitest";
 
+import { routerContract } from "~/presentation/http/index.js";
+
 import { startApp } from "../index.js";
-import { routerContract } from "../presentation/http/index.js";
 
 let http: HttpServer | undefined;
 let client: ReturnType<typeof initTestClient> | undefined;

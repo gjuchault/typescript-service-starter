@@ -9,8 +9,8 @@ import { err, fromPromise, ok, Result } from "neverthrow";
 import { DatabasePool, SlonikError, sql } from "slonik";
 import { z } from "zod";
 
-import type { User } from "../../domain/user.js";
-import { userSchema } from "../../domain/user.js";
+import type { User } from "~/domain/user.js";
+import { userSchema } from "~/domain/user.js";
 
 export interface UserRepository {
   get(filters?: GetUsersFilters): Promise<GetResult>;
