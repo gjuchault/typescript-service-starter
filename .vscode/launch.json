@@ -2,14 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "attach",
       "name": "Attach to server",
       "skipFiles": ["<node_internals>/**"],
       "port": 9229
     },
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Debug Current Test File",
       "autoAttachChildProcesses": true,
