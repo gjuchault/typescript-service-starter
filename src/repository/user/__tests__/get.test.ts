@@ -1,8 +1,10 @@
+import * as assert from "node:assert/strict";
+import { before, describe, it } from "node:test";
+
 import {
   createMockDatabase,
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
-import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   userEmailSchema,
@@ -14,7 +16,7 @@ import { createUserRepository, GetResult } from "../index.js";
 
 describe("get()", () => {
   describe("given a database with users", () => {
-    const { query, database } = createMockDatabase(vi, [
+    const { query, database } = createMockDatabase([
       {
         id: userIdSchema.parse(1),
         name: userNameSchema.parse("John"),
@@ -35,18 +37,18 @@ describe("get()", () => {
     describe("when called", () => {
       let result: GetResult;
 
-      beforeAll(async () => {
+      before(async () => {
         result = await repository.get();
       });
 
       it("returns the data", () => {
-        expect(result.isOk()).toBe(true);
+        assert.equal(result.isOk(), true);
 
         if (!result.isOk()) {
-          expect.fail();
+          assert.fail();
         }
 
-        expect(result.value).toEqual([
+        assert.deepEqual(result.value, [
           {
             id: 1,
             name: "John",
@@ -61,8 +63,11 @@ describe("get()", () => {
       });
 
       it("called the database with the appropriate query", () => {
-        expect(query).toBeCalledTimes(1);
-        expect(query.mock.calls[0][0].trim()).toEqual("select * from users");
+        assert.equal(query.mock.calls.length, 1);
+        assert.deepEqual(
+          (query.mock.calls[0].arguments as string[])[0].trim(),
+          "select * from users",
+        );
       });
     });
   });

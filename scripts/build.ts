@@ -10,7 +10,7 @@ export async function getContext(
 ) {
   const context = await esbuildContext({
     platform: "node",
-    target: "node18",
+    target: "node21",
     format: "esm",
     nodePaths: [path.join(__dirname, "../src")],
     sourcemap: true,

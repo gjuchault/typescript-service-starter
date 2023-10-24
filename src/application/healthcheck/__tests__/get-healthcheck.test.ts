@@ -1,24 +1,26 @@
+import * as assert from "node:assert/strict";
+import { before, describe, it, mock } from "node:test";
+
 import type { Redis } from "ioredis";
-import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { HealthcheckRepository } from "~/repository/healthcheck/index.js";
 
 import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck.js";
 
 const mockHealthyCache = {
-  echo: vi.fn().mockResolvedValue("1"),
+  echo: mock.fn(() => Promise.resolve("1")),
 } as unknown as Redis;
 
 const mockUnhealthyCache = {
-  echo: vi.fn().mockRejectedValue(new Error("error")),
+  echo: mock.fn(() => Promise.reject(new Error("error"))),
 } as unknown as Redis;
 
 const mockHealthyRepository: HealthcheckRepository = {
-  getHealthcheck: vi.fn().mockResolvedValue({ outcome: "healthy" }),
+  getHealthcheck: mock.fn(() => Promise.resolve({ outcome: "healthy" })),
 };
 
 const mockUnhealthyRepository: HealthcheckRepository = {
-  getHealthcheck: vi.fn().mockResolvedValue({ outcome: "unhealthy" }),
+  getHealthcheck: mock.fn(() => Promise.resolve({ outcome: "unhealthy" })),
 };
 
 describe("getHealthcheck()", () => {
@@ -26,7 +28,7 @@ describe("getHealthcheck()", () => {
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
-      beforeAll(async () => {
+      before(async () => {
         result = await getHealthcheck({
           cache: mockHealthyCache,
           healthcheckRepository: mockHealthyRepository,
@@ -34,13 +36,13 @@ describe("getHealthcheck()", () => {
       });
 
       it("returns healthy", () => {
-        expect(result.cache).toBe("healthy");
-        expect(result.database).toBe("healthy");
+        assert.equal(result.cache, "healthy");
+        assert.equal(result.database, "healthy");
 
         // in Github Actions, process memory seems to be low or static
         if (process.env.CI === undefined) {
-          expect(result.systemMemory).toBe("healthy");
-          expect(result.processMemory).toBe("healthy");
+          assert.equal(result.systemMemory, "healthy");
+          assert.equal(result.processMemory, "healthy");
         }
       });
     });
@@ -50,7 +52,7 @@ describe("getHealthcheck()", () => {
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
-      beforeAll(async () => {
+      before(async () => {
         result = await getHealthcheck({
           cache: mockUnhealthyCache,
           healthcheckRepository: mockHealthyRepository,
@@ -58,13 +60,13 @@ describe("getHealthcheck()", () => {
       });
 
       it("returns unhealthy cache, healthy database", () => {
-        expect(result.cache).toBe("unhealthy");
-        expect(result.database).toBe("healthy");
+        assert.equal(result.cache, "unhealthy");
+        assert.equal(result.database, "healthy");
 
         // in Github Actions, process memory seems to be low or static
         if (process.env.CI === undefined) {
-          expect(result.systemMemory).toBe("healthy");
-          expect(result.processMemory).toBe("healthy");
+          assert.equal(result.systemMemory, "healthy");
+          assert.equal(result.processMemory, "healthy");
         }
       });
     });
@@ -74,7 +76,7 @@ describe("getHealthcheck()", () => {
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
-      beforeAll(async () => {
+      before(async () => {
         result = await getHealthcheck({
           cache: mockHealthyCache,
           healthcheckRepository: mockUnhealthyRepository,
@@ -82,13 +84,13 @@ describe("getHealthcheck()", () => {
       });
 
       it("returns unhealthy cache, healthy database", () => {
-        expect(result.cache).toBe("healthy");
-        expect(result.database).toBe("unhealthy");
+        assert.equal(result.cache, "healthy");
+        assert.equal(result.database, "unhealthy");
 
         // in Github Actions, process memory seems to be low or static
         if (process.env.CI === undefined) {
-          expect(result.systemMemory).toBe("healthy");
-          expect(result.processMemory).toBe("healthy");
+          assert.equal(result.systemMemory, "healthy");
+          assert.equal(result.processMemory, "healthy");
         }
       });
     });
@@ -98,7 +100,7 @@ describe("getHealthcheck()", () => {
     describe("when called", () => {
       let result: GetHealthcheckResult;
 
-      beforeAll(async () => {
+      before(async () => {
         result = await getHealthcheck({
           cache: mockUnhealthyCache,
           healthcheckRepository: mockUnhealthyRepository,
@@ -106,13 +108,13 @@ describe("getHealthcheck()", () => {
       });
 
       it("returns unhealthy cache, healthy database", () => {
-        expect(result.cache).toBe("unhealthy");
-        expect(result.database).toBe("unhealthy");
+        assert.equal(result.cache, "unhealthy");
+        assert.equal(result.database, "unhealthy");
 
         // in Github Actions, process memory seems to be low or static
         if (process.env.CI === undefined) {
-          expect(result.systemMemory).toBe("healthy");
-          expect(result.processMemory).toBe("healthy");
+          assert.equal(result.systemMemory, "healthy");
+          assert.equal(result.processMemory, "healthy");
         }
       });
     });

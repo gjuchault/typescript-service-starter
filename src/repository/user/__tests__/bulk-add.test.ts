@@ -1,8 +1,10 @@
+import * as assert from "node:assert/strict";
+import { before, describe, it } from "node:test";
+
 import {
   createMockDatabase,
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
-import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   userEmailSchema,
@@ -14,7 +16,7 @@ import { BulkAddResult, createUserRepository } from "../index.js";
 
 describe("getUsers()", () => {
   describe("given a database with users", () => {
-    const { query, database } = createMockDatabase(vi, []);
+    const { query, database } = createMockDatabase([]);
 
     const repository = createUserRepository({
       database,
@@ -24,7 +26,7 @@ describe("getUsers()", () => {
     describe("when called", () => {
       let result: BulkAddResult;
 
-      beforeAll(async () => {
+      before(async () => {
         result = await repository.bulkAdd([
           {
             id: userIdSchema.parse(1),
@@ -40,13 +42,13 @@ describe("getUsers()", () => {
       });
 
       it("returns the users", () => {
-        expect(result.isOk()).toBe(true);
+        assert.equal(result.isOk(), true);
 
         if (!result.isOk()) {
-          expect.fail();
+          assert.fail();
         }
 
-        expect(result.value).toEqual([
+        assert.deepEqual(result.value, [
           {
             id: 1,
             name: "Foo",
@@ -61,12 +63,18 @@ describe("getUsers()", () => {
       });
 
       it("called the database with the appropriate query", () => {
-        expect(query).toBeCalledTimes(1);
-        expect(query.mock.calls[0][0].trim().split(/\s{2,}/)).toEqual([
+        assert.equal(query.mock.calls.length, 1);
+
+        const arguments_ = query.mock.calls[0].arguments as unknown as [
+          string,
+          unknown[],
+        ];
+
+        assert.deepEqual(arguments_[0].trim().split(/\s{2,}/), [
           'insert into "users"("id", "name", "email")',
           'select * from unnest($1::"bool"[], $2::"text"[], $3::"text"[])',
         ]);
-        expect(query.mock.calls[0][1]).toEqual([
+        assert.deepEqual(arguments_[1], [
           [1, 2],
           ["Foo", "John Doe"],
           ["foo@bar.com", "john@doe.com"],

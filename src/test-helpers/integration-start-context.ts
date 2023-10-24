@@ -1,15 +1,19 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { after, before } from "node:test";
 import url from "node:url";
 
-import type { HttpServer } from "@gjuchault/typescript-service-sdk";
+import type {
+  HttpServer,
+  ShutdownManager,
+} from "@gjuchault/typescript-service-sdk";
 import {
   buildMigration,
   dropAllTables,
   extractMigrations,
 } from "@gjuchault/typescript-service-sdk";
 import { initClient } from "@ts-rest/core";
-import { beforeAll } from "vitest";
+import type { DatabasePool } from "slonik";
 
 import { routerContract } from "~/presentation/http/index.js";
 
@@ -44,14 +48,16 @@ function initTestClient() {
   });
 }
 
-beforeAll(async () => {
-  const app = await startApp();
+let app: {
+  httpServer: HttpServer;
+  database: DatabasePool;
+  shutdown: ShutdownManager;
+};
 
-  const {
-    database,
-    httpServer,
-    shutdown: { shutdown },
-  } = app;
+before(async () => {
+  app = await startApp();
+
+  const { database, httpServer } = app;
 
   http = httpServer;
 
@@ -72,8 +78,8 @@ beforeAll(async () => {
   });
 
   await migration.up();
+});
 
-  return async () => {
-    await shutdown(false);
-  };
+after(async () => {
+  await app.shutdown.shutdown(false);
 });
