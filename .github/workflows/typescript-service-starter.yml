@@ -57,7 +57,19 @@ jobs:
       - name: ʦ Typecheck
         run: npm run type:check
 
-  test:
+  test-unit:
+    name: ⚡ Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 21
+      - uses: bahmutov/npm-install@v1
+      - name: ⚡ Unit tests
+        run: npm run test:unit
+
+  test-integration:
     services:
       postgres:
         image: postgres
@@ -78,21 +90,20 @@ jobs:
           - 6379:6379
         options: --entrypoint redis-server
 
-    name: ⚡ Tests
+    name: ⚡ Integration tests
     runs-on: ubuntu-latest
     steps:
       - name: Build services urls
         run: |
           echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
           echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
-
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: 21
       - uses: bahmutov/npm-install@v1
-      - name: ⚡ Tests
-        run: npm run test
+      - name: ⚡ Integration tests
+        run: npm run test:integration
         env:
           NODE_ENV: test
           LOG_LEVEL: error
@@ -105,6 +116,40 @@ jobs:
           REDIS_URL: ${{ env.REDIS_URL }}
           SECRET: 00000000-0000-0000-0000-000000000000
           TRACING_SAMPLING: 0.2
+
+  test-healthcheck:
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pwd
+          POSTGRES_DB: db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
+
+    name: ⚡ Healthcheck test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build services urls
+        run: |
+          echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 21
+      - uses: bahmutov/npm-install@v1
       - name: ⚡ Healthcheck test
         run: npm run test:healthcheck
         env:
@@ -129,12 +174,23 @@ jobs:
         with:
           node-version: 21
       - uses: bahmutov/npm-install@v1
-      - name: ⚡ Tests
+      - name: ⚡ Setup tests
         run: npm run test:setup
 
   build-and-release:
     name: 🚀 Build & release
-    needs: [lint, audit, format, spell, type, test, test-setup]
+    needs:
+      [
+        lint,
+        audit,
+        format,
+        spell,
+        type,
+        test-unit,
+        test-healthcheck,
+        test-integration,
+        test-setup,
+      ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

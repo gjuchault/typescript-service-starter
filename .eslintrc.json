@@ -41,7 +41,7 @@
   },
   "overrides": [
     {
-      "files": ["*.test.ts"],
+      "files": ["*.test.ts", "*.integration-test.ts"],
       "rules": { "@typescript-eslint/no-floating-promises": ["off"] }
     }
   ]

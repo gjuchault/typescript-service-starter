@@ -86,7 +86,9 @@ TypeScript Library Starter uses [Node.js's native test runner](https://nodejs.or
 
 Commands:
 
-- `test`: runs test runner
+- `test`: runs test runner for both unit and integration tests
+- `test:unit`: runs test runner for unit tests only
+- `test:integration`: runs test runner for integration tests only
 - `test:watch`: runs test runner in watch mode
 - `test:coverage`: runs test runner and generates coverage reports
 
