@@ -21,7 +21,9 @@ async function testHealthcheck() {
     try {
       const fetchResult = await fetch("http://127.0.0.1:8080/api/healthcheck");
 
-      if (fetchResult.ok) {
+      const body = await fetchResult.json();
+
+      if (body.http == "healthy") {
         appProcess.kill("SIGTERM");
         process.exit(0);
       }
