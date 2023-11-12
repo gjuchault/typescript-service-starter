@@ -110,7 +110,7 @@
     "@opentelemetry/sdk-node": "^0.44.0",
     "@opentelemetry/sdk-trace-base": "^1.18.1",
     "@opentelemetry/semantic-conventions": "^1.17.1",
-    "@ts-rest/core": "^3.30.4",
+    "@ts-rest/core": "^3.30.5",
     "@ts-rest/fastify": "^3.30.4",
     "@ts-rest/open-api": "^3.30.4",
     "bullmq": "^4.13.0",
