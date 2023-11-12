@@ -112,7 +112,7 @@
     "@opentelemetry/semantic-conventions": "^1.17.1",
     "@ts-rest/core": "^3.30.4",
     "@ts-rest/fastify": "^3.30.4",
-    "@ts-rest/open-api": "^3.30.4",
+    "@ts-rest/open-api": "^3.30.5",
     "bullmq": "^4.13.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.24.3",
