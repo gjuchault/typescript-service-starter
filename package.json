@@ -101,7 +101,7 @@
     "@fastify/multipart": "^8.0.0",
     "@fastify/rate-limit": "^8.0.3",
     "@fastify/under-pressure": "^8.3.0",
-    "@gjuchault/typescript-service-sdk": "^4.7.0",
+    "@gjuchault/typescript-service-sdk": "^4.8.0",
     "@opentelemetry/api": "^1.6.0",
     "@opentelemetry/api-metrics": "^0.33.0",
     "@opentelemetry/core": "^1.18.1",
