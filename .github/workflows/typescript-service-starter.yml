@@ -6,12 +6,21 @@ env:
   NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
 jobs:
+  dependencies:
+    name: 📦 Dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
+      - uses: bahmutov/npm-install@v1
+
   lint:
     name: ⬣ ESLint
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: ⬣ ESLint
         run: npm run lint:check
@@ -19,18 +28,20 @@ jobs:
   audit:
     name: 🛡️ Audit
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - name: 🛡️ Audit
         run: npm audit --audit-level=high
 
   format:
     name: 🔬 Format
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: 🔬 Format
         run: npm run format:check
@@ -38,9 +49,10 @@ jobs:
   spell:
     name: 🈸 Spellcheck
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: 🈸 Spellcheck
         run: npm run spell:check
@@ -48,11 +60,10 @@ jobs:
   type:
     name: ʦ Typecheck
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 21
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: ʦ Typecheck
         run: npm run type:check
@@ -60,11 +71,10 @@ jobs:
   test-unit:
     name: ⚡ Unit tests
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 21
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: ⚡ Unit tests
         run: npm run test:unit
@@ -92,15 +102,14 @@ jobs:
 
     name: ⚡ Integration tests
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
       - name: Build services urls
         run: |
           echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
           echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 21
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: ⚡ Integration tests
         run: npm run test:integration
@@ -140,15 +149,14 @@ jobs:
 
     name: ⚡ Healthcheck test
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
       - name: Build services urls
         run: |
           echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
           echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 21
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: ⚡ Healthcheck test
         run: npm run test:healthcheck
@@ -168,11 +176,10 @@ jobs:
   test-setup:
     name: ⚡ Setup tests
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 21
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: ⚡ Setup tests
         run: npm run test:setup
@@ -193,10 +200,8 @@ jobs:
       ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 21
+      - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - uses: bahmutov/npm-install@v1
       - name: 🔨 Build
         run: npm run build
