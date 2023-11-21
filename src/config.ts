@@ -1,9 +1,6 @@
 import "dotenv/config";
 
-import {
-  zodStringifiedMs,
-  zodStringifiedNumber,
-} from "@gjuchault/typescript-service-sdk";
+import { zodHelpers } from "@gjuchault/typescript-service-sdk";
 import { z } from "zod";
 
 import { description, version } from "../package.json";
@@ -52,33 +49,39 @@ export const config: Config = {
    */
   secret: z.string().uuid().parse(process.env.SECRET),
 
-  port: zodStringifiedNumber({
-    integer: true,
-    min: 10,
-    max: 65_536,
-  }).parse(process.env.PORT),
+  port: zodHelpers
+    .stringifiedNumber({
+      integer: true,
+      min: 10,
+      max: 65_536,
+    })
+    .parse(process.env.PORT),
 
   databaseUrl: z.string().parse(process.env.DATABASE_URL),
 
-  databaseMaximumPoolSize: zodStringifiedNumber({
-    integer: true,
-    min: 0,
-    max: 5000,
-  }).parse(process.env.DATABASE_MAXIMUM_POOL_SIZE),
+  databaseMaximumPoolSize: zodHelpers
+    .stringifiedNumber({
+      integer: true,
+      min: 0,
+      max: 5000,
+    })
+    .parse(process.env.DATABASE_MAXIMUM_POOL_SIZE),
 
-  databaseIdleTimeout: zodStringifiedMs().parse(
-    process.env.DATABASE_IDLE_TIMEOUT,
-  ),
+  databaseIdleTimeout: zodHelpers
+    .stringifiedMs()
+    .parse(process.env.DATABASE_IDLE_TIMEOUT),
 
-  databaseStatementTimeout: zodStringifiedMs().parse(
-    process.env.DATABASE_STATEMENT_TIMEOUT,
-  ),
+  databaseStatementTimeout: zodHelpers
+    .stringifiedMs()
+    .parse(process.env.DATABASE_STATEMENT_TIMEOUT),
 
   redisUrl: z.string().parse(process.env.REDIS_URL),
 
-  tracingSampling: zodStringifiedNumber({
-    integer: false,
-    min: 0,
-    max: 1,
-  }).parse(process.env.TRACING_SAMPLING),
+  tracingSampling: zodHelpers
+    .stringifiedNumber({
+      integer: false,
+      min: 0,
+      max: 1,
+    })
+    .parse(process.env.TRACING_SAMPLING),
 };

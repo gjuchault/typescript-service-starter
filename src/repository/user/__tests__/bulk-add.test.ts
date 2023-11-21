@@ -2,9 +2,8 @@ import * as assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import {
-  createFailingQueryMockDatabase,
-  createMockDatabase,
   createMockLogger,
+  slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
 
 import {
@@ -18,7 +17,7 @@ import { createUserRepository } from "../index.js";
 
 await describe("bulkAdd()", async () => {
   await describe("given a database with users", async () => {
-    const { query, database } = createMockDatabase([]);
+    const { query, database } = slonikHelpers.createMockDatabase([]);
 
     const repository = createUserRepository({
       database,
@@ -86,7 +85,7 @@ await describe("bulkAdd()", async () => {
   });
 
   await describe("given an erroring database", async () => {
-    const { database } = createFailingQueryMockDatabase();
+    const { database } = slonikHelpers.createFailingQueryMockDatabase();
 
     const repository = createUserRepository({
       database,

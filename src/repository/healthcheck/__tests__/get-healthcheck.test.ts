@@ -1,16 +1,13 @@
 import * as assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import {
-  createFailingQueryMockDatabase,
-  createMockDatabase,
-} from "@gjuchault/typescript-service-sdk";
+import { slonikHelpers } from "@gjuchault/typescript-service-sdk";
 
 import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
 await describe("getHealthcheck()", async () => {
   await describe("given a healthy database", async () => {
-    const { query, database } = createMockDatabase([]);
+    const { query, database } = slonikHelpers.createMockDatabase([]);
 
     const repository = createHealthcheckRepository({
       database,
@@ -35,7 +32,7 @@ await describe("getHealthcheck()", async () => {
   });
 
   await describe("given an unhealthy database", async () => {
-    const { query, database } = createFailingQueryMockDatabase();
+    const { query, database } = slonikHelpers.createFailingQueryMockDatabase();
 
     const repository = createHealthcheckRepository({
       database,

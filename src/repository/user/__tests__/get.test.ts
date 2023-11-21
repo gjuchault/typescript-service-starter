@@ -2,10 +2,9 @@ import * as assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import {
-  createFailingQueryMockDatabase,
-  createMockDatabase,
   createMockLogger,
-  fromElements,
+  nonEmptyArray,
+  slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
 
 import {
@@ -19,7 +18,7 @@ import { createUserRepository } from "../index.js";
 
 await describe("get()", async () => {
   await describe("given a database with users", async () => {
-    const { query, database } = createMockDatabase([
+    const { query, database } = slonikHelpers.createMockDatabase([
       {
         id: userIdSchema.parse(1),
         name: userNameSchema.parse("John"),
@@ -79,7 +78,7 @@ await describe("get()", async () => {
 
       before(async () => {
         result = await repository.get({
-          ids: fromElements(1),
+          ids: nonEmptyArray.fromElements(1),
         });
       });
 
@@ -110,7 +109,7 @@ await describe("get()", async () => {
   });
 
   await describe("given an erroring database", async () => {
-    const { database } = createFailingQueryMockDatabase();
+    const { database } = slonikHelpers.createFailingQueryMockDatabase();
 
     const repository = createUserRepository({
       database,

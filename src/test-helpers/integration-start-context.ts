@@ -8,9 +8,8 @@ import type {
   ShutdownManager,
 } from "@gjuchault/typescript-service-sdk";
 import {
-  buildMigration,
-  dropAllTables,
-  extractMigrations,
+  databaseMigration,
+  slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
 import { initClient } from "@ts-rest/core";
 import type { DatabasePool } from "slonik";
@@ -63,16 +62,16 @@ before(async () => {
 
   client = initTestClient();
 
-  await database.query(dropAllTables());
+  await database.query(slonikHelpers.dropAllTables());
 
   // eslint-disable-next-line security/detect-non-literal-fs-filename
   const rawMigrationsFiles = await fs.readdir(migrationsPath);
-  const migrationFiles = await extractMigrations(
+  const migrationFiles = await databaseMigration.extractMigrations(
     database,
     rawMigrationsFiles.map((file) => path.resolve(migrationsPath, file)),
   );
 
-  const migration = buildMigration({
+  const migration = databaseMigration.buildMigration({
     database,
     migrationFiles,
   });

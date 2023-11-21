@@ -1,9 +1,8 @@
 import {
-  createNonEmptyArraySchema,
   Logger,
   NonEmptyArray,
-  prepareBulkInsert,
-  PrepareBulkInsertError,
+  nonEmptyArray,
+  slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
 import { err, fromPromise, ok, Result } from "neverthrow";
 import { DatabasePool, SlonikError, sql } from "slonik";
@@ -38,10 +37,11 @@ export interface UnknownError {
 export type GetResult = Result<NonEmptyArray<User>, GetUsersError>;
 export type BulkAddResult = Result<
   User[],
-  PrepareBulkInsertError | SQLError | UnknownError
+  slonikHelpers.PrepareBulkInsertError | SQLError | UnknownError
 >;
 
-const nonEmptyUserArraySchema = createNonEmptyArraySchema(userSchema);
+const nonEmptyUserArraySchema =
+  nonEmptyArray.createNonEmptyArraySchema(userSchema);
 
 const databaseUserSchema = userSchema;
 
@@ -77,7 +77,7 @@ export function createUserRepository({
   }
 
   async function bulkAdd(users: User[]): Promise<BulkAddResult> {
-    const prepareBulkInsertResult = prepareBulkInsert(
+    const prepareBulkInsertResult = slonikHelpers.prepareBulkInsert(
       [
         ["id", "bool"],
         ["name", "text"],
