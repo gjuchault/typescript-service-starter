@@ -23,9 +23,9 @@ const mockUnhealthyRepository: HealthcheckRepository = {
   getHealthcheck: mock.fn(() => Promise.resolve({ outcome: "unhealthy" })),
 };
 
-describe("getHealthcheck()", () => {
-  describe("given a healthy cache and database", () => {
-    describe("when called", () => {
+await describe("getHealthcheck()", async () => {
+  await describe("given a healthy cache and database", async () => {
+    await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
@@ -35,7 +35,7 @@ describe("getHealthcheck()", () => {
         });
       });
 
-      it("returns healthy", () => {
+      await it("returns healthy", () => {
         assert.equal(result.cache, "healthy");
         assert.equal(result.database, "healthy");
 
@@ -48,8 +48,8 @@ describe("getHealthcheck()", () => {
     });
   });
 
-  describe("given an unhealthy cache and healthy database", () => {
-    describe("when called", () => {
+  await describe("given an unhealthy cache and healthy database", async () => {
+    await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
@@ -59,7 +59,7 @@ describe("getHealthcheck()", () => {
         });
       });
 
-      it("returns unhealthy cache, healthy database", () => {
+      await it("returns unhealthy cache, healthy database", () => {
         assert.equal(result.cache, "unhealthy");
         assert.equal(result.database, "healthy");
 
@@ -72,8 +72,8 @@ describe("getHealthcheck()", () => {
     });
   });
 
-  describe("given a healthy cache and unhealthy database", () => {
-    describe("when called", () => {
+  await describe("given a healthy cache and unhealthy database", async () => {
+    await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
@@ -83,7 +83,7 @@ describe("getHealthcheck()", () => {
         });
       });
 
-      it("returns unhealthy cache, healthy database", () => {
+      await it("returns unhealthy cache, healthy database", () => {
         assert.equal(result.cache, "healthy");
         assert.equal(result.database, "unhealthy");
 
@@ -96,8 +96,8 @@ describe("getHealthcheck()", () => {
     });
   });
 
-  describe("given a healthy cache and database", () => {
-    describe("when called", () => {
+  await describe("given a healthy cache and database", async () => {
+    await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
@@ -107,7 +107,7 @@ describe("getHealthcheck()", () => {
         });
       });
 
-      it("returns unhealthy cache, healthy database", () => {
+      await it("returns unhealthy cache, healthy database", () => {
         assert.equal(result.cache, "unhealthy");
         assert.equal(result.database, "unhealthy");
 

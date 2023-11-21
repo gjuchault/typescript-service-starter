@@ -8,51 +8,51 @@ import {
 
 import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
-describe("getHealthcheck()", () => {
-  describe("given a healthy database", () => {
+await describe("getHealthcheck()", async () => {
+  await describe("given a healthy database", async () => {
     const { query, database } = createMockDatabase([]);
 
     const repository = createHealthcheckRepository({
       database,
     });
 
-    describe("when called", () => {
+    await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
         result = await repository.getHealthcheck();
       });
 
-      it("returns outcome healthy", () => {
+      await it("returns outcome healthy", () => {
         assert.equal(result.outcome, "healthy");
       });
 
-      it("called the database with the appropriate query", () => {
+      await it("called the database with the appropriate query", () => {
         assert.equal(query.mock.calls.length, 1);
         assert.deepEqual(query.mock.calls[0].arguments, ["select 1", []]);
       });
     });
   });
 
-  describe("given an unhealthy database", () => {
+  await describe("given an unhealthy database", async () => {
     const { query, database } = createFailingQueryMockDatabase();
 
     const repository = createHealthcheckRepository({
       database,
     });
 
-    describe("when called", () => {
+    await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
         result = await repository.getHealthcheck();
       });
 
-      it("returns outcome unhealthy", () => {
+      await it("returns outcome unhealthy", () => {
         assert.equal(result.outcome, "unhealthy");
       });
 
-      it("called the database with the appropriate query", () => {
+      await it("called the database with the appropriate query", () => {
         assert.equal(query.mock.calls.length, 1);
         assert.deepEqual(query.mock.calls[0].arguments, ["select 1", []]);
       });

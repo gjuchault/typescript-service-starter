@@ -23,9 +23,9 @@ const mockRepository: UserRepository = {
   bulkAdd: mock.fn(),
 };
 
-describe("getUsers()", () => {
-  describe("given a healthy cache and database", () => {
-    describe("when called", () => {
+await describe("getUsers()", async () => {
+  await describe("given a healthy cache and database", async () => {
+    await describe("when called", async () => {
       let result: GetUsersResult;
 
       before(async () => {
@@ -34,7 +34,7 @@ describe("getUsers()", () => {
         });
       });
 
-      it("returns healthy", () => {
+      await it("returns healthy", () => {
         assert.equal(result.isOk(), true);
 
         if (result.isErr()) {

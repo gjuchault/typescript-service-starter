@@ -2,6 +2,7 @@ import * as assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import {
+  createFailingQueryMockDatabase,
   createMockDatabase,
   createMockLogger,
 } from "@gjuchault/typescript-service-sdk";
@@ -12,10 +13,11 @@ import {
   userNameSchema,
 } from "~/domain/user.js";
 
-import { BulkAddResult, createUserRepository } from "../index.js";
+import type { BulkAddResult } from "../index.js";
+import { createUserRepository } from "../index.js";
 
-describe("getUsers()", () => {
-  describe("given a database with users", () => {
+await describe("bulkAdd()", async () => {
+  await describe("given a database with users", async () => {
     const { query, database } = createMockDatabase([]);
 
     const repository = createUserRepository({
@@ -23,7 +25,7 @@ describe("getUsers()", () => {
       logger: createMockLogger(),
     });
 
-    describe("when called", () => {
+    await describe("when called", async () => {
       let result: BulkAddResult;
 
       before(async () => {
@@ -41,7 +43,7 @@ describe("getUsers()", () => {
         ]);
       });
 
-      it("returns the users", () => {
+      await it("returns the users", () => {
         assert.equal(result.isOk(), true);
 
         if (!result.isOk()) {
@@ -62,7 +64,7 @@ describe("getUsers()", () => {
         ]);
       });
 
-      it("called the database with the appropriate query", () => {
+      await it("calls the database with the appropriate query", () => {
         assert.equal(query.mock.calls.length, 1);
 
         const arguments_ = query.mock.calls[0].arguments as unknown as [
@@ -79,6 +81,38 @@ describe("getUsers()", () => {
           ["Foo", "John Doe"],
           ["foo@bar.com", "john@doe.com"],
         ]);
+      });
+    });
+  });
+
+  await describe("given an erroring database", async () => {
+    const { database } = createFailingQueryMockDatabase();
+
+    const repository = createUserRepository({
+      database,
+      logger: createMockLogger(),
+    });
+
+    await describe("when called with no filters", async () => {
+      let result: BulkAddResult;
+
+      before(async () => {
+        result = await repository.bulkAdd([
+          {
+            id: userIdSchema.parse(1),
+            email: userEmailSchema.parse("foo@bar.com"),
+            name: userNameSchema.parse("Foo"),
+          },
+          {
+            id: userIdSchema.parse(2),
+            email: userEmailSchema.parse("john@doe.com"),
+            name: userNameSchema.parse("John Doe"),
+          },
+        ]);
+      });
+
+      await it("returns an error", () => {
+        assert.equal(result.isErr(), true);
       });
     });
   });

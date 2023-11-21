@@ -13,8 +13,8 @@ import type {
   RouterGetHealthcheckResult,
 } from "../index.js";
 
-describe("GET /healthcheck", () => {
-  describe("when called with native client", () => {
+await describe("GET /healthcheck", async () => {
+  await describe("when called with native client", async () => {
     let response: LightMyRequestResponse;
 
     before(async () => {
@@ -22,7 +22,7 @@ describe("GET /healthcheck", () => {
       response = await http.inject("/api/healthcheck");
     });
 
-    it("returns 200", () => {
+    await it("returns 200", () => {
       const body = response.json<RouterGetHealthcheckBody>();
 
       if (process.env.CI === undefined) {
@@ -42,7 +42,7 @@ describe("GET /healthcheck", () => {
     });
   });
 
-  describe("when called with ts-rest client", () => {
+  await describe("when called with ts-rest client", async () => {
     let response: RouterGetHealthcheckResult;
 
     before(async () => {
@@ -50,7 +50,7 @@ describe("GET /healthcheck", () => {
       response = await client.getHealthcheck();
     });
 
-    it("returns 200", () => {
+    await it("returns 200", () => {
       if (process.env.CI === undefined) {
         assert.equal(response.status, 200);
 

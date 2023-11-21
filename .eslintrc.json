@@ -38,11 +38,5 @@
     "import/no-unused-modules": "error",
     "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
     "unicorn/prefer-module": "warn"
-  },
-  "overrides": [
-    {
-      "files": ["*.test.ts", "*.integration-test.ts"],
-      "rules": { "@typescript-eslint/no-floating-promises": ["off"] }
-    }
-  ]
+  }
 }
