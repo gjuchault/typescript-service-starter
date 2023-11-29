@@ -110,7 +110,7 @@
     "@ts-rest/core": "^3.30.5",
     "@ts-rest/fastify": "^3.30.5",
     "@ts-rest/open-api": "^3.30.5",
-    "bullmq": "^4.14.2",
+    "bullmq": "^4.14.4",
     "dotenv": "^16.3.1",
     "fastify": "^4.24.3",
     "fastify-plugin": "^4.5.1",
