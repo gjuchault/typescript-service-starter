@@ -92,7 +92,7 @@
   "dependencies": {
     "@fastify/circuit-breaker": "^3.2.0",
     "@fastify/cookie": "^9.2.0",
-    "@fastify/cors": "^8.4.1",
+    "@fastify/cors": "^8.4.2",
     "@fastify/etag": "^5.1.0",
     "@fastify/formbody": "^7.4.0",
     "@fastify/helmet": "^11.1.1",
