@@ -104,7 +104,7 @@
     "@opentelemetry/core": "^1.19.0",
     "@opentelemetry/exporter-prometheus": "^0.45.1",
     "@opentelemetry/resources": "^1.19.0",
-    "@opentelemetry/sdk-node": "^0.45.1",
+    "@opentelemetry/sdk-node": "^0.46.0",
     "@opentelemetry/sdk-trace-base": "^1.19.0",
     "@opentelemetry/semantic-conventions": "^1.19.0",
     "@ts-rest/core": "^3.30.5",
