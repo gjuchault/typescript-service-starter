@@ -106,7 +106,7 @@
     "@opentelemetry/resources": "^1.18.1",
     "@opentelemetry/sdk-node": "^0.45.1",
     "@opentelemetry/sdk-trace-base": "^1.18.1",
-    "@opentelemetry/semantic-conventions": "^1.18.1",
+    "@opentelemetry/semantic-conventions": "^1.19.0",
     "@ts-rest/core": "^3.30.5",
     "@ts-rest/fastify": "^3.30.5",
     "@ts-rest/open-api": "^3.30.5",
