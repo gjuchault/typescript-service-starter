@@ -1,6 +1,7 @@
 import {
   Logger,
   NonEmptyArray,
+  PrepareBulkInsertError,
   nonEmptyArray,
   slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
@@ -37,7 +38,7 @@ export interface UnknownError {
 export type GetResult = Result<NonEmptyArray<User>, GetUsersError>;
 export type BulkAddResult = Result<
   User[],
-  slonikHelpers.PrepareBulkInsertError | SQLError | UnknownError
+  PrepareBulkInsertError | SQLError | UnknownError
 >;
 
 const nonEmptyUserArraySchema =
