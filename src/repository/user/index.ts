@@ -1,8 +1,8 @@
 import {
   Logger,
   NonEmptyArray,
-  PrepareBulkInsertError,
   nonEmptyArray,
+  PrepareBulkInsertError,
   slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
 import { err, fromPromise, ok, Result } from "neverthrow";

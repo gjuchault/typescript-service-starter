@@ -20,7 +20,7 @@
     "plugin:import/recommended",
     "plugin:import/typescript",
     "plugin:unicorn/recommended",
-    "plugin:security/recommended",
+    "plugin:security/recommended-legacy",
     "prettier"
   ],
   "settings": {
