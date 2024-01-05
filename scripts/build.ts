@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import url from "node:url";
+import { randomUUID } from "node:crypto";
 import { context as esbuildContext } from "esbuild";
 
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
@@ -8,6 +9,8 @@ const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 export async function getContext(
   onBuild: (isRebuild: boolean) => Promise<void> = async () => {},
 ) {
+  const buildId = randomUUID().replace(/-/g, "");
+
   const context = await esbuildContext({
     platform: "node",
     target: "node21",
@@ -18,6 +21,19 @@ export async function getContext(
     bundle: true,
     outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
+    banner: {
+      js: `
+        import { createRequire as createRequire${buildId} } from 'module';
+        import { fileURLToPath as fileURLToPath${buildId} } from 'url';
+        import { dirname as dirname${buildId} } from 'path';
+
+        // using var here to allow subsequent override by authors of this
+        // library that would be using the same ESM trick
+        var require = createRequire${buildId}(import.meta.url);
+        var __filename = fileURLToPath${buildId}(import.meta.url);
+        var __dirname = dirname${buildId}(__filename);
+      `,
+    },
     plugins: [
       {
         name: "onBuild",
