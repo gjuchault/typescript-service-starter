@@ -9,7 +9,7 @@ export interface Config {
   name: string;
   version: string;
   description: string;
-  env: "development" | "production" | "test";
+  envName: string;
   logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
   address: string;
   secret: string;
@@ -26,13 +26,7 @@ export const config: Config = {
   name: "app",
   version,
   description,
-  env: z
-    .union([
-      z.literal("development"),
-      z.literal("production"),
-      z.literal("test"),
-    ])
-    .parse(process.env.NODE_ENV),
+  envName: z.string().parse(process.env.ENV_NAME),
   logLevel: z
     .union([
       z.literal("fatal"),

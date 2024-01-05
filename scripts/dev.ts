@@ -33,7 +33,8 @@ async function onBuild(isRebuild = false) {
     cwd: rootPath,
     execPath: process.execPath,
     env: {
-      NODE_ENV: "development",
+      NODE_ENV: "production",
+      ENV_NAME: "test",
     },
     execArgv: ["--inspect=0.0.0.0:9229"],
   });

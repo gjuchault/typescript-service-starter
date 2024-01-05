@@ -18,6 +18,7 @@ And extends the ones from [typescript-library-starter](https://github.com/gjucha
 1. Relies as much as possible on each included library's defaults
 2. Only relies on GitHub Actions
 3. Does not include documentation generation
+4. Always set [NODE_ENV to production](https://cjihrig.com/node_env_considered_harmful) and use ENV_NAME for logging purposes
 
 ## Getting started
 

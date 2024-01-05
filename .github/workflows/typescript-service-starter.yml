@@ -130,7 +130,8 @@ jobs:
       - name: ⚡ Integration tests
         run: npm run test:integration
         env:
-          NODE_ENV: test
+          NODE_ENV: production
+          ENV_NAME: test
           LOG_LEVEL: error
           PORT: 8080
           ADDRESS: 0.0.0.0
@@ -179,7 +180,7 @@ jobs:
       - name: ⚡ Healthcheck test
         run: npm run test:healthcheck
         env:
-          NODE_ENV: test
+          NODE_ENV: production
           LOG_LEVEL: debug
           PORT: 8080
           ADDRESS: 0.0.0.0
