@@ -6,7 +6,7 @@ import { context as esbuildContext } from "esbuild";
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
 export async function getContext(
-  onBuild: (isRebuild: boolean) => Promise<void> = async () => {}
+  onBuild: (isRebuild: boolean) => Promise<void> = async () => {},
 ) {
   const context = await esbuildContext({
     platform: "node",
@@ -18,15 +18,6 @@ export async function getContext(
     bundle: true,
     outdir: path.join(__dirname, "../build"),
     entryPoints: [path.join(__dirname, "../src/index.ts")],
-    banner: {
-      js: `
-            import { createRequire } from 'module';
-            import { fileURLToPath } from 'url';
-            const require = createRequire(import.meta.url);
-            const __filename = fileURLToPath(import.meta.url);
-            const __dirname = path.dirname(__filename);
-      `,
-    },
     plugins: [
       {
         name: "onBuild",
@@ -66,7 +57,7 @@ async function build() {
 async function copyLuaCommands() {
   const source = path.join(
     __dirname,
-    "../node_modules/bullmq/dist/cjs/commands"
+    "../node_modules/bullmq/dist/cjs/commands",
   );
   const target = path.join(__dirname, "../build/bullmq-commands");
 
@@ -82,7 +73,7 @@ async function copyLuaCommands() {
     if (file.endsWith(".lua")) {
       await fs.copyFile(
         path.join(source, "includes", file),
-        path.join(target, "includes", file)
+        path.join(target, "includes", file),
       );
     }
   }
