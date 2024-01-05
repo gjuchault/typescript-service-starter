@@ -181,6 +181,7 @@ jobs:
         run: npm run test:healthcheck
         env:
           NODE_ENV: production
+          ENV_NAME: test
           LOG_LEVEL: debug
           PORT: 8080
           ADDRESS: 0.0.0.0
