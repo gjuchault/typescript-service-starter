@@ -1,3 +1,4 @@
+import { DependencyStore } from "@gjuchault/typescript-service-sdk";
 import { initContract } from "@ts-rest/core";
 import { initServer } from "@ts-rest/fastify";
 
@@ -20,10 +21,13 @@ export const routerContract = c.router(contract);
 export type AppRouter = ReturnType<typeof createAppRouter>;
 
 export function createAppRouter({
-  healthcheckApplication,
+  dependencyStore,
 }: {
-  healthcheckApplication: HealthcheckApplication;
+  dependencyStore: DependencyStore;
 }) {
+  const healthcheckApplication =
+    dependencyStore.retrieve<HealthcheckApplication>("healthcheckApplication");
+
   const healthcheckRouter = bindHealthcheckRoutes({
     healthcheckApplication,
   });
