@@ -4,8 +4,8 @@ import type {
 } from "@ts-rest/core";
 import { z } from "zod";
 
-import { GetHealthcheckResult } from "~/application/healthcheck/get-healthcheck.js";
-import type { HealthcheckApplication } from "~/application/healthcheck/index.js";
+import type { GetHealthcheckResult } from "~/application/healthcheck/get-healthcheck.js";
+import type { DependencyStore } from "~/store";
 
 export type RouterGetHealthcheckResult = ServerInferResponses<
   (typeof healthcheckRouterContract)["getHealthcheck"]
@@ -40,10 +40,12 @@ export const healthcheckRouterContract = {
 } as const;
 
 export function bindHealthcheckRoutes({
-  healthcheckApplication,
+  dependencyStore,
 }: {
-  healthcheckApplication: HealthcheckApplication;
+  dependencyStore: DependencyStore;
 }) {
+  const healthcheckApplication = dependencyStore.get("healthcheckApplication");
+
   return {
     async getHealthcheck(): Promise<RouterGetHealthcheckResult> {
       const healthcheck = await healthcheckApplication.getHealthcheck();

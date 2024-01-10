@@ -2,8 +2,10 @@ import * as assert from "node:assert/strict";
 import { before, describe, it, mock } from "node:test";
 
 import type { Redis } from "ioredis";
+import { err, ok } from "neverthrow";
 
 import type { HealthcheckRepository } from "~/repository/healthcheck/index.js";
+import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck.js";
 
@@ -16,23 +18,25 @@ const mockUnhealthyCache = {
 } as unknown as Redis;
 
 const mockHealthyRepository: HealthcheckRepository = {
-  getHealthcheck: mock.fn(() => Promise.resolve({ outcome: "healthy" })),
+  getHealthcheck: mock.fn(() => Promise.resolve(ok("healthy"))),
 };
 
 const mockUnhealthyRepository: HealthcheckRepository = {
-  getHealthcheck: mock.fn(() => Promise.resolve({ outcome: "unhealthy" })),
+  getHealthcheck: mock.fn(() => Promise.resolve(err("databaseError"))),
 };
 
 await describe("getHealthcheck()", async () => {
   await describe("given a healthy cache and database", async () => {
+    const dependencyStore = buildMockDependencyStore({
+      cache: mockHealthyCache,
+      repository: { healthcheck: mockHealthyRepository },
+    });
+
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({
-          cache: mockHealthyCache,
-          healthcheckRepository: mockHealthyRepository,
-        });
+        result = await getHealthcheck({ dependencyStore });
       });
 
       await it("returns healthy", () => {
@@ -49,14 +53,16 @@ await describe("getHealthcheck()", async () => {
   });
 
   await describe("given an unhealthy cache and healthy database", async () => {
+    const dependencyStore = buildMockDependencyStore({
+      cache: mockUnhealthyCache,
+      repository: { healthcheck: mockHealthyRepository },
+    });
+
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({
-          cache: mockUnhealthyCache,
-          healthcheckRepository: mockHealthyRepository,
-        });
+        result = await getHealthcheck({ dependencyStore });
       });
 
       await it("returns unhealthy cache, healthy database", () => {
@@ -73,14 +79,16 @@ await describe("getHealthcheck()", async () => {
   });
 
   await describe("given a healthy cache and unhealthy database", async () => {
+    const dependencyStore = buildMockDependencyStore({
+      cache: mockHealthyCache,
+      repository: { healthcheck: mockUnhealthyRepository },
+    });
+
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({
-          cache: mockHealthyCache,
-          healthcheckRepository: mockUnhealthyRepository,
-        });
+        result = await getHealthcheck({ dependencyStore });
       });
 
       await it("returns unhealthy cache, healthy database", () => {
@@ -97,14 +105,16 @@ await describe("getHealthcheck()", async () => {
   });
 
   await describe("given a healthy cache and database", async () => {
+    const dependencyStore = buildMockDependencyStore({
+      cache: mockUnhealthyCache,
+      repository: { healthcheck: mockUnhealthyRepository },
+    });
+
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({
-          cache: mockUnhealthyCache,
-          healthcheckRepository: mockUnhealthyRepository,
-        });
+        result = await getHealthcheck({ dependencyStore });
       });
 
       await it("returns unhealthy cache, healthy database", () => {

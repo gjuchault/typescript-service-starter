@@ -5,6 +5,7 @@ import { ok } from "neverthrow";
 
 import type { UserEmail, UserId, UserName } from "~/domain/user.js";
 import type { UserRepository } from "~/repository/user/index.js";
+import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import { getUsers, GetUsersResult } from "../get-users.js";
 
@@ -24,13 +25,17 @@ const mockRepository: UserRepository = {
 };
 
 await describe("getUsers()", async () => {
-  await describe("given a healthy cache and database", async () => {
+  await describe("given a repository", async () => {
+    const dependencyStore = buildMockDependencyStore({
+      repository: { user: mockRepository },
+    });
+
     await describe("when called", async () => {
       let result: GetUsersResult;
 
       before(async () => {
         result = await getUsers({
-          userRepository: mockRepository,
+          dependencyStore,
         });
       });
 

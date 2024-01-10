@@ -2,7 +2,6 @@ import * as assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
 import {
-  createMockLogger,
   nonEmptyArray,
   slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
@@ -12,6 +11,7 @@ import {
   userIdSchema,
   userNameSchema,
 } from "~/domain/user.js";
+import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import type { GetResult } from "../index.js";
 import { createUserRepository } from "../index.js";
@@ -30,11 +30,8 @@ await describe("get()", async () => {
         email: userEmailSchema.parse("doe@mail.com"),
       },
     ]);
-
-    const repository = createUserRepository({
-      database,
-      logger: createMockLogger(),
-    });
+    const dependencyStore = buildMockDependencyStore({ database });
+    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called with no filters", async () => {
       let result: GetResult;
@@ -110,11 +107,8 @@ await describe("get()", async () => {
 
   await describe("given an erroring database", async () => {
     const { database } = slonikHelpers.createFailingQueryMockDatabase();
-
-    const repository = createUserRepository({
-      database,
-      logger: createMockLogger(),
-    });
+    const dependencyStore = buildMockDependencyStore({ database });
+    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called with no filters", async () => {
       let result: GetResult;

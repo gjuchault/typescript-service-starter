@@ -12,7 +12,7 @@ import type {
 import {
   createCacheStorage,
   createDatabase,
-  createDependencyStore,
+  createDateProvider,
   createHttpServer,
   createLoggerProvider,
   createShutdownManager,
@@ -25,18 +25,16 @@ import { config } from "~/config.js";
 import { createAppRouter } from "~/presentation/http/index.js";
 import { createRepository } from "~/repository/index.js";
 
-import { dateProvider } from "./infrastructure/date";
+import { dependencyStore } from "./store";
 
 export async function startApp() {
-  const dependencyStore = createDependencyStore();
-
   const createLogger = createLoggerProvider({ config });
-  dependencyStore.provide("logger", createLogger);
+  const logger = createLogger("app");
+
+  dependencyStore.set("logger", createLogger);
 
   const telemetry = createTelemetry({ config, dependencyStore });
-  dependencyStore.provide("telemetry", telemetry);
-
-  const logger = createLogger("app");
+  dependencyStore.set("telemetry", telemetry);
 
   const appStartedTimestamp = Date.now();
   logger.info(`starting service ${config.name}...`, {
@@ -46,7 +44,7 @@ export async function startApp() {
     platform: process.platform,
   });
 
-  dependencyStore.provide("date", dateProvider);
+  dependencyStore.set("date", createDateProvider());
 
   let database: Database;
   let cache: Cache;
@@ -57,21 +55,21 @@ export async function startApp() {
 
   try {
     cache = await createCacheStorage({ config, dependencyStore });
-    dependencyStore.provide("cache", cache);
+    dependencyStore.set("cache", cache);
 
     taskScheduling = createTaskScheduling({ config, dependencyStore });
-    dependencyStore.provide("taskScheduling", taskScheduling);
+    dependencyStore.set("taskScheduling", taskScheduling);
 
     database = await createDatabase({ config, dependencyStore });
-    dependencyStore.provide("database", database);
+    dependencyStore.set("database", database);
 
-    const repository = createRepository({ database });
-    dependencyStore.provide("repository", repository);
+    const repository = createRepository({ dependencyStore });
+    dependencyStore.set("repository", repository);
 
     const healthcheckApplication = await createHealthcheckApplication({
       dependencyStore,
     });
-    dependencyStore.provide("healthcheckApplication", healthcheckApplication);
+    dependencyStore.set("healthcheckApplication", healthcheckApplication);
 
     const appRouter = createAppRouter({ dependencyStore });
 
@@ -80,7 +78,7 @@ export async function startApp() {
       dependencyStore,
       appRouter,
     });
-    dependencyStore.provide("httpServer", httpServer);
+    dependencyStore.set("httpServer", httpServer);
 
     shutdown = createShutdownManager({
       config,

@@ -1,16 +1,16 @@
 import {
-  Logger,
   NonEmptyArray,
   nonEmptyArray,
   PrepareBulkInsertError,
   slonikHelpers,
 } from "@gjuchault/typescript-service-sdk";
 import { err, fromPromise, ok, Result } from "neverthrow";
-import { DatabasePool, SlonikError, sql } from "slonik";
+import { SlonikError, sql } from "slonik";
 import { z } from "zod";
 
 import type { User } from "~/domain/user.js";
 import { userSchema } from "~/domain/user.js";
+import { DependencyStore } from "~/store";
 
 export interface UserRepository {
   get(filters?: GetUsersFilters): Promise<GetResult>;
@@ -47,12 +47,14 @@ const nonEmptyUserArraySchema =
 const databaseUserSchema = userSchema;
 
 export function createUserRepository({
-  database,
-  logger,
+  dependencyStore,
 }: {
-  database: DatabasePool;
-  logger: Logger;
+  dependencyStore: DependencyStore;
 }): UserRepository {
+  const createLogger = dependencyStore.get("logger");
+  const logger = createLogger("repository/user");
+  const database = dependencyStore.get("database");
+
   async function get(filters?: GetUsersFilters): Promise<GetResult> {
     const idsFragment =
       filters?.ids === undefined

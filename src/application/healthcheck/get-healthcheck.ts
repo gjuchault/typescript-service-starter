@@ -1,9 +1,7 @@
 import os from "node:os";
 import v8 from "node:v8";
 
-import type { Redis } from "ioredis";
-
-import type { HealthcheckRepository } from "~/repository/healthcheck/index.js";
+import { DependencyStore } from "~/store";
 
 export interface GetHealthcheckResult {
   database: "healthy" | "unhealthy";
@@ -13,12 +11,14 @@ export interface GetHealthcheckResult {
 }
 
 export async function getHealthcheck({
-  healthcheckRepository,
-  cache,
+  dependencyStore,
 }: {
-  healthcheckRepository: HealthcheckRepository;
-  cache: Redis;
+  dependencyStore: DependencyStore;
 }): Promise<GetHealthcheckResult> {
+  const cache = dependencyStore.get("cache");
+  const { healthcheck: healthcheckRepository } =
+    dependencyStore.get("repository");
+
   const databaseResult = await healthcheckRepository.getHealthcheck();
 
   let cacheResult: "healthy" | "unhealthy" = "healthy";
@@ -36,7 +36,10 @@ export async function getHealthcheck({
     v8HeapStatistics.total_heap_size / v8HeapStatistics.heap_size_limit;
 
   return {
-    database: databaseResult.outcome,
+    database: databaseResult.match(
+      () => "healthy",
+      () => "unhealthy",
+    ),
     cache: cacheResult,
     systemMemory: systemMemoryUsage > 0.8 ? "unhealthy" : "healthy",
     processMemory: processMemoryUsage > 0.8 ? "unhealthy" : "healthy",

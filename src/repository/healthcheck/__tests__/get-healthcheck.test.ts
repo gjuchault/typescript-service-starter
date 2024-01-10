@@ -3,15 +3,15 @@ import { before, describe, it } from "node:test";
 
 import { slonikHelpers } from "@gjuchault/typescript-service-sdk";
 
+import { buildMockDependencyStore } from "~/test-helpers/mock.js";
+
 import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
 
 await describe("getHealthcheck()", async () => {
   await describe("given a healthy database", async () => {
     const { query, database } = slonikHelpers.createMockDatabase([]);
-
-    const repository = createHealthcheckRepository({
-      database,
-    });
+    const dependencyStore = buildMockDependencyStore({ database });
+    const repository = createHealthcheckRepository({ dependencyStore });
 
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
@@ -20,8 +20,8 @@ await describe("getHealthcheck()", async () => {
         result = await repository.getHealthcheck();
       });
 
-      await it("returns outcome healthy", () => {
-        assert.equal(result.outcome, "healthy");
+      await it("returns ok", () => {
+        assert.equal(result.isOk(), true);
       });
 
       await it("called the database with the appropriate query", () => {
@@ -33,10 +33,8 @@ await describe("getHealthcheck()", async () => {
 
   await describe("given an unhealthy database", async () => {
     const { query, database } = slonikHelpers.createFailingQueryMockDatabase();
-
-    const repository = createHealthcheckRepository({
-      database,
-    });
+    const dependencyStore = buildMockDependencyStore({ database });
+    const repository = createHealthcheckRepository({ dependencyStore });
 
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
@@ -45,8 +43,8 @@ await describe("getHealthcheck()", async () => {
         result = await repository.getHealthcheck();
       });
 
-      await it("returns outcome unhealthy", () => {
-        assert.equal(result.outcome, "unhealthy");
+      await it("returns err", () => {
+        assert.equal(result.isErr(), true);
       });
 
       await it("called the database with the appropriate query", () => {

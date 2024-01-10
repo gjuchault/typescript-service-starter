@@ -1,16 +1,14 @@
 import * as assert from "node:assert/strict";
 import { before, describe, it } from "node:test";
 
-import {
-  createMockLogger,
-  slonikHelpers,
-} from "@gjuchault/typescript-service-sdk";
+import { slonikHelpers } from "@gjuchault/typescript-service-sdk";
 
 import {
   userEmailSchema,
   userIdSchema,
   userNameSchema,
 } from "~/domain/user.js";
+import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import type { BulkAddResult } from "../index.js";
 import { createUserRepository } from "../index.js";
@@ -18,11 +16,8 @@ import { createUserRepository } from "../index.js";
 await describe("bulkAdd()", async () => {
   await describe("given a database with users", async () => {
     const { query, database } = slonikHelpers.createMockDatabase([]);
-
-    const repository = createUserRepository({
-      database,
-      logger: createMockLogger(),
-    });
+    const dependencyStore = buildMockDependencyStore({ database });
+    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called", async () => {
       let result: BulkAddResult;
@@ -86,11 +81,8 @@ await describe("bulkAdd()", async () => {
 
   await describe("given an erroring database", async () => {
     const { database } = slonikHelpers.createFailingQueryMockDatabase();
-
-    const repository = createUserRepository({
-      database,
-      logger: createMockLogger(),
-    });
+    const dependencyStore = buildMockDependencyStore({ database });
+    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called with no filters", async () => {
       let result: BulkAddResult;

@@ -1,10 +1,4 @@
-import type {
-  Cache,
-  DependencyStore,
-  TaskScheduling,
-} from "@gjuchault/typescript-service-sdk";
-
-import type { Repository } from "~/repository/index.js";
+import { DependencyStore } from "~/store.js";
 
 import type { GetHealthcheckResult } from "./get-healthcheck.js";
 import { getHealthcheck } from "./get-healthcheck.js";
@@ -18,11 +12,7 @@ export async function createHealthcheckApplication({
 }: {
   dependencyStore: DependencyStore;
 }): Promise<HealthcheckApplication> {
-  const taskScheduling =
-    dependencyStore.retrieve<TaskScheduling>("taskScheduling");
-  const cache = dependencyStore.retrieve<Cache>("cache");
-  const { healthcheck: healthcheckRepository } =
-    dependencyStore.retrieve<Repository>("repository");
+  const taskScheduling = dependencyStore.get("taskScheduling");
 
   const enqueueSomeTask = await taskScheduling.createTask<{ id: string }>(
     "someTask",
@@ -35,10 +25,7 @@ export async function createHealthcheckApplication({
 
   return {
     async getHealthcheck() {
-      return getHealthcheck({
-        cache,
-        healthcheckRepository,
-      });
+      return getHealthcheck({ dependencyStore });
     },
   };
 }
