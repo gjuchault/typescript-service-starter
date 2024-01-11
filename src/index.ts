@@ -20,10 +20,11 @@ import {
   createTelemetry,
 } from "@gjuchault/typescript-service-sdk";
 
-import { createHealthcheckApplication } from "~/application/healthcheck/index.js";
+import { startHealthcheckApplication } from "~/application/healthcheck/index.js";
 import { config } from "~/config.js";
 import { createAppRouter } from "~/presentation/http/index.js";
-import { createRepository } from "~/repository/index.js";
+import * as healthcheckRepository from "~/repository/healthcheck/index.js";
+import * as userRepository from "~/repository/user/index.js";
 
 import { dependencyStore } from "./store";
 
@@ -63,13 +64,10 @@ export async function startApp() {
     database = await createDatabase({ config, dependencyStore });
     dependencyStore.set("database", database);
 
-    const repository = createRepository({ dependencyStore });
-    dependencyStore.set("repository", repository);
+    dependencyStore.set("healthcheckRepository", healthcheckRepository);
+    dependencyStore.set("userRepository", userRepository);
 
-    const healthcheckApplication = await createHealthcheckApplication({
-      dependencyStore,
-    });
-    dependencyStore.set("healthcheckApplication", healthcheckApplication);
+    await startHealthcheckApplication({ dependencyStore });
 
     const appRouter = createAppRouter({ dependencyStore });
 

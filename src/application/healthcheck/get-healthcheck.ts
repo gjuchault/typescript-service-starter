@@ -1,7 +1,7 @@
 import os from "node:os";
 import v8 from "node:v8";
 
-import { DependencyStore } from "~/store";
+import type { DependencyStore } from "~/store";
 
 export interface GetHealthcheckResult {
   database: "healthy" | "unhealthy";
@@ -16,10 +16,9 @@ export async function getHealthcheck({
   dependencyStore: DependencyStore;
 }): Promise<GetHealthcheckResult> {
   const cache = dependencyStore.get("cache");
-  const { healthcheck: healthcheckRepository } =
-    dependencyStore.get("repository");
+  const repository = dependencyStore.get("healthcheckRepository");
 
-  const databaseResult = await healthcheckRepository.getHealthcheck();
+  const databaseResult = await repository.getHealthcheck({ dependencyStore });
 
   let cacheResult: "healthy" | "unhealthy" = "healthy";
 

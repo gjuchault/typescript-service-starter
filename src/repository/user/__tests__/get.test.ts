@@ -14,7 +14,7 @@ import {
 import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import type { GetResult } from "../index.js";
-import { createUserRepository } from "../index.js";
+import { get } from "../index.js";
 
 await describe("get()", async () => {
   await describe("given a database with users", async () => {
@@ -31,13 +31,12 @@ await describe("get()", async () => {
       },
     ]);
     const dependencyStore = buildMockDependencyStore({ database });
-    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called with no filters", async () => {
       let result: GetResult;
 
       before(async () => {
-        result = await repository.get();
+        result = await get({}, { dependencyStore });
       });
 
       await it("returns the data", () => {
@@ -74,9 +73,10 @@ await describe("get()", async () => {
       let result: GetResult;
 
       before(async () => {
-        result = await repository.get({
-          ids: nonEmptyArray.fromElements(1),
-        });
+        result = await get(
+          { ids: nonEmptyArray.fromElements(1) },
+          { dependencyStore },
+        );
       });
 
       await it("returns the data", () => {
@@ -108,13 +108,12 @@ await describe("get()", async () => {
   await describe("given an erroring database", async () => {
     const { database } = slonikHelpers.createFailingQueryMockDatabase();
     const dependencyStore = buildMockDependencyStore({ database });
-    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called with no filters", async () => {
       let result: GetResult;
 
       before(async () => {
-        result = await repository.get();
+        result = await get({}, { dependencyStore });
       });
 
       await it("returns an error", () => {

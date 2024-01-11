@@ -5,6 +5,7 @@ import type {
 import { z } from "zod";
 
 import type { GetHealthcheckResult } from "~/application/healthcheck/get-healthcheck.js";
+import { getHealthcheck } from "~/application/healthcheck/get-healthcheck.js";
 import type { DependencyStore } from "~/store";
 
 export type RouterGetHealthcheckResult = ServerInferResponses<
@@ -44,11 +45,9 @@ export function bindHealthcheckRoutes({
 }: {
   dependencyStore: DependencyStore;
 }) {
-  const healthcheckApplication = dependencyStore.get("healthcheckApplication");
-
   return {
     async getHealthcheck(): Promise<RouterGetHealthcheckResult> {
-      const healthcheck = await healthcheckApplication.getHealthcheck();
+      const healthcheck = await getHealthcheck({ dependencyStore });
 
       if (!isHealthcheckFullyHealthy(healthcheck)) {
         return {

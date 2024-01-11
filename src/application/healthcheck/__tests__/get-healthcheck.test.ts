@@ -7,7 +7,8 @@ import { err, ok } from "neverthrow";
 import type { HealthcheckRepository } from "~/repository/healthcheck/index.js";
 import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
-import { getHealthcheck, GetHealthcheckResult } from "../get-healthcheck.js";
+import type { GetHealthcheckResult } from "../get-healthcheck.js";
+import { getHealthcheck } from "../get-healthcheck.js";
 
 const mockHealthyCache = {
   echo: mock.fn(() => Promise.resolve("1")),
@@ -29,7 +30,7 @@ await describe("getHealthcheck()", async () => {
   await describe("given a healthy cache and database", async () => {
     const dependencyStore = buildMockDependencyStore({
       cache: mockHealthyCache,
-      repository: { healthcheck: mockHealthyRepository },
+      healthcheckRepository: mockHealthyRepository,
     });
 
     await describe("when called", async () => {
@@ -55,7 +56,7 @@ await describe("getHealthcheck()", async () => {
   await describe("given an unhealthy cache and healthy database", async () => {
     const dependencyStore = buildMockDependencyStore({
       cache: mockUnhealthyCache,
-      repository: { healthcheck: mockHealthyRepository },
+      healthcheckRepository: mockHealthyRepository,
     });
 
     await describe("when called", async () => {
@@ -81,7 +82,7 @@ await describe("getHealthcheck()", async () => {
   await describe("given a healthy cache and unhealthy database", async () => {
     const dependencyStore = buildMockDependencyStore({
       cache: mockHealthyCache,
-      repository: { healthcheck: mockUnhealthyRepository },
+      healthcheckRepository: mockUnhealthyRepository,
     });
 
     await describe("when called", async () => {
@@ -107,7 +108,7 @@ await describe("getHealthcheck()", async () => {
   await describe("given a healthy cache and database", async () => {
     const dependencyStore = buildMockDependencyStore({
       cache: mockUnhealthyCache,
-      repository: { healthcheck: mockUnhealthyRepository },
+      healthcheckRepository: mockUnhealthyRepository,
     });
 
     await describe("when called", async () => {

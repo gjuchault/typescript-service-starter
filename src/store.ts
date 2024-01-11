@@ -3,17 +3,17 @@ import {
   DependencyStore as SdkDependencyStore,
 } from "@gjuchault/typescript-service-sdk";
 
-import type { HealthcheckApplication } from "./application/healthcheck";
-import type { Repository } from "./repository";
+import type { HealthcheckRepository } from "./repository/healthcheck/index.js";
+import type { UserRepository } from "./repository/user/index.js";
 
-export const createAppDependencyStore = createDependencyStore<{
-  repository: Repository;
-  healthcheckApplication: HealthcheckApplication;
-}>;
+type ExtraDependencies = {
+  healthcheckRepository: HealthcheckRepository;
+  userRepository: UserRepository;
+};
+
+export const createAppDependencyStore =
+  createDependencyStore<ExtraDependencies>;
 
 export const dependencyStore = createAppDependencyStore();
 
-export type DependencyStore = SdkDependencyStore<{
-  repository: Repository;
-  healthcheckApplication: HealthcheckApplication;
-}>;
+export type DependencyStore = SdkDependencyStore<ExtraDependencies>;

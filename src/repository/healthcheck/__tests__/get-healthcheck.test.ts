@@ -5,19 +5,18 @@ import { slonikHelpers } from "@gjuchault/typescript-service-sdk";
 
 import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
-import { createHealthcheckRepository, GetHealthcheckResult } from "../index.js";
+import { getHealthcheck, GetHealthcheckResult } from "../index.js";
 
 await describe("getHealthcheck()", async () => {
   await describe("given a healthy database", async () => {
     const { query, database } = slonikHelpers.createMockDatabase([]);
     const dependencyStore = buildMockDependencyStore({ database });
-    const repository = createHealthcheckRepository({ dependencyStore });
 
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await repository.getHealthcheck();
+        result = await getHealthcheck({ dependencyStore });
       });
 
       await it("returns ok", () => {
@@ -34,13 +33,12 @@ await describe("getHealthcheck()", async () => {
   await describe("given an unhealthy database", async () => {
     const { query, database } = slonikHelpers.createFailingQueryMockDatabase();
     const dependencyStore = buildMockDependencyStore({ database });
-    const repository = createHealthcheckRepository({ dependencyStore });
 
     await describe("when called", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await repository.getHealthcheck();
+        result = await getHealthcheck({ dependencyStore });
       });
 
       await it("returns err", () => {

@@ -13,8 +13,14 @@ import { userSchema } from "~/domain/user.js";
 import { DependencyStore } from "~/store";
 
 export interface UserRepository {
-  get(filters?: GetUsersFilters): Promise<GetResult>;
-  bulkAdd(users: User[]): Promise<BulkAddResult>;
+  get(
+    filters: GetUsersFilters,
+    _: { dependencyStore: DependencyStore },
+  ): Promise<GetResult>;
+  bulkAdd(
+    users: User[],
+    _: { dependencyStore: DependencyStore },
+  ): Promise<BulkAddResult>;
 }
 
 export interface GetUsersFilters {
@@ -46,90 +52,91 @@ const nonEmptyUserArraySchema =
 
 const databaseUserSchema = userSchema;
 
-export function createUserRepository({
-  dependencyStore,
-}: {
-  dependencyStore: DependencyStore;
-}): UserRepository {
+export async function get(
+  filters: GetUsersFilters,
+  { dependencyStore }: { dependencyStore: DependencyStore },
+): Promise<GetResult> {
   const createLogger = dependencyStore.get("logger");
-  const logger = createLogger("repository/user");
   const database = dependencyStore.get("database");
 
-  async function get(filters?: GetUsersFilters): Promise<GetResult> {
-    const idsFragment =
-      filters?.ids === undefined
-        ? sql.fragment``
-        : sql.fragment`where id = any(${sql.array(filters.ids, "int4")})`;
+  const logger = createLogger("repository/user");
 
-    try {
-      const users = nonEmptyUserArraySchema.parse(
-        await database.any(
-          sql.type(databaseUserSchema)`select * from users ${idsFragment}`,
-        ),
-      );
+  const idsFragment =
+    filters?.ids === undefined
+      ? sql.fragment``
+      : sql.fragment`where id = any(${sql.array(filters.ids, "int4")})`;
 
-      return ok(users);
-    } catch (rawError) {
-      logger.error("SQL error when calling getUsers", {
-        filters,
-        error: rawError,
-      });
-
-      return err({ reason: "queryFailed" });
-    }
-  }
-
-  async function bulkAdd(users: User[]): Promise<BulkAddResult> {
-    const prepareBulkInsertResult = slonikHelpers.prepareBulkInsert(
-      [
-        ["id", "bool"],
-        ["name", "text"],
-        ["email", "text"],
-      ],
-      users,
-      (user) => ({ ...user }),
+  try {
+    const users = nonEmptyUserArraySchema.parse(
+      await database.any(
+        sql.type(databaseUserSchema)`select * from users ${idsFragment}`,
+      ),
     );
 
-    // Procedural version of the functional below:
-    // if (prepareBulkInsertResult.isErr()) {
-    //   return err(prepareBulkInsertResult.error);
-    // }
+    return ok(users);
+  } catch (rawError) {
+    logger.error("SQL error when calling getUsers", {
+      filters,
+      error: rawError,
+    });
 
-    // const { columns, rows } = prepareBulkInsertResult.value;
-
-    // try {
-    //   await database.query(sql.type(z.unknown())`
-    //     insert into "users"(${columns})
-    //     select * from ${rows}
-    //   `);
-    // } catch (error) {
-    //   if (error instanceof SlonikError) {
-    //     return err({ reason: "queryFailed", error });
-    //   }
-
-    //   return err({ reason: "unknown", error });
-    // }
-
-    // return ok(users);
-
-    return prepareBulkInsertResult
-      .asyncAndThen(({ columns, rows }) => {
-        return fromPromise(
-          database.query(sql.type(z.unknown())`
-            insert into "users"(${columns})
-            select * from ${rows}
-          `),
-          (error: unknown): SQLError | UnknownError => {
-            if (error instanceof SlonikError) {
-              return { reason: "queryFailed", error };
-            }
-
-            return { reason: "unknown", error };
-          },
-        );
-      })
-      .map(() => users);
+    return err({ reason: "queryFailed" });
   }
+}
 
-  return { get, bulkAdd };
+export async function bulkAdd(
+  users: User[],
+  { dependencyStore }: { dependencyStore: DependencyStore },
+): Promise<BulkAddResult> {
+  const database = dependencyStore.get("database");
+
+  const prepareBulkInsertResult = slonikHelpers.prepareBulkInsert(
+    [
+      ["id", "bool"],
+      ["name", "text"],
+      ["email", "text"],
+    ],
+    users,
+    (user) => ({ ...user }),
+  );
+
+  // Procedural version of the functional below:
+  // if (prepareBulkInsertResult.isErr()) {
+  //   return err(prepareBulkInsertResult.error);
+  // }
+
+  // const { columns, rows } = prepareBulkInsertResult.value;
+
+  // try {
+  //   await database.query(sql.type(z.unknown())`
+  //     insert into "users"(${columns})
+  //     select * from ${rows}
+  //   `);
+  // } catch (error) {
+  //   if (error instanceof SlonikError) {
+  //     return err({ reason: "queryFailed", error });
+  //   }
+
+  //   return err({ reason: "unknown", error });
+  // }
+
+  // return ok(users);
+
+  return prepareBulkInsertResult
+    .asyncAndThen(({ columns, rows }) => {
+      return fromPromise(
+        database.query(sql.type(z.unknown())`
+          insert into "users"(${columns})
+          select * from ${rows}
+        `),
+        (error: unknown): SQLError | UnknownError => {
+          if (error instanceof SlonikError) {
+            return { reason: "queryFailed", error };
+          }
+
+          return { reason: "unknown", error };
+        },
+      );
+    })
+    .map(() => users);
 }

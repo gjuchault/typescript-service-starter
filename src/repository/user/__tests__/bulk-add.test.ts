@@ -11,30 +11,32 @@ import {
 import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import type { BulkAddResult } from "../index.js";
-import { createUserRepository } from "../index.js";
+import { bulkAdd } from "../index.js";
 
 await describe("bulkAdd()", async () => {
   await describe("given a database with users", async () => {
     const { query, database } = slonikHelpers.createMockDatabase([]);
     const dependencyStore = buildMockDependencyStore({ database });
-    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called", async () => {
       let result: BulkAddResult;
 
       before(async () => {
-        result = await repository.bulkAdd([
-          {
-            id: userIdSchema.parse(1),
-            email: userEmailSchema.parse("foo@bar.com"),
-            name: userNameSchema.parse("Foo"),
-          },
-          {
-            id: userIdSchema.parse(2),
-            email: userEmailSchema.parse("john@doe.com"),
-            name: userNameSchema.parse("John Doe"),
-          },
-        ]);
+        result = await bulkAdd(
+          [
+            {
+              id: userIdSchema.parse(1),
+              email: userEmailSchema.parse("foo@bar.com"),
+              name: userNameSchema.parse("Foo"),
+            },
+            {
+              id: userIdSchema.parse(2),
+              email: userEmailSchema.parse("john@doe.com"),
+              name: userNameSchema.parse("John Doe"),
+            },
+          ],
+          { dependencyStore },
+        );
       });
 
       await it("returns the users", () => {
@@ -82,24 +84,26 @@ await describe("bulkAdd()", async () => {
   await describe("given an erroring database", async () => {
     const { database } = slonikHelpers.createFailingQueryMockDatabase();
     const dependencyStore = buildMockDependencyStore({ database });
-    const repository = createUserRepository({ dependencyStore });
 
     await describe("when called with no filters", async () => {
       let result: BulkAddResult;
 
       before(async () => {
-        result = await repository.bulkAdd([
-          {
-            id: userIdSchema.parse(1),
-            email: userEmailSchema.parse("foo@bar.com"),
-            name: userNameSchema.parse("Foo"),
-          },
-          {
-            id: userIdSchema.parse(2),
-            email: userEmailSchema.parse("john@doe.com"),
-            name: userNameSchema.parse("John Doe"),
-          },
-        ]);
+        result = await bulkAdd(
+          [
+            {
+              id: userIdSchema.parse(1),
+              email: userEmailSchema.parse("foo@bar.com"),
+              name: userNameSchema.parse("Foo"),
+            },
+            {
+              id: userIdSchema.parse(2),
+              email: userEmailSchema.parse("john@doe.com"),
+              name: userNameSchema.parse("John Doe"),
+            },
+          ],
+          { dependencyStore },
+        );
       });
 
       await it("returns an error", () => {

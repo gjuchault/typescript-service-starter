@@ -7,7 +7,7 @@ import type { UserEmail, UserId, UserName } from "~/domain/user.js";
 import type { UserRepository } from "~/repository/user/index.js";
 import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
-import { getUsers, GetUsersResult } from "../get-users.js";
+import { getUsers, GetUsersResult } from "./get-users.js";
 
 const mockRepository: UserRepository = {
   get: mock.fn(() =>
@@ -27,16 +27,14 @@ const mockRepository: UserRepository = {
 await describe("getUsers()", async () => {
   await describe("given a repository", async () => {
     const dependencyStore = buildMockDependencyStore({
-      repository: { user: mockRepository },
+      userRepository: mockRepository,
     });
 
     await describe("when called", async () => {
       let result: GetUsersResult;
 
       before(async () => {
-        result = await getUsers({
-          dependencyStore,
-        });
+        result = await getUsers({ dependencyStore });
       });
 
       await it("returns healthy", () => {

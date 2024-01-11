@@ -12,8 +12,8 @@ import type {
 } from "@gjuchault/typescript-service-sdk";
 import { createMockLoggerProvider } from "@gjuchault/typescript-service-sdk";
 
-import type { HealthcheckApplication } from "~/application/healthcheck";
-import type { Repository } from "~/repository";
+import type { HealthcheckRepository } from "~/repository/healthcheck";
+import type { UserRepository } from "~/repository/user";
 import { createAppDependencyStore } from "~/store";
 
 export function buildMock<T>(initialImplementation: Partial<T> = {}): T {
@@ -51,20 +51,20 @@ export function buildMockDependencyStore({
   cache,
   database,
   date,
-  healthcheckApplication,
   httpServer,
-  repository,
   taskScheduling,
   telemetry,
+  healthcheckRepository,
+  userRepository,
 }: {
   cache?: Partial<Cache>;
   database?: Partial<Database>;
   date?: Partial<DateProvider>;
-  healthcheckApplication?: Partial<HealthcheckApplication>;
   httpServer?: Partial<HttpServer>;
-  repository?: Partial<Repository>;
   taskScheduling?: Partial<TaskScheduling>;
   telemetry?: Partial<Telemetry>;
+  healthcheckRepository?: Partial<HealthcheckRepository>;
+  userRepository?: Partial<UserRepository>;
 }) {
   return createAppDependencyStore({
     cache: buildMock(cache),
@@ -75,11 +75,11 @@ export function buildMockDependencyStore({
         nowAsNumber: () => new Date("2020-05-20").getTime(),
       },
     ),
-    healthcheckApplication: buildMock(healthcheckApplication),
     httpServer: buildMock(httpServer),
     logger: createMockLoggerProvider(),
-    repository: buildMock(repository),
     taskScheduling: buildMock(taskScheduling),
     telemetry: buildMock(telemetry),
+    healthcheckRepository: buildMock(healthcheckRepository),
+    userRepository: buildMock(userRepository),
   });
 }
