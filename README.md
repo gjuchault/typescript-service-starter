@@ -46,6 +46,8 @@ To run tasks & crons, this package leverages [BullMQ](https://github.com/taskfor
 
 This template also tries to be easy to deploy through esbuild's bundling. This means you can _not_ leverage node_modules and file system at runtime: reading static files from node_modules, hooking `require`, etc. ill not be possible. This implies to be mindful on libraries (that would read static files from there older), or automatic instrumentation (that hook `require`). Yet it comes with super small Docker images hat are fast to deploy.
 
+We also have a very simple singleton-object dependency injection. This allows for simple retrieval of dependencies without imports (which avoids module mocking).
+
 ### Layers & folder structure
 
 ```
@@ -55,7 +57,7 @@ src/
 ├── domain         # pure functions & TypeScript models of your entities
 ├── presentation   # communication layer (http)
 ├── repository     # storage of your entities
-├── infrastructure # technical components (cache, database connection, etc.)
+├── infrastructure # technical components (cache, database connection, etc.) — most of it should be outsourced to a shared SDK library
 ├── helpers        # utilities functions & non-domain code
 └── test-helpers   # test utilities (starting default port, resetting database, etc.)
 ```
