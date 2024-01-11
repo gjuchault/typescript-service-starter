@@ -12,8 +12,7 @@ import type {
 } from "@gjuchault/typescript-service-sdk";
 import { createMockLoggerProvider } from "@gjuchault/typescript-service-sdk";
 
-import type { HealthcheckRepository } from "~/repository/healthcheck";
-import type { UserRepository } from "~/repository/user";
+import { HealthcheckRepository, UserRepository } from "~/repository/index.js";
 import { createAppDependencyStore } from "~/store";
 
 export function buildMock<T>(initialImplementation: Partial<T> = {}): T {

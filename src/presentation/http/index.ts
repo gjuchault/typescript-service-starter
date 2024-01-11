@@ -4,7 +4,7 @@ import { initServer } from "@ts-rest/fastify";
 import { DependencyStore } from "~/store.js";
 
 import {
-  bindHealthcheckRoutes,
+  getHealthcheckRoute,
   healthcheckRouterContract,
 } from "./routes/healthcheck/index.js";
 
@@ -24,11 +24,7 @@ export function createAppRouter({
 }: {
   dependencyStore: DependencyStore;
 }) {
-  const healthcheckRouter = bindHealthcheckRoutes({
-    dependencyStore,
-  });
-
   return s.router(contract, {
-    ...healthcheckRouter,
+    getHealthcheck: () => getHealthcheckRoute({ dependencyStore }),
   });
 }

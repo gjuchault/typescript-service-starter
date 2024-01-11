@@ -4,7 +4,7 @@ import { before, describe, it, mock } from "node:test";
 import type { Redis } from "ioredis";
 import { err, ok } from "neverthrow";
 
-import type { HealthcheckRepository } from "~/repository/healthcheck/index.js";
+import { HealthcheckRepository } from "~/repository/index.js";
 import { buildMockDependencyStore } from "~/test-helpers/mock.js";
 
 import type { GetHealthcheckResult } from "../get-healthcheck.js";

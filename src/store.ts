@@ -3,8 +3,10 @@ import {
   DependencyStore as SdkDependencyStore,
 } from "@gjuchault/typescript-service-sdk";
 
-import type { HealthcheckRepository } from "./repository/healthcheck/index.js";
-import type { UserRepository } from "./repository/user/index.js";
+import type {
+  HealthcheckRepository,
+  UserRepository,
+} from "~/repository/index.js";
 
 type ExtraDependencies = {
   healthcheckRepository: HealthcheckRepository;

@@ -4,12 +4,6 @@ import { z } from "zod";
 
 import { DependencyStore } from "~/store";
 
-export interface HealthcheckRepository {
-  getHealthcheck(_: {
-    dependencyStore: DependencyStore;
-  }): Promise<GetHealthcheckResult>;
-}
-
 export type GetHealthcheckResult = Result<"healthy", "databaseError">;
 
 export async function getHealthcheck({

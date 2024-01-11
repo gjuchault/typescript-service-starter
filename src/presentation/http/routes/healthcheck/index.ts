@@ -40,32 +40,28 @@ export const healthcheckRouterContract = {
   },
 } as const;
 
-export function bindHealthcheckRoutes({
+export async function getHealthcheckRoute({
   dependencyStore,
 }: {
   dependencyStore: DependencyStore;
-}) {
+}): Promise<RouterGetHealthcheckResult> {
+  const healthcheck = await getHealthcheck({ dependencyStore });
+
+  if (!isHealthcheckFullyHealthy(healthcheck)) {
+    return {
+      status: 500,
+      body: {
+        ...healthcheck,
+        http: "healthy",
+      },
+    };
+  }
+
   return {
-    async getHealthcheck(): Promise<RouterGetHealthcheckResult> {
-      const healthcheck = await getHealthcheck({ dependencyStore });
-
-      if (!isHealthcheckFullyHealthy(healthcheck)) {
-        return {
-          status: 500,
-          body: {
-            ...healthcheck,
-            http: "healthy",
-          },
-        };
-      }
-
-      return {
-        status: 200,
-        body: {
-          ...healthcheck,
-          http: "healthy",
-        },
-      };
+    status: 200,
+    body: {
+      ...healthcheck,
+      http: "healthy",
     },
   };
 }
