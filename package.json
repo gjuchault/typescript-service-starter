@@ -101,7 +101,7 @@
     "@fastify/under-pressure": "^8.3.0",
     "@gjuchault/typescript-service-sdk": "^6.3.1",
     "@opentelemetry/api": "^1.7.0",
-    "@opentelemetry/core": "^1.19.0",
+    "@opentelemetry/core": "^1.20.0",
     "@opentelemetry/exporter-prometheus": "^0.46.0",
     "@opentelemetry/resources": "^1.19.0",
     "@opentelemetry/sdk-node": "^0.46.0",
