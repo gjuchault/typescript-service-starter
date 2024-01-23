@@ -42,10 +42,12 @@ export const healthcheckRouterContract = {
 
 export async function getHealthcheckRoute({
   dependencyStore,
+  requestId,
 }: {
   dependencyStore: DependencyStore;
+  requestId: string;
 }): Promise<RouterGetHealthcheckResult> {
-  const healthcheck = await getHealthcheck({ dependencyStore });
+  const healthcheck = await getHealthcheck({ dependencyStore, requestId });
 
   if (!isHealthcheckFullyHealthy(healthcheck)) {
     return {

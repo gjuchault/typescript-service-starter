@@ -37,7 +37,10 @@ await describe("getHealthcheck()", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({ dependencyStore });
+        result = await getHealthcheck({
+          dependencyStore,
+          requestId: "requestId",
+        });
       });
 
       await it("returns healthy", () => {
@@ -63,7 +66,10 @@ await describe("getHealthcheck()", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({ dependencyStore });
+        result = await getHealthcheck({
+          dependencyStore,
+          requestId: "requestId",
+        });
       });
 
       await it("returns unhealthy cache, healthy database", () => {
@@ -89,7 +95,10 @@ await describe("getHealthcheck()", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({ dependencyStore });
+        result = await getHealthcheck({
+          dependencyStore,
+          requestId: "requestId",
+        });
       });
 
       await it("returns unhealthy cache, healthy database", () => {
@@ -115,7 +124,10 @@ await describe("getHealthcheck()", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({ dependencyStore });
+        result = await getHealthcheck({
+          dependencyStore,
+          requestId: "requestId",
+        });
       });
 
       await it("returns unhealthy cache, healthy database", () => {

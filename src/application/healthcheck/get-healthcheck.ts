@@ -12,19 +12,28 @@ export interface GetHealthcheckResult {
 
 export async function getHealthcheck({
   dependencyStore,
+  requestId,
 }: {
   dependencyStore: DependencyStore;
+  requestId: string;
 }): Promise<GetHealthcheckResult> {
+  const createLogger = dependencyStore.get("logger");
   const cache = dependencyStore.get("cache");
   const repository = dependencyStore.get("healthcheckRepository");
 
-  const databaseResult = await repository.getHealthcheck({ dependencyStore });
+  const logger = createLogger("application/healthcheck/get-healthcheck");
+
+  const databaseResult = await repository.getHealthcheck({
+    dependencyStore,
+    requestId,
+  });
 
   let cacheResult: "healthy" | "unhealthy" = "healthy";
 
   try {
     await cache.echo("1");
-  } catch {
+  } catch (error) {
+    logger.error("Cache is unhealthy", { error, requestId });
     cacheResult = "unhealthy";
   }
 

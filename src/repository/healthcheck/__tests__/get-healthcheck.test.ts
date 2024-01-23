@@ -16,7 +16,10 @@ await describe("getHealthcheck()", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({ dependencyStore });
+        result = await getHealthcheck({
+          dependencyStore,
+          requestId: "requestId",
+        });
       });
 
       await it("returns ok", () => {
@@ -38,7 +41,10 @@ await describe("getHealthcheck()", async () => {
       let result: GetHealthcheckResult;
 
       before(async () => {
-        result = await getHealthcheck({ dependencyStore });
+        result = await getHealthcheck({
+          dependencyStore,
+          requestId: "requestId",
+        });
       });
 
       await it("returns err", () => {

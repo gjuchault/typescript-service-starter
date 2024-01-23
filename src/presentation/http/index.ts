@@ -25,6 +25,7 @@ export function createAppRouter({
   dependencyStore: DependencyStore;
 }) {
   return s.router(contract, {
-    getHealthcheck: () => getHealthcheckRoute({ dependencyStore }),
+    getHealthcheck: ({ request }) =>
+      getHealthcheckRoute({ dependencyStore, requestId: request.id }),
   });
 }
