@@ -111,7 +111,7 @@
     "@ts-rest/fastify": "^3.33.0",
     "@ts-rest/open-api": "^3.33.0",
     "bullmq": "^5.1.5",
-    "dotenv": "^16.3.2",
+    "dotenv": "^16.4.1",
     "fastify": "^4.25.2",
     "fastify-plugin": "^4.5.1",
     "http-terminator": "^3.2.0",
