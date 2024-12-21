@@ -1,4 +1,4 @@
-FROM node:21.5.0-alpine AS base
+FROM node:23.5.0-alpine AS base
 
 FROM base as builder
 
