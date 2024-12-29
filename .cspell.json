@@ -5,13 +5,19 @@
 		"bahmutov",
 		"degit",
 		"esbuild",
-		"typescript-service-starter",
+		"formbody",
+		"gjuchault",
+		"nonpositive",
 		"octocat",
 		"outdir",
 		"rmrf",
 		"ryansonshine",
+		"slonik",
 		"socio",
-		"tsdoc"
+		"traceparent",
+		"tsdoc",
+		"typescript-service-starter",
+		"uuidgen"
 	],
 	"flagWords": [],
 	"ignorePaths": [
