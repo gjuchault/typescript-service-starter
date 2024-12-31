@@ -17,6 +17,8 @@
 		"traceparent",
 		"tsdoc",
 		"typescript-service-starter",
+		"umzug",
+		"unlog",
 		"uuidgen"
 	],
 	"flagWords": [],

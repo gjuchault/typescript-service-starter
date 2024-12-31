@@ -5,16 +5,19 @@ import type { HttpServer } from "../http-server/http-server.ts";
 import { createLogger } from "../logger/logger.ts";
 import ms from "ms";
 import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
+import type { Database } from "../database/database.ts";
 
 let isShuttingDown = false;
 const gracefulShutdownTimeout = ms("20s");
 
 export async function shutdown({
 	httpServer,
+	database,
 	packageJson,
 	config,
 }: {
 	httpServer: HttpServer;
+	database: Database;
 	config: Config;
 	packageJson: PackageJson;
 }) {
@@ -35,6 +38,9 @@ export async function shutdown({
 	async function gracefulShutdown(): Promise<boolean> {
 		await httpTerminator.terminate();
 		logger.debug("http server shut down");
+
+		await database.end();
+		logger.debug("database shut down");
 
 		return true;
 	}

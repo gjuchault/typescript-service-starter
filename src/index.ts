@@ -9,6 +9,7 @@ import {
 import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { type PackageJson, packageJson } from "./packageJson.ts";
+import { createDatabase } from "./infrastructure/database/database.ts";
 
 export async function startApp({
 	config,
@@ -23,9 +24,10 @@ export async function startApp({
 	logger.info("starting app...");
 
 	const httpServer = await createHttpServer({ config, packageJson });
+	const database = await createDatabase({ config, packageJson });
 
 	async function appShutdown() {
-		await shutdown({ httpServer, config, packageJson });
+		await shutdown({ httpServer, database, config, packageJson });
 	}
 
 	return { httpServer, logger, appShutdown };
