@@ -1,21 +1,20 @@
 import childProcess from "node:child_process";
 import fs from "node:fs/promises";
+import process from "node:process";
 import path from "node:path";
-import url from "node:url";
 import { promisify } from "node:util";
+import { isMain } from "is-main";
 import prompts from "prompts";
 import slugify from "slugify";
 
 const exec = promisify(childProcess.exec);
-const __filename = url.fileURLToPath(import.meta.url);
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
 
-const rootPath = path.join(__dirname, "..");
+const rootPath = process.cwd();
 const releaseRcPath = path.join(rootPath, ".releaserc.json");
 const cspellPath = path.join(rootPath, ".cspell.json");
 const packageJsonPath = path.join(rootPath, "package.json");
 const contributingPath = path.join(rootPath, "CONTRIBUTING.md");
-const setupPath = __filename;
+const setupPath = path.join(rootPath, "scripts/setup.ts");
 const testSetupPath = path.join(rootPath, "scripts/test-setup.ts");
 const workflowPath = path.join(
 	rootPath,
@@ -261,8 +260,6 @@ async function logAsyncTask<Resolve>(
 	return output;
 }
 
-if (import.meta.url.startsWith("file:")) {
-	if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
-		await setup();
-	}
+if (isMain(import.meta)) {
+	await setup();
 }

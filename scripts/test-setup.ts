@@ -1,6 +1,6 @@
 import childProcess from "node:child_process";
-import url from "node:url";
 import { promisify } from "node:util";
+import { isMain } from "is-main";
 import { run } from "./setup.ts";
 
 const exec = promisify(childProcess.exec);
@@ -59,8 +59,6 @@ async function testNoGrep(pattern: string) {
 	}
 }
 
-if (import.meta.url.startsWith("file:")) {
-	if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
-		await testSetup();
-	}
+if (isMain(import.meta)) {
+	await testSetup();
 }
