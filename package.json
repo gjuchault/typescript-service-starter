@@ -7,8 +7,8 @@
 		"email": "gabriel.juchault@gmail.com"
 	},
 	"type": "module",
-	"exports": "./build/index.js",
-	"types": "./build/index.d.ts",
+	"exports": "./client/schema.d.ts",
+	"types": "./client/schema.d.ts",
 	"license": "MIT",
 	"engines": {
 		"node": "^23.5.0",
@@ -21,15 +21,17 @@
 	"publishConfig": {
 		"access": "public"
 	},
+	"files": [
+		"client"
+	],
 	"scripts": {
 		"start:prod": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./src/index.ts",
 		"start:dev": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --env-file=.env.development --env-file-if-exists=.env.development.local --experimental-strip-types ./src/index.ts | pino-pretty",
-		"generate-client:ts": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/generate-client.ts ts",
-		"generate-client:json": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/generate-client.ts json",
-		"generate-client:yaml": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/generate-client.ts yaml",
-		"migrate:up": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/migrate.ts up | pino-pretty",
-    "migrate:create": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/migrate.ts create",
-		"clean": "rm -rf coverage",
+		"generate-client": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/generate-client.ts",
+		"generate-secret": "node --disable-warning=ExperimentalWarning --experimental-strip-types ./scripts/generate-secret.ts",
+		"migrate:up": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/migrate.ts up",
+		"migrate:down": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/migrate.ts down",
+		"migrate:create": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/migrate.ts create",
 		"type:check": "tsc --noEmit",
 		"lint": "biome check . --write",
 		"lint:check": "biome ci .",

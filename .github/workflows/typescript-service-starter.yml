@@ -101,7 +101,7 @@ jobs:
         run: node --run test:setup
 
   build-and-release:
-    name: 🚀 Build & release
+    name: 🚀 Generate client & release
     needs: [lint, audit, spell, type, test]
     runs-on: ubuntu-latest
     steps:
@@ -111,8 +111,8 @@ jobs:
           node-version-file: package.json
           cache: "npm"
       - run: npm ci
-      - name: 🔨 Build
-        run: node --run build
+      - name: 📦 Generate client
+        run: node --run generate-client
       - name: 🚀 Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
