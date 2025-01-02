@@ -1,10 +1,10 @@
 import childProcess from "node:child_process";
-import path from "node:path";
 import fs from "node:fs/promises";
-import { promisify } from "node:util";
+import path from "node:path";
 import url from "node:url";
-import slugify from "slugify";
+import { promisify } from "node:util";
 import prompts from "prompts";
+import slugify from "slugify";
 
 const exec = promisify(childProcess.exec);
 const __filename = url.fileURLToPath(import.meta.url);
