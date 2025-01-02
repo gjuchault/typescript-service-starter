@@ -1,18 +1,18 @@
-import path from "node:path";
 import fs from "node:fs/promises";
+import path from "node:path";
 import url from "node:url";
 import { isMain } from "is-main";
 import launchEditor from "launch-editor";
+import type { Umzug } from "umzug";
 import { z } from "zod";
-import { config } from "../src/infrastructure/config/config.ts";
-import { packageJson } from "../src/packageJson.ts";
 import { switchGuard } from "../src/helpers/switch-guard.ts";
+import { config } from "../src/infrastructure/config/config.ts";
 import {
-	createDatabase,
 	type Database,
+	createDatabase,
 } from "../src/infrastructure/database/database.ts";
 import { getMigrator } from "../src/infrastructure/database/migrator.ts";
-import type { Umzug } from "umzug";
+import { packageJson } from "../src/packageJson.ts";
 
 const migrationsPath = path.join(
 	path.dirname(url.fileURLToPath(import.meta.url)),

@@ -7,10 +7,10 @@ import {
 	flat,
 	flatMap,
 	isNonEmptyArray,
-	toNonEmptyArray,
 	map,
 	reverse,
 	slice,
+	toNonEmptyArray,
 } from "../non-empty-array.ts";
 
 await describe("concat()", async () => {

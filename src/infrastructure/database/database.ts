@@ -1,8 +1,8 @@
-import { createPool, type DatabasePool, sql } from "slonik";
-import type { Config } from "../config/config.ts";
-import type { PackageJson } from "../../packageJson.ts";
-import { createLogger } from "../logger/logger.ts";
+import { type DatabasePool, createPool, sql } from "slonik";
 import { z } from "zod";
+import type { PackageJson } from "../../packageJson.ts";
+import type { Config } from "../config/config.ts";
+import { createLogger } from "../logger/logger.ts";
 
 export type Database = DatabasePool;
 

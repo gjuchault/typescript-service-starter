@@ -1,11 +1,11 @@
 import { createHttpTerminator } from "http-terminator";
-import type { PackageJson } from "../../packageJson.ts";
-import type { Config } from "../config/config.ts";
-import type { HttpServer } from "../http-server/http-server.ts";
-import { createLogger } from "../logger/logger.ts";
 import ms from "ms";
 import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
+import type { PackageJson } from "../../packageJson.ts";
+import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
+import type { HttpServer } from "../http-server/http-server.ts";
+import { createLogger } from "../logger/logger.ts";
 
 let isShuttingDown = false;
 const gracefulShutdownTimeout = ms("20s");

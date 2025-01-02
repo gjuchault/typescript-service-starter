@@ -2,6 +2,7 @@ import { asyncExitHook } from "exit-hook";
 import { isMain } from "is-main";
 import ms from "ms";
 import { type Config, config } from "./infrastructure/config/config.ts";
+import { createDatabase } from "./infrastructure/database/database.ts";
 import {
 	type HttpServer,
 	createHttpServer,
@@ -9,7 +10,6 @@ import {
 import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { type PackageJson, packageJson } from "./packageJson.ts";
-import { createDatabase } from "./infrastructure/database/database.ts";
 
 export async function startApp({
 	config,

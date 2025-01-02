@@ -1,7 +1,7 @@
-import { sql } from "slonik";
-import type { Database } from "../database.ts";
-import { z } from "zod";
 import { equal } from "node:assert/strict";
+import { sql } from "slonik";
+import { z } from "zod";
+import type { Database } from "../database.ts";
 
 export async function up(database: Database) {
 	const result =
@@ -12,4 +12,6 @@ export async function up(database: Database) {
 	equal(result, 1);
 }
 
-export async function down() {}
+export async function down() {
+	// no-op
+}

@@ -1,4 +1,4 @@
-import { type Option, some, none } from "./option.ts";
+import { type Option, none, some } from "./option.ts";
 
 export type NonEmptyArray<T> = [T, ...T[]];
 

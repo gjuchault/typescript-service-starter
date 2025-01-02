@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
-import { validDateTimeSchema, validDateSchema } from "../date-time.ts";
 import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+import { validDateSchema, validDateTimeSchema } from "../date-time.ts";
 
 await describe("validDateTimeSchema", async () => {
 	await describe("when called given a string that represents a valid date-time", async () => {

@@ -1,5 +1,5 @@
-import { describe, it } from "node:test";
 import { throws } from "node:assert/strict";
+import { describe, it } from "node:test";
 import { switchGuard } from "../switch-guard.ts";
 
 await describe("switchGuard()", async () => {

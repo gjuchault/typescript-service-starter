@@ -1,7 +1,7 @@
-import { describe, it, mock } from "node:test";
 import { equal, rejects } from "node:assert/strict";
-import { promiseWithTimeout } from "../promise-with-timeout.ts";
+import { describe, it, mock } from "node:test";
 import { setTimeout } from "node:timers/promises";
+import { promiseWithTimeout } from "../promise-with-timeout.ts";
 
 await describe("promiseWithTimeout()", async () => {
 	await describe("when called given a timer and a promise that resolves in time", async () => {
