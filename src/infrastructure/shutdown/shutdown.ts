@@ -4,6 +4,7 @@ import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
+import type { Cache } from "../cache/cache.ts";
 import type { HttpServer } from "../http-server/http-server.ts";
 import { createLogger } from "../logger/logger.ts";
 
@@ -13,11 +14,13 @@ const gracefulShutdownTimeout = ms("20s");
 export async function shutdown({
 	httpServer,
 	database,
+	cache,
 	packageJson,
 	config,
 }: {
 	httpServer: HttpServer;
 	database: Database;
+	cache: Cache | undefined;
 	config: Config;
 	packageJson: PackageJson;
 }) {
@@ -41,6 +44,11 @@ export async function shutdown({
 
 		await database.end();
 		logger.debug("database shut down");
+
+		if (cache !== undefined) {
+			await cache.quit();
+			logger.debug("cache shut down");
+		}
 
 		return true;
 	}

@@ -25,6 +25,7 @@ import yamlJs from "yamljs";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { Cache } from "../cache/cache.ts";
 
 export type HttpServer = FastifyInstance;
 export type HttpRequest = FastifyRequest;
@@ -33,9 +34,14 @@ export type HttpReply = FastifyReply;
 const yamlMime = /^application\/yaml$/;
 
 export async function createHttpServer({
+	cache,
 	config,
 	packageJson,
-}: { config: Config; packageJson: PackageJson }): Promise<HttpServer> {
+}: {
+	cache: Cache | undefined;
+	config: Config;
+	packageJson: PackageJson;
+}): Promise<HttpServer> {
 	const logger = createLogger("http-server", { config, packageJson });
 
 	const httpServer = fastify({
@@ -65,7 +71,9 @@ export async function createHttpServer({
 	await httpServer.register(formBody);
 	await httpServer.register(helmet);
 	await httpServer.register(multipart);
-	await httpServer.register(rateLimit);
+	await httpServer.register(rateLimit, {
+		redis: cache,
+	});
 	await httpServer.register(secureSession, {
 		key: Buffer.from(config.httpCookieSigningSecret, "hex"),
 	});

@@ -10,6 +10,7 @@ import {
 import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { type PackageJson, packageJson } from "./packageJson.ts";
+import { createCacheStorage } from "./infrastructure/cache/cache.ts";
 
 export async function startApp({
 	config,
@@ -23,11 +24,12 @@ export async function startApp({
 
 	logger.info("starting app...");
 
-	const httpServer = await createHttpServer({ config, packageJson });
+	const cache = await createCacheStorage({ config, packageJson });
 	const database = await createDatabase({ config, packageJson });
+	const httpServer = await createHttpServer({ cache, config, packageJson });
 
 	async function appShutdown() {
-		await shutdown({ httpServer, database, config, packageJson });
+		await shutdown({ httpServer, cache, database, config, packageJson });
 	}
 
 	return { httpServer, logger, appShutdown };
