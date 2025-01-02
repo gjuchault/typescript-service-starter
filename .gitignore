@@ -1,5 +1,6 @@
 build/
 node_modules/
 coverage/
+client/
 .DS_Store
 *.local
