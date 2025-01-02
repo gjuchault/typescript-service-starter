@@ -11,6 +11,7 @@ import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { type PackageJson, packageJson } from "./packageJson.ts";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
+import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
 
 export async function startApp({
 	config,
@@ -26,10 +27,25 @@ export async function startApp({
 
 	const cache = await createCacheStorage({ config, packageJson });
 	const database = await createDatabase({ config, packageJson });
+	const taskScheduling =
+		cache !== undefined
+			? await createTaskScheduling(
+					{ queueName: "jobs" },
+					{ config, cache, packageJson },
+				)
+			: undefined;
 	const httpServer = await createHttpServer({ cache, config, packageJson });
 
 	async function appShutdown() {
-		await shutdown({ httpServer, cache, database, config, packageJson });
+		await shutdown({
+			httpServer,
+			worker: undefined,
+			cache,
+			taskScheduling,
+			database,
+			config,
+			packageJson,
+		});
 	}
 
 	return { httpServer, logger, appShutdown };

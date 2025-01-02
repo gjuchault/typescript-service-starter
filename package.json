@@ -27,6 +27,8 @@
 	"scripts": {
 		"start:prod": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./src/index.ts",
 		"start:dev": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --env-file=.env.development --env-file-if-exists=.env.development.local --experimental-strip-types ./src/index.ts | pino-pretty",
+		"worker:prod": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./src/worker.ts | pino-pretty",
+		"worker:dev": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --env-file=.env.development --env-file-if-exists=.env.development.local --experimental-strip-types ./src/worker.ts | pino-pretty",
 		"generate-client": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/generate-client.ts",
 		"generate-secret": "node --disable-warning=ExperimentalWarning --experimental-strip-types ./scripts/generate-secret.ts",
 		"migrate:up": "node --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/migrate.ts up",
@@ -82,6 +84,7 @@
 		"@fastify/swagger": "^9.4.0",
 		"@fastify/swagger-ui": "^5.2.0",
 		"@fastify/under-pressure": "^9.0.2",
+		"bullmq": "^5.34.6",
 		"exit-hook": "^4.0.0",
 		"fastify": "^5.2.0",
 		"fastify-type-provider-zod": "^4.0.2",

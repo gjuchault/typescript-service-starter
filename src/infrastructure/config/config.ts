@@ -1,7 +1,6 @@
 import process from "node:process";
 import ms from "ms";
 import { z } from "zod";
-import { packageJson } from "../../packageJson.ts";
 
 const env = z
 	.object({
@@ -35,8 +34,6 @@ const env = z
 	.parse(process.env);
 
 export interface Config {
-	name: string;
-	version: string;
 	envName: string;
 	logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 	httpAddress: string;
@@ -62,8 +59,6 @@ function transformMs(input: string): number {
 }
 
 export const config: Config = {
-	name: packageJson.name,
-	version: packageJson.version,
 	envName: z.string().parse(env.ENV_NAME),
 	logLevel: z
 		.union([

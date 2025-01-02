@@ -40,7 +40,10 @@ export async function createHttpServer({
 }: {
 	cache: Cache | undefined;
 	config: Config;
-	packageJson: PackageJson;
+	packageJson: Pick<
+		PackageJson,
+		"name" | "version" | "author" | "description" | "license"
+	>;
 }): Promise<HttpServer> {
 	const logger = createLogger("http-server", { config, packageJson });
 

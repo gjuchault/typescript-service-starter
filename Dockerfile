@@ -1,0 +1,21 @@
+FROM node:23.5.0-alpine AS base
+
+FROM base as builder
+
+WORKDIR /app
+
+COPY scripts/ /app/scripts
+COPY src/ /app/src
+COPY package.json \
+	package-lock.json \
+	tsconfig.json \
+	/app/
+
+RUN npm install
+RUN rm -rf node_modules/ scripts/ src/ tsconfig.json package-lock.json
+
+FROM builder as runtime
+
+WORKDIR /app
+ENV NODE_ENV production
+CMD [ "node", "--run", "start:prod" ]
