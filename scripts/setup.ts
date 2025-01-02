@@ -97,7 +97,8 @@ const descriptionRegexp = /[^\n]+"description[^\n]+\n/;
 const keywordsRegexp = /[^\n]+"keywords[^\]]+\],\n/;
 const homepageRegexp = /[^\n]+"homepage[^\n]+\n/;
 const bugsRegexp = /[^\n]+"bugs[^\n]+\n/;
-const authorRegexp = /[^\n]+"author[^\n]+\n/;
+const authorRegexp =
+	/[^\n]+"author[^\n]+\n[^\n]+"name[^\n]+\n[^\n]+"email[^\n]+\n[^\n]+\}[^\n]+\n/;
 const repositoryRegexp = /[^\n]+"repository[^\n]+\n/;
 const setupRegexp = /[^\n]+"setup[^\n]+\n/;
 async function applyPackageName({
@@ -114,12 +115,16 @@ async function applyPackageName({
 	const setupAction = `  test-setup:
     name: ⚡ Setup tests
     runs-on: ubuntu-latest
+    needs: [dependencies]
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - uses: bahmutov/npm-install@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: package.json
+          cache: "npm"
+      - run: npm ci
       - name: ⚡ Tests
-        run: npm run test:setup\n\n`;
+        run: node --run test:setup\n\n`;
 
 	await logAsyncTask(
 		"Changing GitHub workflow file",

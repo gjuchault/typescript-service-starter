@@ -26,7 +26,7 @@ And extends the ones from [typescript-library-starter](https://github.com/gjucha
 2. `cd my-project`
 3. `npm install`
 4. `git init` (if you used degit)
-5. `npm run setup`
+5. `node --run setup`
 6. `echo "HTTP_COOKIE_SIGNING_SECRET=$(node --run generate-secret)" > .env.local`
 
 To enable deployment, you will need to:
