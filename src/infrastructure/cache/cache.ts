@@ -2,9 +2,9 @@ import { Redis } from "ioredis";
 import ms from "ms";
 
 import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
-import { createLogger } from "../logger/logger.ts";
-import type { Config } from "../config/config.ts";
 import type { PackageJson } from "../../packageJson.ts";
+import type { Config } from "../config/config.ts";
+import { createLogger } from "../logger/logger.ts";
 
 interface Dependencies {
 	config: Pick<Config, "redisUrl" | "logLevel">;

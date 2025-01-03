@@ -34,6 +34,11 @@ export function createLogger(
 			"[*].key",
 			"key",
 		],
+		serializers: {
+			error: pino.stdSerializers.errWithCause,
+			err: pino.stdSerializers.errWithCause,
+			cause: pino.stdSerializers.errWithCause,
+		},
 		formatters: {
 			// format level as string instead of number
 			level(label) {

@@ -6,10 +6,10 @@ import formBody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
 import multipart from "@fastify/multipart";
 import rateLimit from "@fastify/rate-limit";
-import secureSession from "@fastify/secure-session";
+import session from "@fastify/session";
 import swagger from "@fastify/swagger";
-import swaggerUi from "@fastify/swagger-ui";
 import underPressure from "@fastify/under-pressure";
+import { RedisStore } from "connect-redis";
 import {
 	type FastifyInstance,
 	type FastifyReply,
@@ -23,9 +23,10 @@ import {
 } from "fastify-type-provider-zod";
 import yamlJs from "yamljs";
 import type { PackageJson } from "../../packageJson.ts";
+import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
-import type { Cache } from "../cache/cache.ts";
+import cookie from "@fastify/cookie";
 
 export type HttpServer = FastifyInstance;
 export type HttpRequest = FastifyRequest;
@@ -77,8 +78,10 @@ export async function createHttpServer({
 	await httpServer.register(rateLimit, {
 		redis: cache,
 	});
-	await httpServer.register(secureSession, {
-		key: Buffer.from(config.httpCookieSigningSecret, "hex"),
+	await httpServer.register(cookie);
+	await httpServer.register(session, {
+		secret: [config.httpCookieSigningSecret],
+		store: new RedisStore({ client: cache }),
 	});
 	await httpServer.register(underPressure);
 	await httpServer.register(swagger, {
@@ -93,13 +96,6 @@ export async function createHttpServer({
 					name: packageJson.license,
 				},
 			},
-		},
-	});
-
-	await httpServer.register(swaggerUi, {
-		uiConfig: {
-			docExpansion: "full",
-			deepLinking: false,
 		},
 	});
 

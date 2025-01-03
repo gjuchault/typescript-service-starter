@@ -1,14 +1,14 @@
+import type { Worker } from "bullmq";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
-import type { Worker } from "bullmq";
 import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
 import type { PackageJson } from "../../packageJson.ts";
+import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
-import type { Cache } from "../cache/cache.ts";
 import type { HttpServer } from "../http-server/http-server.ts";
-import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
 
 let isShuttingDown = false;
 const gracefulShutdownTimeout = ms("20s");
@@ -84,7 +84,6 @@ export async function shutdown(
 			},
 		);
 	} catch (error) {
-		console.log(error);
 		logger.fatal(
 			`could not gracefully shut down service ${dependencies.packageJson.name} after ${gracefulShutdownTimeout}`,
 			{

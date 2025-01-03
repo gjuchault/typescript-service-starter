@@ -1,12 +1,12 @@
-import { Redis } from "ioredis";
 import { Worker } from "bullmq";
+import { asyncExitHook } from "exit-hook";
+import { Redis } from "ioredis";
+import isMain from "is-main";
+import ms from "ms";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createLogger } from "./infrastructure/logger/logger.ts";
-import { type PackageJson, packageJson } from "./packageJson.ts";
-import isMain from "is-main";
-import { asyncExitHook } from "exit-hook";
-import ms from "ms";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
+import { type PackageJson, packageJson } from "./packageJson.ts";
 
 async function startWorker(
 	{ queueName }: { queueName: string },

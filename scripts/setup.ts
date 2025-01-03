@@ -1,7 +1,7 @@
 import childProcess from "node:child_process";
 import fs from "node:fs/promises";
-import process from "node:process";
 import path from "node:path";
+import process from "node:process";
 import { promisify } from "node:util";
 import { isMain } from "is-main";
 import prompts from "prompts";

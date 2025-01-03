@@ -1,9 +1,9 @@
 import { Queue } from "bullmq";
 
-import type { Cache } from "../cache/cache.ts";
-import type { PackageJson } from "../../packageJson.ts";
-import type { Config } from "../config/config.ts";
 import ms from "ms";
+import type { PackageJson } from "../../packageJson.ts";
+import type { Cache } from "../cache/cache.ts";
+import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
 
 export type TaskScheduling<

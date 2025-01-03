@@ -96,9 +96,25 @@ Leverages `--strip-types` to avoid build step, but keeps `tsc` to generate `.d.t
 
 Commands:
 
-- `start:prod`: starts the server with `.env` and `.env.local` env files
 - `start:dev`: starts the server with `.env`, `.env.local`, `.env.development` and `.env.development.local` env files
-- `type:check` validates types with `tsc`
+- `worker:dev`: starts the worker with `.env`, `.env.local`, `.env.development` and `.env.development.local` env files
+- `type:check`: validates types with `tsc`
+
+### Production build and worker build
+
+This library is providing a very small Docker image thanks to bundling and code-splitting.
+Running `node --run bundle` will bundle all of the `src/` and `node_modules/` code into two files:
+
+- `build/index.js` which runs the server
+- `build/worker.js` which runs the task scheduler's worker
+
+This will drastically improve the Docker image size: it only contains alpine, node, env files and the bundle files — no node_modules; but comes with one cost: dependencies can not base their code on a file structure containing a `node_modules` folder (typically to find static files there)
+
+Commands:
+
+- `bundle`: creates the `build/` directory containing the entrypoints and shared code
+- `start:prod`: runs the http server entrypoint
+- `worker:prod`: runs the worker entrypoint
 
 ### Tests
 
