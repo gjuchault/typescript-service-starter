@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import acceptsSerializer from "@fastify/accepts-serializer";
 import circuitBreaker from "@fastify/circuit-breaker";
+import cookie from "@fastify/cookie";
 import cors from "@fastify/cors";
 import formBody from "@fastify/formbody";
 import helmet from "@fastify/helmet";
@@ -22,11 +23,12 @@ import {
 	validatorCompiler,
 } from "fastify-type-provider-zod";
 import yamlJs from "yamljs";
+import { bindUserRoutes } from "../../contexts/user/presentation/http/index.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
+import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";
-import cookie from "@fastify/cookie";
 
 export type HttpServer = FastifyInstance;
 export type HttpRequest = FastifyRequest;
@@ -35,10 +37,12 @@ export type HttpReply = FastifyReply;
 const yamlMime = /^application\/yaml$/;
 
 export async function createHttpServer({
+	database,
 	cache,
 	config,
 	packageJson,
 }: {
+	database: Database;
 	cache: Cache | undefined;
 	config: Config;
 	packageJson: Pick<
@@ -68,7 +72,7 @@ export async function createHttpServer({
 				serializer: (body: unknown) => yamlJs.stringify(body),
 			},
 		],
-		default: "application/yaml",
+		default: "application/json",
 	});
 	await httpServer.register(circuitBreaker);
 	await httpServer.register(cors);
@@ -160,6 +164,8 @@ export async function createHttpServer({
 	httpServer.get("/api/docs", (_request, reply) => {
 		return reply.send(httpServer.swagger());
 	});
+
+	bindUserRoutes({ database, httpServer });
 
 	const address = await httpServer.listen({
 		host: config.httpAddress,

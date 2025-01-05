@@ -4,6 +4,7 @@
 	"words": [
 		"bahmutov",
 		"bullmq",
+		"bytea",
 		"degit",
 		"esbuild",
 		"formbody",
@@ -16,6 +17,7 @@
 		"ryansonshine",
 		"slonik",
 		"socio",
+		"timestamptz",
 		"traceparent",
 		"tsdoc",
 		"typescript-service-starter",

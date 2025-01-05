@@ -34,7 +34,13 @@ export async function startApp({
 					{ config, cache, packageJson },
 				)
 			: undefined;
-	const httpServer = await createHttpServer({ cache, config, packageJson });
+
+	const httpServer = await createHttpServer({
+		database,
+		cache,
+		config,
+		packageJson,
+	});
 
 	async function appShutdown() {
 		await shutdown({
