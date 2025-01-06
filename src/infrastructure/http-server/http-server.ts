@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import fastifyOpenTelemetry from "@autotelic/fastify-opentelemetry";
 import acceptsSerializer from "@fastify/accepts-serializer";
 import circuitBreaker from "@fastify/circuit-breaker";
 import cookie from "@fastify/cookie";
@@ -79,6 +80,11 @@ export async function createHttpServer({
 	await httpServer.register(formBody);
 	await httpServer.register(helmet);
 	await httpServer.register(multipart);
+	await httpServer.register(fastifyOpenTelemetry.default, {
+		exposeApi: false,
+		wrapRoutes: true,
+		ignoreRoutes: (_, method) => method === "OPTIONS",
+	});
 	await httpServer.register(rateLimit, {
 		redis: cache,
 	});

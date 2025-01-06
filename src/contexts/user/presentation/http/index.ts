@@ -1,11 +1,11 @@
 import { z } from "zod";
+import { config } from "../../../../infrastructure/config/config.ts";
 import type { Database } from "../../../../infrastructure/database/database.ts";
 import type { HttpServer } from "../../../../infrastructure/http-server/http-server.ts";
+import { packageJson } from "../../../../packageJson.ts";
 import { userService } from "../../application/index.ts";
 import { userIdSchema } from "../../domain/user.ts";
 import { userRepository } from "../../repository/index.ts";
-import { config } from "../../../../infrastructure/config/config.ts";
-import { packageJson } from "../../../../packageJson.ts";
 
 export function bindUserRoutes({
 	database,

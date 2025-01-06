@@ -9,6 +9,7 @@ import type { Database } from "../database/database.ts";
 import type { HttpServer } from "../http-server/http-server.ts";
 import { createLogger } from "../logger/logger.ts";
 import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
+import type { Telemetry } from "../telemetry/telemetry.ts";
 
 let isShuttingDown = false;
 const gracefulShutdownTimeout = ms("20s");
@@ -16,6 +17,7 @@ const gracefulShutdownTimeout = ms("20s");
 export async function shutdown(
 	dependencies: {
 		database: Database | undefined;
+		telemetry: Telemetry | undefined;
 		taskScheduling: TaskScheduling | undefined;
 		cache: Cache | undefined;
 		config: Pick<Config, "logLevel">;
@@ -66,6 +68,11 @@ export async function shutdown(
 		if (dependencies.cache !== undefined) {
 			await dependencies.cache.quit();
 			logger.debug("cache shut down");
+		}
+
+		if (dependencies.telemetry !== undefined) {
+			await dependencies.telemetry.shutdown();
+			logger.debug("telemetry shut down");
 		}
 
 		return true;

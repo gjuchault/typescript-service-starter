@@ -11,6 +11,7 @@ import {
 import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
+import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
 import { type PackageJson, packageJson } from "./packageJson.ts";
 
 export async function startApp({
@@ -21,40 +22,45 @@ export async function startApp({
 	httpServer: HttpServer;
 	logger: Logger;
 }> {
-	const logger = createLogger("app", { config, packageJson });
+	const telemetry = createTelemetry({ config, packageJson });
 
-	logger.info("starting app...");
+	return await telemetry.startActiveSpan("startApp", async () => {
+		const logger = createLogger("app", { config, packageJson });
 
-	const cache = await createCacheStorage({ config, packageJson });
-	const database = await createDatabase({ config, packageJson });
-	const taskScheduling =
-		cache !== undefined
-			? await createTaskScheduling(
-					{ queueName: "jobs" },
-					{ config, cache, packageJson },
-				)
-			: undefined;
+		logger.info("starting app...");
 
-	const httpServer = await createHttpServer({
-		database,
-		cache,
-		config,
-		packageJson,
-	});
+		const cache = await createCacheStorage({ config, packageJson });
+		const database = await createDatabase({ telemetry, config, packageJson });
+		const taskScheduling =
+			cache !== undefined
+				? await createTaskScheduling(
+						{ queueName: "jobs" },
+						{ telemetry, config, cache, packageJson },
+					)
+				: undefined;
 
-	async function appShutdown() {
-		await shutdown({
-			httpServer,
-			worker: undefined,
-			cache,
-			taskScheduling,
+		const httpServer = await createHttpServer({
 			database,
+			cache,
 			config,
 			packageJson,
 		});
-	}
 
-	return { httpServer, logger, appShutdown };
+		async function appShutdown() {
+			await shutdown({
+				httpServer,
+				worker: undefined,
+				telemetry,
+				cache,
+				taskScheduling,
+				database,
+				config,
+				packageJson,
+			});
+		}
+
+		return { httpServer, logger, appShutdown };
+	});
 }
 
 if (isMain(import.meta)) {

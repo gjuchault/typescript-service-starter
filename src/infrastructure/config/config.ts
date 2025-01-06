@@ -30,6 +30,8 @@ const env = z
 		REDIS_URL: z.string().optional(),
 		// biome-ignore lint/style/useNamingConvention: env variable
 		TRACING_SAMPLING: z.string(),
+		// biome-ignore lint/style/useNamingConvention: env variable
+		OTLP_ENDPOINT: z.string().optional(),
 	})
 	.parse(process.env);
 
@@ -46,6 +48,7 @@ export interface Config {
 	databaseStatementTimeout: number;
 	redisUrl: string | undefined;
 	tracingSampling: number;
+	otlpEndpoint: string | undefined;
 }
 
 function transformMs(input: string): number {
@@ -106,7 +109,7 @@ export const config: Config = {
 		.transform(transformMs)
 		.parse(env.DATABASE_STATEMENT_TIMEOUT),
 
-	redisUrl: z.string().optional().parse(env.REDIS_URL),
+	redisUrl: z.string().url().optional().parse(env.REDIS_URL),
 
 	tracingSampling: z.coerce
 		.number()
@@ -114,4 +117,6 @@ export const config: Config = {
 		.min(0)
 		.max(1)
 		.parse(env.TRACING_SAMPLING),
+
+	otlpEndpoint: z.string().url().optional().parse(env.OTLP_ENDPOINT),
 };
