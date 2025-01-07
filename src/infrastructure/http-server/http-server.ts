@@ -11,7 +11,7 @@ import rateLimit from "@fastify/rate-limit";
 import session from "@fastify/session";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
-import { context, propagation, SpanKind, trace } from "@opentelemetry/api";
+import { SpanKind, context, propagation } from "@opentelemetry/api";
 import { RedisStore } from "connect-redis";
 import {
 	type FastifyBaseLogger,

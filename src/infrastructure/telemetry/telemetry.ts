@@ -1,7 +1,6 @@
 import {
 	type Attributes,
 	type Context,
-	type SpanContext,
 	type SpanOptions,
 	SpanStatusCode,
 	context,
@@ -10,7 +9,10 @@ import {
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { Resource } from "@opentelemetry/resources";
-import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import {
+	ConsoleMetricExporter,
+	PeriodicExportingMetricReader,
+} from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import {
 	ATTR_SERVICE_NAME,
@@ -20,6 +22,7 @@ import { ATTR_PROCESS_PID } from "@opentelemetry/semantic-conventions/incubating
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
+import { createNodeMetrics } from "./node-metrics/index.ts";
 
 export interface Span {
 	setAttributes(attributes: Attributes): Span;
@@ -84,30 +87,44 @@ export function createTelemetry({
 		return mockTelemetry;
 	}
 
+	const resource = Resource.default().merge(
+		new Resource({
+			[ATTR_SERVICE_NAME]: packageJson.name,
+			[ATTR_SERVICE_VERSION]: packageJson.version,
+			[ATTR_PROCESS_PID]: process.pid,
+		}),
+	);
+
+	const metricReader = config.otlpMetricsEndpoint
+		? new PeriodicExportingMetricReader({
+				exporter: new OTLPMetricExporter({
+					url: `${config.otlpMetricsEndpoint}/api/v1/otlp/v1/metrics`,
+				}),
+				exportIntervalMillis: 10_000,
+			})
+		: new PeriodicExportingMetricReader({
+				exporter: new ConsoleMetricExporter(),
+				exportIntervalMillis: 10_000,
+			});
+
 	const sdk = new NodeSDK({
-		resource: Resource.default().merge(
-			new Resource({
-				[ATTR_SERVICE_NAME]: packageJson.name,
-				[ATTR_SERVICE_VERSION]: packageJson.version,
-				[ATTR_PROCESS_PID]: process.pid,
-			}),
-		),
+		resource,
 		traceExporter: new OTLPTraceExporter({
 			url: `${config.otlpTraceEndpoint}/v1/traces`,
 		}),
-		...(config.otlpMetricsEndpoint
-			? {
-					metricReader: new PeriodicExportingMetricReader({
-						exporter: new OTLPMetricExporter({
-							url: `${config.otlpMetricsEndpoint}/v1/metrics`,
-						}),
-					}),
-				}
-			: {}),
+		...(metricReader ? { metricReader } : {}),
 		instrumentations: [],
 	});
 
 	sdk.start();
+
+	createNodeMetrics({
+		eventLoopMonitoringPrecision: 10,
+		prefix: "app_",
+		labels: {
+			version: packageJson.version,
+		},
+	});
 
 	logger.info("telemetry started");
 

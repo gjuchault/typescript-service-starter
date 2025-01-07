@@ -29,6 +29,7 @@ services:
       HTTP_ADDRESS: 0.0.0.0
       HTTP_PORT: 3000
       OTLP_TRACE_ENDPOINT: http://jaeger:4318
+      OTLP_METRICS_ENDPOINT: http://prometheus:9090
 
   postgres:
     container_name: postgres
@@ -62,6 +63,10 @@ services:
 
   prometheus:
     image: prom/prometheus
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-otlp-receiver
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
@@ -76,6 +81,7 @@ services:
 
   jaeger:
     image: jaegertracing/jaeger
+    container_name: jaeger
     ports:
       - 16686:16686 # web ui
       - 4317:4317 # accept OpenTelemetry Protocol (OTLP) over gRPC
