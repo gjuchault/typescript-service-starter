@@ -22,45 +22,59 @@ export async function startApp({
 	httpServer: HttpServer;
 	logger: Logger;
 }> {
+	const logger = createLogger("app", { config, packageJson });
+	logger.info("starting app...");
+
 	const telemetry = createTelemetry({ config, packageJson });
 
-	return await telemetry.startActiveSpan("startApp", async () => {
-		const logger = createLogger("app", { config, packageJson });
-
-		logger.info("starting app...");
-
-		const cache = await createCacheStorage({ config, packageJson });
-		const database = await createDatabase({ telemetry, config, packageJson });
-		const taskScheduling =
-			cache !== undefined
-				? await createTaskScheduling(
-						{ queueName: "jobs" },
-						{ telemetry, config, cache, packageJson },
-					)
-				: undefined;
-
-		const httpServer = await createHttpServer({
-			database,
-			cache,
-			config,
-			packageJson,
-		});
-
-		async function appShutdown() {
-			await shutdown({
-				httpServer,
-				worker: undefined,
+	return await telemetry.startSpanWith(
+		{
+			spanName: "index@startApp",
+			options: { root: true },
+		},
+		async () => {
+			const cache = await createCacheStorage({
 				telemetry,
-				cache,
-				taskScheduling,
-				database,
 				config,
 				packageJson,
 			});
-		}
+			const database = await createDatabase({
+				telemetry,
+				config,
+				packageJson,
+			});
+			const taskScheduling =
+				cache !== undefined
+					? await createTaskScheduling(
+							{ queueName: "jobs" },
+							{ telemetry, config, cache, packageJson },
+						)
+					: undefined;
 
-		return { httpServer, logger, appShutdown };
-	});
+			const httpServer = await createHttpServer({
+				telemetry,
+				database,
+				cache,
+				config,
+				packageJson,
+			});
+
+			async function appShutdown() {
+				await shutdown({
+					httpServer,
+					worker: undefined,
+					telemetry,
+					cache,
+					taskScheduling,
+					database,
+					config,
+					packageJson,
+				});
+			}
+
+			return { httpServer, logger, appShutdown };
+		},
+	);
 }
 
 if (isMain(import.meta)) {
@@ -70,4 +84,7 @@ if (isMain(import.meta)) {
 	});
 
 	asyncExitHook(async () => await appShutdown(), { wait: ms("5s") });
+	// docker custom
+	process.on("SIGINT", async () => await appShutdown());
+	process.on("SIGTERM", async () => await appShutdown());
 }

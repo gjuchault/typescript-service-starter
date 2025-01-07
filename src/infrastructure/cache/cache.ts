@@ -5,8 +5,10 @@ import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { Telemetry } from "../telemetry/telemetry.ts";
 
 interface Dependencies {
+	telemetry: Telemetry;
 	config: Pick<Config, "redisUrl" | "logLevel">;
 	packageJson: Pick<PackageJson, "name">;
 }
@@ -14,9 +16,14 @@ interface Dependencies {
 export type Cache = Redis;
 
 export async function createCacheStorage({
+	telemetry,
 	config,
 	packageJson,
 }: Dependencies): Promise<Cache | undefined> {
+	const span = telemetry.startSpan({
+		spanName: "infrastructure/cache/cache@createCacheStorage",
+	});
+
 	const logger = createLogger("redis", { config, packageJson });
 
 	if (config.redisUrl === undefined) {
@@ -52,6 +59,8 @@ export async function createCacheStorage({
 	}
 
 	logger.info("connected to redis");
+
+	span.end();
 
 	return redis;
 }

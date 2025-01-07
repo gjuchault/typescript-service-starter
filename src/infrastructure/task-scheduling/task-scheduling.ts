@@ -29,33 +29,38 @@ export async function createTaskScheduling<
 		cache: Cache;
 	},
 ): Promise<TaskScheduling<DataTypeOrJob, DefaultResultType>> {
-	return await telemetry.startActiveSpan("createTaskScheduling", async () => {
-		const logger = createLogger("task-scheduling", { config, packageJson });
-
-		const name = `${packageJson.name}-task-scheduling-${queueName}`;
-
-		logger.debug("creating queue...", {
-			queueName: name,
-		});
-
-		const queueConnection = cache.duplicate({ maxRetriesPerRequest: null });
-		const queue = new Queue<DataTypeOrJob, DefaultResultType>(name, {
-			connection: queueConnection,
-			defaultJobOptions: {
-				removeOnComplete: {
-					age: ms("7days"),
-					count: 1000,
-				},
-				removeOnFail: {
-					count: 50_000,
-				},
-			},
-		});
-
-		await queue.waitUntilReady();
-
-		logger.info("created queue", { queueName: name });
-
-		return queue;
+	const span = telemetry.startSpan({
+		spanName:
+			"infrastructure/task-scheduling/task-scheduling@createTaskScheduling",
 	});
+
+	const logger = createLogger("task-scheduling", { config, packageJson });
+
+	const name = `${packageJson.name}-task-scheduling-${queueName}`;
+
+	logger.debug("creating queue...", {
+		queueName: name,
+	});
+
+	const queueConnection = cache.duplicate({ maxRetriesPerRequest: null });
+	const queue = new Queue<DataTypeOrJob, DefaultResultType>(name, {
+		connection: queueConnection,
+		defaultJobOptions: {
+			removeOnComplete: {
+				age: ms("7days"),
+				count: 1000,
+			},
+			removeOnFail: {
+				count: 50_000,
+			},
+		},
+	});
+
+	await queue.waitUntilReady();
+
+	logger.info("created queue", { queueName: name });
+
+	span.end();
+
+	return queue;
 }

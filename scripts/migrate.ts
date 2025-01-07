@@ -12,6 +12,7 @@ import {
 	createDatabase,
 } from "../src/infrastructure/database/database.ts";
 import { getMigrator } from "../src/infrastructure/database/migrator.ts";
+import { mockTelemetry } from "../src/infrastructure/telemetry/telemetry.ts";
 import { packageJson } from "../src/packageJson.ts";
 
 const migrationsPath = path.join(
@@ -37,10 +38,24 @@ export async function create(name: string) {
 
 	await fs.writeFile(
 		filePath,
-		["export async function up() {}", "export async function down() {}"].join(
-			"\n",
-		),
+		[
+			'import { type CommonQueryMethods, sql } from "slonik";',
+			"",
+			"export async function up(tx: CommonQueryMethods) {}",
+			"export async function down(tx: CommonQueryMethods) {}",
+		].join("\n"),
 	);
+
+	await fs.appendFile(
+		path.join(migrationsPath, "index.ts"),
+		[
+			"",
+			"// biome-ignore lint/performance/noBarrelFile: migrations",
+			"// biome-ignore lint/performance/noReExportAll: migrations",
+			`export * as ${name} from "./${fileName}";`,
+		].join("\n"),
+	);
+
 	await launchEditor(filePath);
 }
 
@@ -54,8 +69,9 @@ async function getInstances(): Promise<{
 			logLevel: "warn",
 		},
 		packageJson,
+		telemetry: mockTelemetry,
 	});
-	const migrator = await getMigrator({ database });
+	const migrator = await getMigrator({ database, config, packageJson });
 
 	migrator.on("reverting", ({ name }) => {
 		// biome-ignore lint/suspicious/noConsoleLog: script

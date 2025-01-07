@@ -7,13 +7,15 @@ import { type Result, err, ok } from "../../../helpers/result.ts";
 import type { Config } from "../../../infrastructure/config/config.ts";
 import type { Database } from "../../../infrastructure/database/database.ts";
 import { createLogger } from "../../../infrastructure/logger/logger.ts";
+import type { Telemetry } from "../../../infrastructure/telemetry/telemetry.ts";
 import type { PackageJson } from "../../../packageJson.ts";
 import type { User } from "../domain/user.ts";
 import { userToDatabaseUserSchema } from "./codecs.ts";
 
 export type BulkAddResult = Result<User[], SqlError | UnknownError>;
 
-export interface GetByIdsDependencies {
+export interface BulkAddDependencies {
+	telemetry: Telemetry;
 	database: Database;
 	config: Pick<Config, "logLevel">;
 	packageJson: Pick<PackageJson, "name">;
@@ -21,47 +23,44 @@ export interface GetByIdsDependencies {
 
 export async function bulkAdd(
 	users: User[],
-	{
-		database,
-		config,
-		packageJson,
-	}: {
-		database: Database;
-		config: Pick<Config, "logLevel">;
-		packageJson: Pick<PackageJson, "name">;
-	},
+	{ telemetry, database, config, packageJson }: BulkAddDependencies,
 ): Promise<BulkAddResult> {
-	const logger = createLogger("contexts/user/repository", {
-		config,
-		packageJson,
-	});
+	return await telemetry.startSpanWith(
+		{ spanName: "contexts/user/repository/bulk-add@bulkAdd" },
+		async () => {
+			const logger = createLogger("contexts/user/repository/bulk-add@bulkAdd", {
+				config,
+				packageJson,
+			});
 
-	const { columns, rows } = prepareBulkInsert(
-		[
-			["id", "bool"],
-			["name", "text"],
-			["email", "text"],
-		],
-		users,
-		(user) => userToDatabaseUserSchema.parse(user),
-	);
+			const { columns, rows } = prepareBulkInsert(
+				[
+					["id", "bool"],
+					["name", "text"],
+					["email", "text"],
+				],
+				users,
+				(user) => userToDatabaseUserSchema.parse(user),
+			);
 
-	try {
-		await database.query(sql.type(z.unknown())`
+			try {
+				await database.query(sql.type(z.unknown())`
 			insert into "users"(${columns})
 			select * from ${rows}
 		`);
-	} catch (error) {
-		logger.error("SQL error when calling getUsers", {
-			cause: error,
-		});
+			} catch (error) {
+				logger.error("SQL error when calling getUsers", {
+					cause: error,
+				});
 
-		if (error instanceof SlonikError) {
-			return err({ reason: "queryFailed", error });
-		}
+				if (error instanceof SlonikError) {
+					return err({ reason: "queryFailed", error });
+				}
 
-		return err({ reason: "unknown", error });
-	}
+				return err({ reason: "unknown", error });
+			}
 
-	return ok(users);
+			return ok(users);
+		},
+	);
 }

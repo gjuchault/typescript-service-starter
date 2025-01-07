@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import fastifyOpenTelemetry from "@autotelic/fastify-opentelemetry";
+import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import acceptsSerializer from "@fastify/accepts-serializer";
 import circuitBreaker from "@fastify/circuit-breaker";
 import cookie from "@fastify/cookie";
@@ -11,8 +11,10 @@ import rateLimit from "@fastify/rate-limit";
 import session from "@fastify/session";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
+import { context, propagation, SpanKind, trace } from "@opentelemetry/api";
 import { RedisStore } from "connect-redis";
 import {
+	type FastifyBaseLogger,
 	type FastifyInstance,
 	type FastifyReply,
 	type FastifyRequest,
@@ -30,19 +32,28 @@ import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { Span, Telemetry } from "../telemetry/telemetry.ts";
 
-export type HttpServer = FastifyInstance;
+export type HttpServer = FastifyInstance<
+	Server,
+	IncomingMessage,
+	ServerResponse,
+	FastifyBaseLogger,
+	ZodTypeProvider
+>;
 export type HttpRequest = FastifyRequest;
 export type HttpReply = FastifyReply;
 
 const yamlMime = /^application\/yaml$/;
 
 export async function createHttpServer({
+	telemetry,
 	database,
 	cache,
 	config,
 	packageJson,
 }: {
+	telemetry: Telemetry;
 	database: Database;
 	cache: Cache | undefined;
 	config: Config;
@@ -51,7 +62,13 @@ export async function createHttpServer({
 		"name" | "version" | "author" | "description" | "license"
 	>;
 }): Promise<HttpServer> {
+	const span = telemetry.startSpan({
+		spanName: "infrastructure/http-server/http-server@createHttpServer",
+	});
+
 	const logger = createLogger("http-server", { config, packageJson });
+
+	const spanByRequestId = new Map<string, Span>();
 
 	const httpServer = fastify({
 		requestTimeout: config.httpRequestTimeout,
@@ -61,10 +78,42 @@ export async function createHttpServer({
 		genReqId() {
 			return randomUUID();
 		},
-	});
+	}).withTypeProvider<ZodTypeProvider>();
 
 	httpServer.setValidatorCompiler(validatorCompiler);
 	httpServer.setSerializerCompiler(serializerCompiler);
+
+	httpServer.addHook("onRequest", (request, _response, done) => {
+		telemetry.startSpanWith(
+			{
+				spanName: "infrastructure/http-server/http-server@onRequest",
+				context: propagation.extract(context.active(), request.headers),
+				options: {
+					kind: SpanKind.SERVER,
+					attributes: {
+						"req.id": request.id,
+						"req.method": request.raw.method,
+						"req.url": request.raw.url,
+					},
+				},
+			},
+			async (span) => {
+				spanByRequestId.set(request.id, span);
+
+				logger.debug(`http request: ${request.method} ${request.url}`, {
+					requestId: getRequestId(request),
+					method: request.method,
+					url: request.url,
+					route: request.routeOptions.url,
+					userAgent: request.headers["user-agent"],
+				});
+
+				await Promise.resolve();
+
+				done();
+			},
+		);
+	});
 
 	await httpServer.register(acceptsSerializer, {
 		serializers: [
@@ -80,11 +129,6 @@ export async function createHttpServer({
 	await httpServer.register(formBody);
 	await httpServer.register(helmet);
 	await httpServer.register(multipart);
-	await httpServer.register(fastifyOpenTelemetry.default, {
-		exposeApi: false,
-		wrapRoutes: true,
-		ignoreRoutes: (_, method) => method === "OPTIONS",
-	});
 	await httpServer.register(rateLimit, {
 		redis: cache,
 	});
@@ -118,19 +162,18 @@ export async function createHttpServer({
 		},
 	);
 
-	httpServer.addHook("onRequest", (request, _response, done) => {
-		logger.debug(`http request: ${request.method} ${request.url}`, {
-			requestId: getRequestId(request),
-			method: request.method,
-			url: request.url,
-			route: request.routeOptions.url,
-			userAgent: request.headers["user-agent"],
-		});
-
-		done();
-	});
-
 	httpServer.addHook("onResponse", (request, reply, done) => {
+		const span = spanByRequestId.get(request.id);
+
+		if (span !== undefined) {
+			span.setAttributes({
+				"res.statusCode": reply.statusCode,
+			});
+
+			span.end();
+			spanByRequestId.delete(request.id);
+		}
+
 		logger.debug(
 			`http reply: ${request.method} ${request.url} ${reply.statusCode}`,
 			{
@@ -167,11 +210,15 @@ export async function createHttpServer({
 		done();
 	});
 
+	httpServer.get("/api/healthcheck", (_request, reply) => {
+		return reply.status(204).send();
+	});
+
 	httpServer.get("/api/docs", (_request, reply) => {
 		return reply.send(httpServer.swagger());
 	});
 
-	bindUserRoutes({ database, httpServer });
+	bindUserRoutes({ database, httpServer, telemetry });
 
 	const address = await httpServer.listen({
 		host: config.httpAddress,
@@ -180,7 +227,9 @@ export async function createHttpServer({
 
 	logger.info(`http server listening on ${address}`);
 
-	return httpServer.withTypeProvider<ZodTypeProvider>();
+	span.end();
+
+	return httpServer;
 }
 
 function getRequestId(request: FastifyRequest): string | undefined {

@@ -1,0 +1,29 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  otlp:
+    endpoint: jaeger:43177
+  prometheusremotewrite:
+    endpoint: prometheus:9090/api/v1/write
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces/prod:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp]
+    metrics/prod:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite]

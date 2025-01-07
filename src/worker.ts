@@ -15,69 +15,74 @@ async function startWorker(
 ): Promise<{ worker: Worker | undefined; workerShutdown(): Promise<void> }> {
 	const telemetry = createTelemetry({ config, packageJson });
 
-	return await telemetry.startActiveSpan("startWorker", async () => {
-		const name = `${packageJson.name}-task-scheduling-${queueName}`;
-		const logger = createLogger("worker", { config, packageJson });
-
-		if (config.redisUrl === undefined) {
-			return {
-				worker: undefined,
-				async workerShutdown() {
-					/* no-op */
-				},
-			};
-		}
-
-		logger.info("starting worker...");
-
-		const worker = new Worker(
-			name,
-			async (job: unknown) => {
-				logger.debug(`Worker ${worker.id} starting job`, {
-					job,
-				});
-
-				await Promise.resolve();
-			},
-			{
-				connection: new Redis(config.redisUrl, {
-					connectTimeout: 500,
-					maxRetriesPerRequest: null,
-				}),
-			},
-		);
-
-		await worker.waitUntilReady();
-
-		logger.info("worker started", { queueName });
-
-		worker.on("failed", (job, error) => {
-			logger.debug(`Worker ${worker.id} failed`, {
-				error,
-				...(job === undefined ? {} : job.toJSON()),
-			});
-		});
-
-		worker.on("completed", (job) => {
-			logger.debug(`Worker ${worker.id} completed`, {
-				...job.toJSON(),
-			});
-		});
-
-		async function workerShutdown() {
-			await shutdown({
-				worker,
-				cache: undefined,
-				database: undefined,
-				taskScheduling: undefined,
-				telemetry,
-				config,
-				packageJson,
-			});
-		}
-
-		return { worker, workerShutdown };
+	const span = telemetry.startSpan({
+		spanName: "worker@startWorker",
+		options: { root: true },
 	});
+
+	const name = `${packageJson.name}-task-scheduling-${queueName}`;
+	const logger = createLogger("worker", { config, packageJson });
+
+	if (config.redisUrl === undefined) {
+		return {
+			worker: undefined,
+			async workerShutdown() {
+				/* no-op */
+			},
+		};
+	}
+
+	logger.info("starting worker...");
+
+	const worker = new Worker(
+		name,
+		async (job: unknown) => {
+			logger.debug(`worker ${worker.id} starting job`, {
+				job,
+			});
+
+			await Promise.resolve();
+		},
+		{
+			connection: new Redis(config.redisUrl, {
+				connectTimeout: 500,
+				maxRetriesPerRequest: null,
+			}),
+		},
+	);
+
+	await worker.waitUntilReady();
+
+	logger.info("worker started", { queueName });
+
+	worker.on("failed", (job, error) => {
+		logger.debug(`worker ${worker.id} failed`, {
+			error,
+			...(job === undefined ? {} : job.toJSON()),
+		});
+	});
+
+	worker.on("completed", (job) => {
+		logger.debug(`worker ${worker.id} completed`, {
+			...job.toJSON(),
+		});
+	});
+
+	async function workerShutdown() {
+		await shutdown({
+			worker,
+			cache: undefined,
+			database: undefined,
+			taskScheduling: undefined,
+			telemetry,
+			config,
+			packageJson,
+		});
+	}
+
+	span.end();
+
+	return { worker, workerShutdown };
 }
 
 if (isMain(import.meta)) {

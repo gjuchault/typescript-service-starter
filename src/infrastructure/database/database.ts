@@ -1,4 +1,4 @@
-import type { Span } from "@opentelemetry/api";
+import { SpanKind } from "@opentelemetry/api";
 import {
 	ATTR_DB_NAMESPACE,
 	ATTR_DB_OPERATION_NAME,
@@ -13,7 +13,7 @@ import { z } from "zod";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
-import type { Telemetry } from "../telemetry/telemetry.ts";
+import type { Span, Telemetry } from "../telemetry/telemetry.ts";
 
 export type Database = DatabasePool;
 
@@ -33,56 +33,67 @@ export async function createDatabase({
 	>;
 	packageJson: Pick<PackageJson, "name">;
 }) {
-	const logger = createLogger("database", { packageJson, config });
+	return await telemetry.startSpanWith(
+		{ spanName: "infrastructure/database/database@createDatabase" },
+		async () => {
+			const logger = createLogger("database", { packageJson, config });
 
-	logger.debug("connecting to database...");
+			logger.debug("connecting to database...");
 
-	const spanByQueryId = new Map<string, Span>();
+			const spanByQueryId = new Map<string, Span>();
 
-	const pool = await createPool(config.databaseUrl, {
-		captureStackTrace: false,
-		statementTimeout: config.databaseStatementTimeout,
-		idleTimeout: config.databaseIdleTimeout,
-		maximumPoolSize: config.databaseMaximumPoolSize,
-		interceptors: [
-			{
-				beforeQueryExecution(queryContext, query) {
-					const span = telemetry.startDeferredSpan("database.query");
+			const pool = await createPool(config.databaseUrl, {
+				captureStackTrace: false,
+				statementTimeout: config.databaseStatementTimeout,
+				idleTimeout: config.databaseIdleTimeout,
+				maximumPoolSize: config.databaseMaximumPoolSize,
+				interceptors: [
+					{
+						beforeQueryExecution(queryContext, query) {
+							const span = telemetry.startSpan({
+								spanName: "infrastructure/database/database@query",
+								options: {
+									kind: SpanKind.CLIENT,
+									attributes: {
+										...getCommonSpanOptions(config.databaseUrl),
+										[ATTR_DB_OPERATION_NAME]: parseNormalizedOperationName(
+											query.sql,
+										),
+										[ATTR_DB_QUERY_TEXT]: query.sql,
+									},
+								},
+							});
 
-					span.setAttributes({
-						...getCommonSpanOptions(config.databaseUrl),
-						[ATTR_DB_OPERATION_NAME]: parseNormalizedOperationName(query.sql),
-						[ATTR_DB_QUERY_TEXT]: query.sql,
-					});
+							spanByQueryId.set(queryContext.queryId, span);
 
-					spanByQueryId.set(queryContext.queryId, span);
+							return null;
+						},
+						afterQueryExecution(queryContext, query) {
+							const span = spanByQueryId.get(queryContext.queryId);
 
-					return null;
-				},
-				afterQueryExecution(queryContext, query) {
-					const span = spanByQueryId.get(queryContext.queryId);
+							if (span === undefined) {
+								logger.warn("missing span for query", {
+									queryContext,
+									query,
+								});
 
-					if (span === undefined) {
-						logger.warn("missing span for query", {
-							queryContext,
-							query,
-						});
+								return null;
+							}
 
-						return null;
-					}
+							span.end();
+							return null;
+						},
+					},
+				],
+			});
 
-					span.end();
-					return null;
-				},
-			},
-		],
-	});
+			await pool.query(sql.type(z.unknown())`select 1`);
 
-	await pool.query(sql.type(z.unknown())`select 1`);
+			logger.info("connected to database");
 
-	logger.info("connected to database");
-
-	return pool;
+			return pool;
+		},
+	);
 }
 
 function getCommonSpanOptions(databaseUrlAsString: string) {

@@ -5,8 +5,6 @@ import { z } from "zod";
 const env = z
 	.object({
 		// biome-ignore lint/style/useNamingConvention: env variable
-		ENV_NAME: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		LOG_LEVEL: z.string(),
 		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_ADDRESS: z.string(),
@@ -31,12 +29,13 @@ const env = z
 		// biome-ignore lint/style/useNamingConvention: env variable
 		TRACING_SAMPLING: z.string(),
 		// biome-ignore lint/style/useNamingConvention: env variable
-		OTLP_ENDPOINT: z.string().optional(),
+		OTLP_TRACE_ENDPOINT: z.string().optional(),
+		// biome-ignore lint/style/useNamingConvention: env variable
+		OTLP_METRICS_ENDPOINT: z.string().optional(),
 	})
 	.parse(process.env);
 
 export interface Config {
-	envName: string;
 	logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 	httpAddress: string;
 	httpPort: number;
@@ -48,7 +47,8 @@ export interface Config {
 	databaseStatementTimeout: number;
 	redisUrl: string | undefined;
 	tracingSampling: number;
-	otlpEndpoint: string | undefined;
+	otlpTraceEndpoint: string | undefined;
+	otlpMetricsEndpoint: string | undefined;
 }
 
 function transformMs(input: string): number {
@@ -62,7 +62,6 @@ function transformMs(input: string): number {
 }
 
 export const config: Config = {
-	envName: z.string().parse(env.ENV_NAME),
 	logLevel: z
 		.union([
 			z.literal("fatal"),
@@ -118,5 +117,10 @@ export const config: Config = {
 		.max(1)
 		.parse(env.TRACING_SAMPLING),
 
-	otlpEndpoint: z.string().url().optional().parse(env.OTLP_ENDPOINT),
+	otlpTraceEndpoint: z.string().url().optional().parse(env.OTLP_TRACE_ENDPOINT),
+	otlpMetricsEndpoint: z
+		.string()
+		.url()
+		.optional()
+		.parse(env.OTLP_METRICS_ENDPOINT),
 };

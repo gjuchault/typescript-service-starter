@@ -13,6 +13,7 @@ const rootPath = process.cwd();
 const releaseRcPath = path.join(rootPath, ".releaserc.json");
 const cspellPath = path.join(rootPath, ".cspell.json");
 const packageJsonPath = path.join(rootPath, "package.json");
+const dockerComposePath = path.join(rootPath, "docker-compose.yml");
 const contributingPath = path.join(rootPath, "CONTRIBUTING.md");
 const setupPath = path.join(rootPath, "scripts/setup.ts");
 const testSetupPath = path.join(rootPath, "scripts/test-setup.ts");
@@ -191,6 +192,14 @@ async function applyPackageName({
 		replaceInFile(
 			codeOfConductPath,
 			new Map([["gabriel.juchault@gmail.com", userMail]]),
+		),
+	);
+
+	await logAsyncTask(
+		"Editing docker-compose.yml",
+		replaceInFile(
+			dockerComposePath,
+			new Map([["typescript-service-starter", packageName]]),
 		),
 	);
 

@@ -96,8 +96,9 @@ Leverages `--strip-types` to avoid build step, but keeps `tsc` to generate `.d.t
 
 Commands:
 
-- `start:dev`: starts the server with `.env`, `.env.local`, `.env.development` and `.env.development.local` env files
-- `worker:dev`: starts the worker with `.env`, `.env.local`, `.env.development` and `.env.development.local` env files
+- `start`: starts the bundled (see below) server with `.env` and `.env.local` env files
+- `dev`: starts `src` server with `.env` and `.env.local` files
+- `worker`: starts the worker with `.env`, `.env.local` env files
 - `type:check`: validates types with `tsc`
 
 ### Production build and worker build
@@ -115,6 +116,10 @@ Commands:
 - `bundle`: creates the `build/` directory containing the entrypoints and shared code
 - `start:prod`: runs the http server entrypoint
 - `worker:prod`: runs the worker entrypoint
+
+### Telemetry
+
+traceparent: '00-82d7adc64d7020e7fe7ff263dd5ba4dc-dd932b8fbc70946d-01'
 
 ### Tests
 

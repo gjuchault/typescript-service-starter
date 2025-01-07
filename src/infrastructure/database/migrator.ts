@@ -2,7 +2,13 @@ import { sql } from "slonik";
 import { Umzug } from "umzug";
 import { z } from "zod";
 
+import type { PackageJson } from "../../packageJson.ts";
+import type { Config } from "../config/config.ts";
+import { createLogger } from "../logger/logger.ts";
 import type { Database } from "./database.ts";
+
+// biome-ignore lint/style/noNamespaceImport: migrations
+import * as allMigrations from "./migrations/index.ts";
 
 async function ensureTable({
 	database,
@@ -51,36 +57,28 @@ async function unlogMigration(
 	`);
 }
 
-export function getMigrator({ database }: { database: Database }) {
+export function getMigrator({
+	database,
+	config,
+	packageJson,
+}: {
+	database: Database;
+	config: Pick<Config, "logLevel">;
+	packageJson: Pick<PackageJson, "name">;
+}) {
+	const logger = createLogger("migrator", { config, packageJson });
+
 	return new Umzug<Record<never, never>>({
-		migrations: {
-			glob: "src/infrastructure/database/migrations/*.ts",
-			resolve({ name, path }) {
-				if (!path) {
-					throw new Error("`path` should be defined in migration");
-				}
-
-				return {
-					name,
-					path,
-					async up() {
-						const { up } = (await import(path)) as {
-							up(database: Database): Promise<void>;
-						};
-
-						await up(database);
-					},
-					async down() {
-						const { down } = (await import(path)) as {
-							down(database: Database): Promise<void>;
-						};
-
-						await down(database);
-					},
-				};
+		migrations: Object.entries(allMigrations).map(([name, migration]) => ({
+			name,
+			async up() {
+				await migration.up(database);
 			},
-		},
-		logger: undefined,
+			async down() {
+				await migration.down(database);
+			},
+		})),
+		logger,
 		context: database,
 		storage: {
 			async executed(): Promise<string[]> {
