@@ -78,9 +78,14 @@ export async function startApp({
 }
 
 if (isMain(import.meta)) {
-	const { appShutdown } = await startApp({
+	const { httpServer, appShutdown } = await startApp({
 		config,
 		packageJson,
+	});
+
+	await httpServer.listen({
+		host: config.httpAddress,
+		port: config.httpPort,
 	});
 
 	asyncExitHook(async () => await appShutdown(), { wait: ms("5s") });

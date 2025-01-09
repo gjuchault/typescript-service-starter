@@ -6,6 +6,8 @@
 			"type": "shell",
 			"command": "node",
 			"args": [
+				"--env-file=.env",
+				"--env-file-if-exists=.env.local",
 				"--disable-warning=ExperimentalWarning",
 				"--experimental-strip-types",
 				"./scripts/test.ts",

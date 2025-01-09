@@ -35,7 +35,7 @@ const env = z
 	})
 	.parse(process.env);
 
-export interface Config {
+export type Config = {
 	logLevel: "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 	httpAddress: string;
 	httpPort: number;
@@ -49,7 +49,7 @@ export interface Config {
 	tracingSampling: number;
 	otlpTraceEndpoint: string | undefined;
 	otlpMetricsEndpoint: string | undefined;
-}
+};
 
 function transformMs(input: string): number {
 	const value = ms(input);

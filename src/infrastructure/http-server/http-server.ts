@@ -220,12 +220,11 @@ export async function createHttpServer({
 
 	bindUserRoutes({ database, httpServer, telemetry });
 
-	const address = await httpServer.listen({
-		host: config.httpAddress,
-		port: config.httpPort,
+	httpServer.addHook("onListen", () => {
+		logger.info(
+			`http server listening on ${config.httpAddress}:${config.httpPort}`,
+		);
 	});
-
-	logger.info(`http server listening on ${address}`);
 
 	span.end();
 

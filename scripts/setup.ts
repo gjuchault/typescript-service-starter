@@ -15,6 +15,10 @@ const cspellPath = path.join(rootPath, ".cspell.json");
 const packageJsonPath = path.join(rootPath, "package.json");
 const dockerComposePath = path.join(rootPath, "docker-compose.yml");
 const contributingPath = path.join(rootPath, "CONTRIBUTING.md");
+const dbInitialSetupPath = path.join(
+	rootPath,
+	"src/test-helpers/db-initial-setup.ts",
+);
 const setupPath = path.join(rootPath, "scripts/setup.ts");
 const testSetupPath = path.join(rootPath, "scripts/test-setup.ts");
 const workflowPath = path.join(
@@ -199,6 +203,14 @@ async function applyPackageName({
 		"Editing docker-compose.yml",
 		replaceInFile(
 			dockerComposePath,
+			new Map([["typescript-service-starter", packageName]]),
+		),
+	);
+
+	await logAsyncTask(
+		"Editing db-initial-setup.ts",
+		replaceInFile(
+			dbInitialSetupPath,
 			new Map([["typescript-service-starter", packageName]]),
 		),
 	);

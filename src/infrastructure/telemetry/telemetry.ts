@@ -9,10 +9,7 @@ import {
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { Resource } from "@opentelemetry/resources";
-import {
-	ConsoleMetricExporter,
-	PeriodicExportingMetricReader,
-} from "@opentelemetry/sdk-metrics";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import {
 	ATTR_SERVICE_NAME,
@@ -36,14 +33,14 @@ export interface SpanPayload {
 	options?: SpanOptions | undefined;
 }
 
-export interface Telemetry {
+export type Telemetry = {
 	shutdown(): Promise<void>;
 	startSpan(payload: SpanPayload & { forceActive?: boolean }): Span;
 	startSpanWith<Output>(
 		payload: SpanPayload,
 		callback: (span: Span) => Promise<Output>,
 	): Promise<Output>;
-}
+};
 
 export const mockSpan: Span = {
 	end() {
@@ -97,15 +94,13 @@ export function createTelemetry({
 
 	const metricReader = config.otlpMetricsEndpoint
 		? new PeriodicExportingMetricReader({
+				// If you push to prometheus, you probably want to use the prometheus exporter instead
 				exporter: new OTLPMetricExporter({
 					url: `${config.otlpMetricsEndpoint}/api/v1/otlp/v1/metrics`,
 				}),
 				exportIntervalMillis: 10_000,
 			})
-		: new PeriodicExportingMetricReader({
-				exporter: new ConsoleMetricExporter(),
-				exportIntervalMillis: 10_000,
-			});
+		: undefined;
 
 	const sdk = new NodeSDK({
 		resource,

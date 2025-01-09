@@ -10,6 +10,14 @@ export type GetUsersResult = ExtendResult<
 	Awaited<ReturnType<UserRepository["getByIds"]>>
 >;
 
+export type GetUsersDependencies = {
+	telemetry: Telemetry;
+	userRepository: Pick<UserRepository, "getByIds">;
+	database: Database;
+	config: Pick<Config, "logLevel">;
+	packageJson: Pick<PackageJson, "name">;
+};
+
 export async function getUsers(
 	{ ids }: GetUsersFilters,
 	{
@@ -18,13 +26,7 @@ export async function getUsers(
 		database,
 		config,
 		packageJson,
-	}: {
-		telemetry: Telemetry;
-		userRepository: Pick<UserRepository, "getByIds">;
-		database: Database;
-		config: Pick<Config, "logLevel">;
-		packageJson: Pick<PackageJson, "name">;
-	},
+	}: GetUsersDependencies,
 ): Promise<GetUsersResult> {
 	return await telemetry.startSpanWith(
 		{ spanName: "contexts/users/application/get-users@getUsers" },

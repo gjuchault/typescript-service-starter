@@ -1,12 +1,9 @@
 import { bulkAdd } from "./bulk-add.ts";
 import { getByIds } from "./get-by-ids.ts";
 
-export interface UserRepository {
-	getByIds: typeof getByIds;
-	bulkAdd: typeof bulkAdd;
-}
+export type UserRepository = typeof userRepository;
 
-export const userRepository: UserRepository = {
+export const userRepository = {
 	getByIds,
 	bulkAdd,
 };

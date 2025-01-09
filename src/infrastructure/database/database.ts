@@ -8,14 +8,15 @@ import {
 	ATTR_SERVER_PORT,
 	DB_SYSTEM_VALUE_POSTGRESQL,
 } from "@opentelemetry/semantic-conventions/incubating";
-import { type DatabasePool, createPool, sql } from "slonik";
+import { type CommonQueryMethods, createPool, sql } from "slonik";
 import { z } from "zod";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
 import type { Span, Telemetry } from "../telemetry/telemetry.ts";
 
-export type Database = DatabasePool;
+// not using Database type from slonik so we have a mockable Record type instead of an interface
+export type Database = CommonQueryMethods & { end(): Promise<void> };
 
 export async function createDatabase({
 	telemetry,

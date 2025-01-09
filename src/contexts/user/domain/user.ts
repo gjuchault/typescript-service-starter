@@ -11,3 +11,12 @@ export const userSchema = z.object({
 });
 
 export type User = z.infer<typeof userSchema>;
+
+export function createMockUser(user?: Partial<User>): User {
+	return {
+		id: userIdSchema.parse(1),
+		name: userNameSchema.parse("name"),
+		email: userEmailSchema.parse("email@email.com"),
+		...user,
+	};
+}

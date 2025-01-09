@@ -8,6 +8,9 @@
 			"all": true,
 			"correctness": {
 				"noNodejsModules": "off"
+			},
+			"style": {
+				"noDoneCallback": "off"
 			}
 		}
 	}

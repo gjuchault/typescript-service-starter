@@ -36,38 +36,9 @@ To enable deployment, you will need to:
 
 ## Features
 
-### Ecosystem
+### HTTP Server and typed client
 
 This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [openapi-typescript](https://openapi-ts.dev) is used to have nice routes & automatic client generation with zod and TypeScript.
-It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), Redis as a cache through [ioredis](https://github.com/luin/ioredis).
-
-For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both prometheus-like metrics & tracing). To handle distributed tracing, it expects [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id.
-
-This template is not compiled and should be run with Node --strip-types option. This means you can _not_ leverage node_modules and file system at runtime: reading static files from node_modules, hooking `require`, etc. ill not be possible. This implies to be mindful on libraries (that would read static files from there older), or automatic instrumentation (that hook `require`). Yet it comes with super small Docker images hat are fast to deploy.
-
-Dependencies are passed as last-parameter so methods are testable easily and avoid mocking modules.
-
-Commands:
-
-- `migrate:up`: run migrations up to the latest one
-- `migrate:down [n=1]`: revert n migrations
-- `migrate:create`: create a new migration file
-
-### Layers & folder structure
-
-```
-migrations         # database migrations (.sql files, no rollback)
-src/
-├── application    # service code
-├── domain         # pure functions & TypeScript models of your entities
-├── presentation   # communication layer (http)
-├── repository     # storage of your entities
-├── infrastructure # technical components (cache, database connection, etc.)
-├── helpers        # utilities functions & non-domain code
-└── test-helpers   # test utilities (starting default port, resetting database, etc.)
-```
-
-### Client generation
 
 Client should be published when this package is released. You can use openapi-fetch easily with it:
 
@@ -84,7 +55,44 @@ You can check [openapi-ts's documentation](https://openapi-ts.dev/introduction) 
 
 Commands:
 
-- `generate-client`: creates the `client/` folder with YAML and JSON OpenAPI schemas as well as openapi-typescript type definitions
+- `generate-client`: creates the `client/` folder with YAML and JSON OpenAPI schemas as well as openapi-typescript' schemas
+
+### Databases
+
+It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), [umzug](https://github.com/sequelize/umzug) for migrations, Redis (or compatible like [KeyDB](https://docs.keydb.dev) or [Dragonfly](https://www.dragonflydb.io)) as a cache through [ioredis](https://github.com/luin/ioredis).
+
+Commands:
+
+- `migrate:up`: run migrations up to the latest one
+- `migrate:down [n=1]`: revert n migrations
+- `migrate:create`: create a new migration file
+
+### Telemetry
+
+For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino) and [OpenTelemetry](https:/github.com/open-telemetry/opentelemetry-js) (for both tracing and metrics). To handle distributed tracing, it expects [W3C's traceparent](https://www.w3.org/TR/trace-context/) header to carry trace id & parent span id (example header: `traceparent: '00-82d7adc64d7020e7fe7ff263dd5ba4dc-dd932b8fbc70946d-01'`).
+
+You can find an example of a working fullstack telemetry in `docker-compose.yaml`, where this service directly pushes to prometheus and jaeger without the use of a collector.
+
+### Production build and Docker
+
+This template is not compiled and should be run with Node --strip-types option. This means you can _not_ leverage node_modules and file system at runtime: reading static files from node_modules, hooking `require`, etc. ill not be possible. This implies to be mindful on libraries (that would read static files from there older), or automatic instrumentation (that hook `require`). Yet it comes with super small Docker images hat are fast to deploy.
+
+### Layers & folder structure
+
+```
+src/
+├── contexts       # contexts your service is handling (in the DDD sense)
+│   ├── your-context
+│   │   ├── application  # service code
+│   │   ├── domain       # pure functions & TypeScript models of your entities
+│   │   ├── presentation # communication layer (http)
+│   │   ├── repository   # storage of your entities
+├── helpers        # utilities functions & non-domain code
+├── infrastructure # technical components (cache, database connection, etc.)
+└── test-helpers   # test utilities (starting default port, resetting database, etc.)
+```
+
+Dependencies are passed as last-parameter so methods are testable easily and avoid mocking modules.
 
 ### Node.js, npm version
 
@@ -116,10 +124,6 @@ Commands:
 - `bundle`: creates the `build/` directory containing the entrypoints and shared code
 - `start:prod`: runs the http server entrypoint
 - `worker:prod`: runs the worker entrypoint
-
-### Telemetry
-
-traceparent: '00-82d7adc64d7020e7fe7ff263dd5ba4dc-dd932b8fbc70946d-01'
 
 ### Tests
 

@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import isMain from "is-main";
+import { initialSetup } from "../src/test-helpers/db-initial-setup.ts";
 
 async function runTests({
 	nodeOptions = [],
@@ -16,6 +17,8 @@ async function runTests({
 }): Promise<void> {
 	const time = Date.now();
 
+	await initialSetup();
+
 	return new Promise((resolve, reject) => {
 		const nodeProcess = spawn(
 			program,
@@ -23,6 +26,8 @@ async function runTests({
 				...programOptions,
 				"--disable-warning=ExperimentalWarning",
 				"--experimental-strip-types",
+				"--env-file=.env",
+				"--env-file-if-exists=.env.local",
 				"--test",
 				...nodeOptions,
 				filesFilter !== "" ? filesFilter : "src/**/*.test.ts",

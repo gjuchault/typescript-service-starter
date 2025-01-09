@@ -58,6 +58,18 @@ export async function createTaskScheduling<
 
 	await queue.waitUntilReady();
 
+	const originalClose = queue.close.bind(queue);
+
+	// given a custom connection, bullmq will not close it
+	// to ease the process, we override the queue close method since we duplicate
+	// the connection — so it is used by the queue only
+	queue.close = async () => {
+		logger.debug("closing queue...", { queueName: name });
+		await originalClose();
+		logger.debug("closing queue connection...", { queueName: name });
+		await queueConnection.quit();
+	};
+
 	logger.info("created queue", { queueName: name });
 
 	span.end();

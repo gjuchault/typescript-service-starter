@@ -6,6 +6,7 @@ import {
 } from "slonik";
 import { z } from "zod";
 import { validDateTimeSchema } from "./date-time.ts";
+import type { JsonValue } from "./json-type.ts";
 
 // Similar to slonik's TypeNameIdentifier without string
 type TypeNameIdentifier =
@@ -22,6 +23,8 @@ type TypeNameIdentifier =
 	| "uuid";
 
 export type ColumnDefinition<Entity> = [keyof Entity, TypeNameIdentifier];
+
+type LaxPrimitive = PrimitiveValueExpression | JsonValue | Date;
 
 /**
  * create columns and rows data for slonik bulk insert that are efficient and type-safe
@@ -44,7 +47,7 @@ export type ColumnDefinition<Entity> = [keyof Entity, TypeNameIdentifier];
  * @param iteratee - map method on every record to match the database shape
  */
 export function prepareBulkInsert<
-	DatabaseRecord extends Record<string, PrimitiveValueExpression>,
+	DatabaseRecord extends Record<string, LaxPrimitive>,
 	Entity,
 >(
 	columnDefinitions: ColumnDefinition<DatabaseRecord>[],
@@ -59,16 +62,17 @@ export function prepareBulkInsert<
 		(columnDefinition) => columnDefinition[1],
 	);
 
-	const rows: PrimitiveValueExpression[][] = [];
+	const rows: LaxPrimitive[][] = [];
 
 	for (const [i, record] of records.entries()) {
 		const databaseRecord = iteratee(record, i);
 
-		const columns: PrimitiveValueExpression[] = [];
+		const columns: LaxPrimitive[] = [];
 
 		for (const [columnName, columnType] of columnDefinitions) {
 			if (columnType === "json") {
 				columns.push(JSON.stringify(databaseRecord[columnName]));
+				continue;
 			}
 
 			if (columnType === "timestamptz") {
@@ -78,6 +82,7 @@ export function prepareBulkInsert<
 					.parse(databaseRecord[columnName]);
 
 				columns.push(date);
+				continue;
 			}
 
 			const column = databaseRecord[columnName];

@@ -37,12 +37,17 @@ export async function shutdown(
 
 	logger.info("received termination event, shutting down...");
 
-	const httpTerminator =
-		"httpServer" in dependencies && dependencies.httpServer !== undefined
-			? createHttpTerminator({
-					server: dependencies.httpServer.server,
-				})
-			: undefined;
+	let httpTerminator: { terminate: () => Promise<void> } | undefined;
+
+	if ("httpServer" in dependencies && dependencies.httpServer !== undefined) {
+		if (dependencies.httpServer.server.listening) {
+			httpTerminator = createHttpTerminator({
+				server: dependencies.httpServer.server,
+			});
+		} else {
+			httpTerminator = { terminate: dependencies.httpServer.close };
+		}
+	}
 
 	async function gracefulShutdown(): Promise<boolean> {
 		if ("worker" in dependencies && dependencies.worker !== undefined) {
