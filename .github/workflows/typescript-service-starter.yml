@@ -128,6 +128,25 @@ jobs:
     name: 🚀 Generate client & release
     needs: [lint, audit, spell, type, test]
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: pwd
+          POSTGRES_DB: db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --entrypoint redis-server
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -137,6 +156,8 @@ jobs:
       - run: npm ci
       - name: Build environment
         run: |
+          echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
           echo "HTTP_COOKIE_SIGNING_SECRET=$(node --run generate-secret)" >> $GITHUB_ENV
       - name: 📦 Generate client
         run: node --run generate-client
