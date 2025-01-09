@@ -1,7 +1,7 @@
-import { describe, it } from "node:test";
 import { deepEqual } from "node:assert/strict";
-import { prepareBulkInsert } from "../prepare-bulk-insert.ts";
+import { describe, it } from "node:test";
 import { sql } from "slonik";
+import { prepareBulkInsert } from "../prepare-bulk-insert.ts";
 
 await describe("prepareBulkInsert()", async () => {
 	await describe("when called, given column definitions, an object and an iterator", async () => {

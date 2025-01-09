@@ -1,7 +1,5 @@
 import { sql } from "slonik";
-import { config } from "../infrastructure/config/config.ts";
 import { getMigrator } from "../infrastructure/database/migrator.ts";
-import { packageJson } from "../packageJson.ts";
 import { getDatabase } from "./get-database.ts";
 
 export const templateDbName = "typescript-service-starter-test-template";
@@ -23,11 +21,7 @@ export async function initialSetup(): Promise<void> {
 	}
 
 	const database = await getDatabase(templateDbName);
-	const migrator = await getMigrator({
-		database,
-		config: { ...config, logLevel: "warn" },
-		packageJson,
-	});
+	const migrator = await getMigrator({ database });
 	await migrator.up();
 	await database.end();
 

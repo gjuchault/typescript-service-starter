@@ -2,9 +2,6 @@ import { sql } from "slonik";
 import { Umzug } from "umzug";
 import { z } from "zod";
 
-import type { PackageJson } from "../../packageJson.ts";
-import type { Config } from "../config/config.ts";
-import { createLogger } from "../logger/logger.ts";
 import type { Database } from "./database.ts";
 
 // biome-ignore lint/style/noNamespaceImport: migrations
@@ -59,15 +56,9 @@ async function unlogMigration(
 
 export function getMigrator({
 	database,
-	config,
-	packageJson,
 }: {
 	database: Database;
-	config: Pick<Config, "logLevel">;
-	packageJson: Pick<PackageJson, "name">;
 }) {
-	const logger = createLogger("migrator", { config, packageJson });
-
 	return new Umzug<Record<never, never>>({
 		migrations: Object.entries(allMigrations).map(([name, migration]) => ({
 			name,
@@ -78,7 +69,7 @@ export function getMigrator({
 				await migration.down(database);
 			},
 		})),
-		logger,
+		logger: undefined,
 		context: database,
 		storage: {
 			async executed(): Promise<string[]> {

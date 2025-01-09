@@ -71,7 +71,7 @@ async function getInstances(): Promise<{
 		packageJson,
 		telemetry: mockTelemetry,
 	});
-	const migrator = await getMigrator({ database, config, packageJson });
+	const migrator = await getMigrator({ database });
 
 	migrator.on("reverting", ({ name }) => {
 		// biome-ignore lint/suspicious/noConsoleLog: script
@@ -89,6 +89,7 @@ async function getInstances(): Promise<{
 }
 
 export async function up() {
+	const time = Date.now();
 	const { database, migrator } = await getInstances();
 
 	await migrator.up();
@@ -96,10 +97,11 @@ export async function up() {
 
 	// biome-ignore lint/suspicious/noConsoleLog: script
 	// biome-ignore lint/suspicious/noConsole: script
-	console.log("✅");
+	console.log(`✅ up in ${Date.now() - time}ms`);
 }
 
 export async function down(step?: number) {
+	const time = Date.now();
 	const { database, migrator } = await getInstances();
 
 	await migrator.down(step !== undefined ? { step } : undefined);
@@ -107,7 +109,7 @@ export async function down(step?: number) {
 
 	// biome-ignore lint/suspicious/noConsoleLog: script
 	// biome-ignore lint/suspicious/noConsole: script
-	console.log("✅");
+	console.log(`✅ down in ${Date.now() - time}ms`);
 }
 
 if (isMain(import.meta)) {

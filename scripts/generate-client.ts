@@ -8,13 +8,17 @@ import { config } from "../src/infrastructure/config/config.ts";
 import { packageJson } from "../src/packageJson.ts";
 
 export async function generateClient(): Promise<void> {
+	const time = Date.now();
+
 	const { httpServer, appShutdown } = await startApp({
 		config: {
 			...config,
-			logLevel: "debug",
+			logLevel: "warn",
 		},
 		packageJson,
 	});
+
+	await httpServer.listen();
 
 	const openapi = httpServer.swagger() as OpenAPI3;
 	const yaml = httpServer.swagger({ yaml: true });
@@ -36,6 +40,10 @@ export async function generateClient(): Promise<void> {
 		fs.writeFile(path.join(process.cwd(), "client/openapi.yaml"), yaml),
 		fs.writeFile(path.join(process.cwd(), "client/schema.d.ts"), ts),
 	]);
+
+	// biome-ignore lint/suspicious/noConsoleLog: script
+	// biome-ignore lint/suspicious/noConsole: script
+	console.log(`✅ client generated in ${Date.now() - time}ms`);
 }
 
 if (isMain(import.meta)) {

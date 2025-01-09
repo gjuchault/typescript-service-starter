@@ -1,7 +1,7 @@
 import { config } from "../infrastructure/config/config.ts";
 import {
-	createDatabase,
 	type Database,
+	createDatabase,
 } from "../infrastructure/database/database.ts";
 import { mockTelemetry } from "../infrastructure/telemetry/telemetry.ts";
 import { packageJson } from "../packageJson.ts";

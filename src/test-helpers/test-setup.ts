@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "slonik";
-import { config } from "../infrastructure/config/config.ts";
-import { getDatabase, replaceDatabaseInUrl } from "./get-database.ts";
-import type { Database } from "../infrastructure/database/database.ts";
 import { startApp } from "../index.ts";
-import { packageJson } from "../packageJson.ts";
+import { config } from "../infrastructure/config/config.ts";
+import type { Database } from "../infrastructure/database/database.ts";
 import type { HttpServer } from "../infrastructure/http-server/http-server.ts";
+import { packageJson } from "../packageJson.ts";
 import { templateDbName } from "./db-initial-setup.ts";
+import { getDatabase, replaceDatabaseInUrl } from "./get-database.ts";
 
 export type SetupResult = {
 	database: Database;

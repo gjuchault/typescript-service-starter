@@ -1,10 +1,10 @@
+import { deepEqual, equal } from "node:assert/strict";
 import { test } from "node:test";
-import {
-	setup,
-	type SetupResult,
-} from "../../../../../test-helpers/test-setup.ts";
-import { equal, deepEqual } from "node:assert/strict";
 import { sql } from "slonik";
+import {
+	type SetupResult,
+	setup,
+} from "../../../../../test-helpers/test-setup.ts";
 
 await test("GET /api/users", async (ctx) => {
 	let setupResult: SetupResult;
