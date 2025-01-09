@@ -26,7 +26,7 @@
 	],
 	"scripts": {
 		"start": "node --env-file=.env --env-file-if-exists=.env.local ./build/index.js",
-		"dev": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./src/index.ts",
+		"dev": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types --watch ./src/index.ts | pino-pretty",
 		"worker": "node --env-file=.env --env-file-if-exists=.env.local ./build/worker.js | pino-pretty",
 		"bundle": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --experimental-strip-types ./scripts/bundle.ts",
 		"generate-client": "node --disable-warning=DeprecationWarning --disable-warning=ExperimentalWarning --env-file=.env --env-file-if-exists=.env.local --experimental-strip-types ./scripts/generate-client.ts",

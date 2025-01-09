@@ -22,7 +22,7 @@ If you have any question that does not relate to a bug or a feature request, ple
 
 **GitHub issues**
 
-If you encounter a problem with this library or if you have a new feature you'd like to see in this project, please create [a new issue](https://github.com/gjuchault/typescript-service-starter/issues/new/choose).
+If you encounter a problem with this service or if you have a new feature you'd like to see in this project, please create [a new issue](https://github.com/gjuchault/typescript-service-starter/issues/new/choose).
 
 **GitHub Pull requests**
 
