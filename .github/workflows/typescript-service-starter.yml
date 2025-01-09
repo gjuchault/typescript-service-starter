@@ -135,6 +135,9 @@ jobs:
           node-version-file: package.json
           cache: "npm"
       - run: npm ci
+      - name: Build environment
+        run: |
+          echo "HTTP_COOKIE_SIGNING_SECRET=$(node --run generate-secret)" >> $GITHUB_ENV
       - name: 📦 Generate client
         run: node --run generate-client
       - name: 🚀 Release
