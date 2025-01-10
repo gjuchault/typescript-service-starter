@@ -1,22 +1,20 @@
-FROM node:21.5.0-alpine AS base
+FROM node:23.5.0-alpine
 
-FROM base as builder
-
-WORKDIR /app
-
-COPY scripts/ /app/scripts
-COPY src/ /app/src
-COPY package.json \
-  package-lock.json \
-  tsconfig.json \
-  /app/
-
-RUN npm install
-RUN npm run build:main
-RUN rm -rf node_modules/ scripts/ src/ tsconfig.json package-lock.json
-
-FROM builder as runtime
+HEALTHCHECK \
+	--interval=60s \
+	--timeout=5s \
+	--start-period=15s \
+	--start-interval=5s \
+	--retries=3 \
+	CMD [ "wget", "--spider", "http://127.0.0.1:3000/api/healthcheck" ]
 
 WORKDIR /app
-ENV NODE_ENV production
-CMD [ "npm", "run", "start" ]
+COPY package.json /app/
+COPY .env .env.local /app/
+
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--enable-source-maps"
+
+COPY build/ /app/build/
+
+CMD node --env-file=.env --env-file-if-exists=.env.local ./build/migrate.js up ; node --env-file=.env --env-file-if-exists=.env.local ./build/index.js

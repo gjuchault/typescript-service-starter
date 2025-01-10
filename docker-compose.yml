@@ -1,0 +1,99 @@
+name: typescript-service-starter
+
+services:
+  api:
+    container_name: api
+    init: true
+    stop_signal: SIGINT
+    stop_grace_period: 30s
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
+      jaeger:
+        condition: service_healthy
+    env_file:
+      - .env
+      - .env.local
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/typescript-service-starter
+      REDIS_URL: redis://redis:6379
+      HTTP_ADDRESS: 0.0.0.0
+      HTTP_PORT: 3000
+      OTLP_TRACE_ENDPOINT: http://jaeger:4318
+      OTLP_METRICS_ENDPOINT: http://prometheus:9090
+
+  postgres:
+    container_name: postgres
+    image: postgres:17-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: typescript-service-starter
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      start_interval: 5s
+      retries: 5
+
+  redis:
+    container_name: redis
+    image: eqalpha/keydb
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: keydb-cli -h 127.0.0.1 -p 6379 ping
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      start_interval: 5s
+      retries: 5
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-otlp-receiver
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    healthcheck:
+      test: wget --spider http://localhost:9090/
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      start_interval: 5s
+      retries: 3
+
+  jaeger:
+    image: jaegertracing/jaeger
+    container_name: jaeger
+    ports:
+      - 16686:16686 # web ui
+      - 4317:4317 # accept OpenTelemetry Protocol (OTLP) over gRPC
+      - 4318:4318 # accept OpenTelemetry Protocol (OTLP) over HTTP
+      - 5778:5778 # serve configs, sampling strategies
+      - 9411:9411 # can accept Zipkin spans in JSON or Thrift (disabled by default)
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+    healthcheck:
+      test: wget --spider http://localhost:16686/
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      start_interval: 5s
+      retries: 3

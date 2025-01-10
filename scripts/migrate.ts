@@ -1,77 +1,151 @@
-import path from "node:path";
 import fs from "node:fs/promises";
+import path from "node:path";
 import url from "node:url";
-import "dotenv/config";
-import { createPool } from "slonik";
+import { isMain } from "is-main";
 import launchEditor from "launch-editor";
+import type { Umzug } from "umzug";
 import { z } from "zod";
-import { config } from "../src/config";
-import { databaseMigration } from "@gjuchault/typescript-service-sdk";
-import { match } from "ts-pattern";
+import { switchGuard } from "../src/helpers/switch-guard.ts";
+import { config } from "../src/infrastructure/config/config.ts";
+import {
+	type Database,
+	createDatabase,
+} from "../src/infrastructure/database/database.ts";
+import { getMigrator } from "../src/infrastructure/database/migrator.ts";
+import { mockTelemetry } from "../src/infrastructure/telemetry/telemetry.ts";
+import { packageJson } from "../src/packageJson.ts";
 
-const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const migrationsPath = path.join(
+	path.dirname(url.fileURLToPath(import.meta.url)),
+	"../src/infrastructure/database/migrations",
+);
 
-const migrationsPath = path.join(__dirname, "../migrations");
+export async function create(name: string) {
+	const now = new Date();
+	const prefix = [
+		now.getFullYear(),
+		now.getMonth(),
+		now.getDate(),
+		now.getHours(),
+		now.getMinutes(),
+		now.getSeconds(),
+	].join("");
 
-export async function migrate(args = process.argv.slice(2), exit = true) {
-  const database = await createPool(config.databaseUrl);
-  const rawMigrationsFiles = await fs.readdir(migrationsPath);
-  const migrationFiles = await databaseMigration.extractMigrations(
-    database,
-    rawMigrationsFiles.map((file) => path.resolve(migrationsPath, file)),
-  );
-  const umzug = databaseMigration.buildMigration({
-    migrationFiles,
-    database,
-  });
+	const slug = name.replace(/^\s+|\s+_$/g, "-");
 
-  umzug.on("migrating", ({ name }) => {
-    process.stdout.write(`🐘 migrating ${name}`);
-  });
+	const fileName = `${prefix}_${slug}.ts`;
+	const filePath = path.join(migrationsPath, fileName);
 
-  umzug.on("migrated", () => {
-    console.log(" ✅");
-  });
+	await fs.writeFile(
+		filePath,
+		[
+			'import { type CommonQueryMethods, sql } from "slonik";',
+			"",
+			"export async function up(tx: CommonQueryMethods) {}",
+			"export async function down(tx: CommonQueryMethods) {}",
+		].join("\n"),
+	);
 
-  const command = z
-    .union([z.literal("up"), z.literal("create")])
-    .parse(args[0]);
+	await fs.appendFile(
+		path.join(migrationsPath, "index.ts"),
+		[
+			"",
+			"// biome-ignore lint/performance/noBarrelFile: migrations",
+			"// biome-ignore lint/performance/noReExportAll: migrations",
+			`export * as ${name} from "./${fileName}";`,
+		].join("\n"),
+	);
 
-  await match(command)
-    .with("up", async () => await umzug.up())
-    .with("create", async () => {
-      const name = z.string().parse(args[1]);
-      await create(name);
-    })
-    .exhaustive();
-
-  if (exit) {
-    process.exit(0);
-  }
+	await launchEditor(filePath);
 }
 
-async function create(name: string) {
-  const now = new Date();
-  const prefix = [
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    now.getHours(),
-    now.getMinutes(),
-    now.getSeconds(),
-  ].join("");
+async function getInstances(): Promise<{
+	migrator: Umzug<Record<never, never>>;
+	database: Database;
+}> {
+	const database = await createDatabase({
+		config: {
+			...config,
+			logLevel: "warn",
+		},
+		packageJson,
+		telemetry: mockTelemetry,
+	});
+	const migrator = await getMigrator({ database });
 
-  const slug = name.replace(/^\s+|\s+_$/g, "-");
+	migrator.on("reverting", ({ name }) => {
+		// biome-ignore lint/suspicious/noConsoleLog: script
+		// biome-ignore lint/suspicious/noConsole: script
+		console.log(`🐘 reverting ${name}`);
+	});
 
-  const fileName = `${prefix}_${slug}.sql`;
-  const filePath = path.join(migrationsPath, fileName);
+	migrator.on("migrating", ({ name }) => {
+		// biome-ignore lint/suspicious/noConsoleLog: script
+		// biome-ignore lint/suspicious/noConsole: script
+		console.log(`🐘 migrating ${name}`);
+	});
 
-  await fs.writeFile(filePath, `select 1;\n`);
-  await launchEditor(filePath);
+	return { migrator, database };
 }
 
-if (import.meta.url.startsWith("file:")) {
-  if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
-    await migrate();
-  }
+export async function up() {
+	const time = Date.now();
+	const { database, migrator } = await getInstances();
+
+	await migrator.up();
+	await database.end();
+
+	// biome-ignore lint/suspicious/noConsoleLog: script
+	// biome-ignore lint/suspicious/noConsole: script
+	console.log(`✅ up in ${Date.now() - time}ms`);
+}
+
+export async function down(step?: number) {
+	const time = Date.now();
+	const { database, migrator } = await getInstances();
+
+	await migrator.down(step !== undefined ? { step } : undefined);
+	await database.end();
+
+	// biome-ignore lint/suspicious/noConsoleLog: script
+	// biome-ignore lint/suspicious/noConsole: script
+	console.log(`✅ down in ${Date.now() - time}ms`);
+}
+
+if (isMain(import.meta)) {
+	const command = z
+		.union([z.literal("up"), z.literal("down"), z.literal("create")])
+		.parse(process.argv.at(2));
+
+	switch (command) {
+		case "create": {
+			const nameResult = z.string().safeParse(process.argv.at(3));
+
+			if (nameResult.success === false) {
+				// biome-ignore lint/suspicious/noConsoleLog: script
+				// biome-ignore lint/suspicious/noConsole: script
+				console.log("usage: node --run migrate:create -- <name>");
+				process.exit(1);
+			}
+
+			await create(nameResult.data);
+			break;
+		}
+		case "up": {
+			await up();
+			break;
+		}
+		case "down": {
+			const step = z.coerce
+				.number()
+				.safe()
+				.int()
+				.optional()
+				.parse(process.argv.at(3));
+			await down(step);
+			break;
+		}
+		default:
+			throw switchGuard(command, "command");
+	}
 }

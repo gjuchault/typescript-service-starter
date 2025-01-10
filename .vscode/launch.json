@@ -1,23 +1,21 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "type": "node",
-      "request": "attach",
-      "name": "Attach to server",
-      "skipFiles": ["<node_internals>/**"],
-      "port": 9229
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Current Test File",
-      "autoAttachChildProcesses": true,
-      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
-      "program": "${workspaceRoot}/node_modules/tsx/dist/cli.mjs",
-      "args": ["--inspect", "--test", "${relativeFile}"],
-      "smartStep": true,
-      "console": "integratedTerminal"
-    }
-  ]
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Current Test File",
+			"autoAttachChildProcesses": true,
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+			"program": "${relativeFile}",
+			"runtimeArgs": [
+				"--disable-warning=ExperimentalWarning",
+				"--experimental-strip-types",
+				"./scripts/test.ts",
+				"test:inspect"
+			],
+			"smartStep": true,
+			"console": "integratedTerminal"
+		}
+	]
 }

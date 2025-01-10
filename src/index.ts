@@ -1,121 +1,95 @@
-#!/usr/bin/env node
-import process from "node:process";
-import url from "node:url";
-
-import type {
-  Cache,
-  Database,
-  HttpServer,
-  ShutdownManager,
-  TaskScheduling,
-} from "@gjuchault/typescript-service-sdk";
+import { asyncExitHook } from "exit-hook";
+import { isMain } from "is-main";
+import ms from "ms";
+import { createCacheStorage } from "./infrastructure/cache/cache.ts";
+import { type Config, config } from "./infrastructure/config/config.ts";
+import { createDatabase } from "./infrastructure/database/database.ts";
 import {
-  createCacheStorage,
-  createDatabase,
-  createDateProvider,
-  createHttpServer,
-  createLoggerProvider,
-  createShutdownManager,
-  createTaskScheduling,
-  createTelemetry,
-} from "@gjuchault/typescript-service-sdk";
+	type HttpServer,
+	createHttpServer,
+} from "./infrastructure/http-server/http-server.ts";
+import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
+import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
+import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
+import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
+import { type PackageJson, packageJson } from "./packageJson.ts";
 
-import { startHealthcheckApplication } from "~/application/healthcheck/index.js";
-import { config } from "~/config.js";
-import { createAppRouter } from "~/presentation/http/index.js";
-import * as healthcheckRepository from "~/repository/healthcheck/index.js";
-import * as userRepository from "~/repository/user/index.js";
+export async function startApp({
+	config,
+	packageJson,
+}: { config: Config; packageJson: PackageJson }): Promise<{
+	appShutdown(): Promise<void>;
+	httpServer: HttpServer;
+	logger: Logger;
+}> {
+	const logger = createLogger("app", { config, packageJson });
+	logger.info("starting app...");
 
-import { dependencyStore } from "./store";
+	const telemetry = createTelemetry({ config, packageJson });
 
-export async function startApp() {
-  const createLogger = createLoggerProvider({ config });
-  const logger = createLogger("app");
+	return await telemetry.startSpanWith(
+		{
+			spanName: "index@startApp",
+			options: { root: true },
+		},
+		async () => {
+			const cache = await createCacheStorage({
+				telemetry,
+				config,
+				packageJson,
+			});
+			const database = await createDatabase({
+				telemetry,
+				config,
+				packageJson,
+			});
+			const taskScheduling =
+				cache !== undefined
+					? await createTaskScheduling(
+							{ queueName: "jobs" },
+							{ telemetry, config, cache, packageJson },
+						)
+					: undefined;
 
-  dependencyStore.set("logger", createLogger);
+			const httpServer = await createHttpServer({
+				telemetry,
+				database,
+				cache,
+				config,
+				packageJson,
+			});
 
-  const telemetry = createTelemetry({ config, dependencyStore });
-  dependencyStore.set("telemetry", telemetry);
+			async function appShutdown() {
+				await shutdown({
+					httpServer,
+					worker: undefined,
+					telemetry,
+					cache,
+					taskScheduling,
+					database,
+					config,
+					packageJson,
+				});
+			}
 
-  const appStartedTimestamp = Date.now();
-  logger.info(`starting service ${config.name}...`, {
-    version: config.version,
-    nodeVersion: process.version,
-    arch: process.arch,
-    platform: process.platform,
-  });
-
-  dependencyStore.set("date", createDateProvider());
-
-  let database: Database;
-  let cache: Cache;
-  let httpServer: HttpServer;
-  let taskScheduling: TaskScheduling;
-  let listeningAbsoluteUrl: string;
-  let shutdown: ShutdownManager;
-
-  try {
-    cache = await createCacheStorage({ config, dependencyStore });
-    dependencyStore.set("cache", cache);
-
-    taskScheduling = createTaskScheduling({ config, dependencyStore });
-    dependencyStore.set("taskScheduling", taskScheduling);
-
-    database = await createDatabase({ config, dependencyStore });
-    dependencyStore.set("database", database);
-
-    dependencyStore.set("healthcheckRepository", healthcheckRepository);
-    dependencyStore.set("userRepository", userRepository);
-
-    await startHealthcheckApplication({ dependencyStore });
-
-    const appRouter = createAppRouter({ dependencyStore });
-
-    httpServer = await createHttpServer({
-      config,
-      dependencyStore,
-      appRouter,
-    });
-    dependencyStore.set("httpServer", httpServer);
-
-    shutdown = createShutdownManager({
-      config,
-      dependencyStore,
-      exit: (statusCode?: number) => process.exit(statusCode),
-    });
-
-    shutdown.listenToProcessEvents();
-
-    listeningAbsoluteUrl = await httpServer.listen({
-      host: config.address,
-      port: config.port,
-    });
-  } catch (error) {
-    logger.error(`${config.name} startup error`, {
-      error: (error as Record<string, unknown>).message ?? error,
-    });
-    process.exit(1);
-  }
-
-  logger.info(`${config.name} server listening on ${listeningAbsoluteUrl}`, {
-    version: config.version,
-    nodeVersion: process.version,
-    arch: process.arch,
-    platform: process.platform,
-    startupTime: Date.now() - appStartedTimestamp,
-  });
-
-  return {
-    httpServer,
-    database,
-    cache,
-    shutdown,
-  };
+			return { httpServer, logger, appShutdown };
+		},
+	);
 }
 
-if (
-  import.meta.url.startsWith("file:") &&
-  process.argv[1] === url.fileURLToPath(import.meta.url)
-) {
-  await startApp();
+if (isMain(import.meta)) {
+	const { httpServer, appShutdown } = await startApp({
+		config,
+		packageJson,
+	});
+
+	await httpServer.listen({
+		host: config.httpAddress,
+		port: config.httpPort,
+	});
+
+	asyncExitHook(async () => await appShutdown(), { wait: ms("5s") });
+	// docker custom
+	process.on("SIGINT", async () => await appShutdown());
+	process.on("SIGTERM", async () => await appShutdown());
 }
