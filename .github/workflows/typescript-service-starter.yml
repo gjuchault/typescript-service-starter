@@ -83,6 +83,7 @@ jobs:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: pwd
           POSTGRES_DB: db
+          HTTP_COOKIE_SIGNING_SECRET: 0000000000000000000000000000000000000000000000000000000000000000
         ports:
           - 5432:5432
         options: >-

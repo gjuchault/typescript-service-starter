@@ -52,7 +52,8 @@ export type Config = {
 };
 
 function transformMs(input: string): number {
-	const value = ms(input);
+	// safe cast here as passing a non-StringValue will result in undefined
+	const value = ms(input as ms.StringValue);
 
 	if (value === undefined) {
 		throw new Error(`Invalid duration: ${input}`);
