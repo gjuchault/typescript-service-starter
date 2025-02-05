@@ -27,9 +27,10 @@
 		"forceConsistentCasingInFileNames": true,
 		"verbatimModuleSyntax": true,
 
-		"sourceMap": true,
+		"noEmit": true,
 		"skipLibCheck": true,
-		"declaration": true,
-		"emitDeclarationOnly": true
+		"importHelpers": true,
+		"isolatedModules": true,
+		"noEmitOnError": true
 	}
 }
