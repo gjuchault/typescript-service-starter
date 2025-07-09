@@ -23,14 +23,16 @@ export function bindUserRoutes({
 		handler: async (request, reply) => {
 			const parseIdsResult = z
 				.object({
-					ids: z.union([
-						// ?ids=1
-						z.coerce.number(),
-						// ?ids=1&ids=2
-						z
-							.array(z.coerce.number().pipe(userIdSchema))
-							.nonempty(),
-					]),
+					ids: z
+						.union([
+							// ?ids=1
+							z.coerce.number(),
+							// ?ids=1&ids=2
+							z
+								.array(z.coerce.number().pipe(userIdSchema))
+								.nonempty(),
+						])
+						.optional(),
 				})
 				.safeParse(request.query);
 
@@ -41,9 +43,12 @@ export function bindUserRoutes({
 
 			const users = await userService.getUsers(
 				{
-					ids: Array.isArray(parseIdsResult.data.ids)
-						? parseIdsResult.data.ids
-						: [parseIdsResult.data.ids],
+					ids:
+						parseIdsResult.data.ids === undefined
+							? undefined
+							: Array.isArray(parseIdsResult.data.ids)
+								? parseIdsResult.data.ids
+								: [parseIdsResult.data.ids],
 				},
 				{ database, userRepository, config, packageJson, telemetry },
 			);

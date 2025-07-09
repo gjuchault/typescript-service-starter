@@ -13,7 +13,7 @@ import { type User, userSchema } from "../domain/user.ts";
 import { databaseUserToUserSchema } from "./codecs.ts";
 
 export interface GetUsersFilters {
-	ids: NonEmptyArray<number>;
+	ids?: NonEmptyArray<number> | undefined;
 }
 
 export interface GetByIdsDependencies {
@@ -40,7 +40,10 @@ export async function getByIds(
 				},
 			);
 
-			const idsFragment = sql.fragment`where id = any(${sql.array(filters.ids, "int4")})`;
+			const idsFragment =
+				filters.ids !== undefined
+					? sql.fragment`and id = any(${sql.array(filters.ids, "int4")})`
+					: sql.fragment``;
 
 			try {
 				const users = z
@@ -49,7 +52,7 @@ export async function getByIds(
 						await database.any(
 							sql.type(
 								databaseUserToUserSchema,
-							)`select * from users ${idsFragment}`,
+							)`select * from users where 1=1 ${idsFragment}`,
 						),
 					);
 

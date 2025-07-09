@@ -215,7 +215,7 @@ export async function createHttpServer({
 	});
 
 	httpServer.get("/api/healthcheck", (_request, reply) => {
-		return reply.status(204).send();
+		return reply.status(200).send();
 	});
 
 	httpServer.get("/api/docs", (_request, reply) => {
