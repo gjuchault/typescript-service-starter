@@ -11,12 +11,12 @@
 	"types": "./client/schema.d.ts",
 	"license": "MIT",
 	"engines": {
-		"node": "^23.7.0",
-		"npm": "^10.9.2"
+		"node": "^24.3.0",
+		"npm": "^11.4.2"
 	},
 	"volta": {
-		"node": "23.7.0",
-		"npm": "10.9.2"
+		"node": "24.3.0",
+		"npm": "11.4.2"
 	},
 	"publishConfig": {
 		"access": "public"

@@ -130,12 +130,16 @@ export async function createHttpServer({
 	await httpServer.register(helmet);
 	await httpServer.register(multipart);
 	await httpServer.register(rateLimit, {
-		redis: cache,
+		redis: cache ?? null,
 	});
 	await httpServer.register(cookie);
 	await httpServer.register(session, {
 		secret: [config.httpCookieSigningSecret],
-		store: new RedisStore({ client: cache }),
+		...(cache !== undefined
+			? {
+					store: new RedisStore({ client: cache }),
+				}
+			: {}),
 	});
 	await httpServer.register(underPressure);
 	await httpServer.register(swagger, {
