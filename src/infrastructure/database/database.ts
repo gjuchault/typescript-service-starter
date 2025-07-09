@@ -50,6 +50,7 @@ export async function createDatabase({
 				maximumPoolSize: config.databaseMaximumPoolSize,
 				interceptors: [
 					{
+						name: "telemetry",
 						beforeQueryExecution(queryContext, query) {
 							const span = telemetry.startSpan({
 								spanName: "infrastructure/database/database@query",

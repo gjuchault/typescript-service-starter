@@ -1,21 +1,24 @@
 import {
 	type Attributes,
 	type Context,
+	context,
 	type SpanOptions,
 	SpanStatusCode,
-	context,
 	trace,
 } from "@opentelemetry/api";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { Resource } from "@opentelemetry/resources";
+import { dockerCGroupV1Detector } from "@opentelemetry/resource-detector-docker";
+import {
+	envDetector,
+	hostDetector,
+	osDetector,
+	processDetector,
+	type ResourceDetector,
+	serviceInstanceIdDetector,
+} from "@opentelemetry/resources";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import {
-	ATTR_SERVICE_NAME,
-	ATTR_SERVICE_VERSION,
-} from "@opentelemetry/semantic-conventions";
-import { ATTR_PROCESS_PID } from "@opentelemetry/semantic-conventions/incubating";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
@@ -84,14 +87,6 @@ export function createTelemetry({
 		return mockTelemetry;
 	}
 
-	const resource = Resource.default().merge(
-		new Resource({
-			[ATTR_SERVICE_NAME]: packageJson.name,
-			[ATTR_SERVICE_VERSION]: packageJson.version,
-			[ATTR_PROCESS_PID]: process.pid,
-		}),
-	);
-
 	const metricReader = config.otlpMetricsEndpoint
 		? new PeriodicExportingMetricReader({
 				// If you push to prometheus, you probably want to use the prometheus exporter instead
@@ -103,7 +98,15 @@ export function createTelemetry({
 		: undefined;
 
 	const sdk = new NodeSDK({
-		resource,
+		resourceDetectors: [
+			envDetector,
+			processDetector,
+			// FIXME: drop cast when detector upgrades
+			dockerCGroupV1Detector as ResourceDetector,
+			osDetector,
+			hostDetector,
+			serviceInstanceIdDetector,
+		],
 		traceExporter: new OTLPTraceExporter({
 			url: `${config.otlpTraceEndpoint}/v1/traces`,
 		}),

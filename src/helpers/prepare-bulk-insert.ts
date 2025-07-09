@@ -1,8 +1,8 @@
 import {
 	type ListSqlToken,
 	type PrimitiveValueExpression,
-	type UnnestSqlToken,
 	sql,
+	type UnnestSqlToken,
 } from "slonik";
 import { z } from "zod";
 import { validDateTimeSchema } from "./date-time.ts";

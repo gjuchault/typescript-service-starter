@@ -12,8 +12,6 @@ export async function initialSetup(): Promise<void> {
 	);
 
 	if (pgDbResult.rowCount === 0) {
-		// biome-ignore lint/suspicious/noConsoleLog: CLI
-		// biome-ignore lint/suspicious/noConsole: CLI
 		console.log("🚀 creating template database");
 		await postgresInstance.query(
 			sql.unsafe`create database ${sql.identifier([templateDbName])}`,

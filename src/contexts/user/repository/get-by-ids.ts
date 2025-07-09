@@ -3,7 +3,7 @@ import { SlonikError, sql } from "slonik";
 import { z } from "zod";
 import type { SqlError, UnknownError } from "../../../helpers/errors.ts";
 import type { NonEmptyArray } from "../../../helpers/non-empty-array.ts";
-import { type Result, err, ok } from "../../../helpers/result.ts";
+import { err, ok, type Result } from "../../../helpers/result.ts";
 import type { Config } from "../../../infrastructure/config/config.ts";
 import type { Database } from "../../../infrastructure/database/database.ts";
 import { createLogger } from "../../../infrastructure/logger/logger.ts";

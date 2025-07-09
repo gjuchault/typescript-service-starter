@@ -8,8 +8,8 @@ import { z } from "zod";
 import { switchGuard } from "../src/helpers/switch-guard.ts";
 import { config } from "../src/infrastructure/config/config.ts";
 import {
-	type Database,
 	createDatabase,
+	type Database,
 } from "../src/infrastructure/database/database.ts";
 import { getMigrator } from "../src/infrastructure/database/migrator.ts";
 import { mockTelemetry } from "../src/infrastructure/telemetry/telemetry.ts";
@@ -48,12 +48,7 @@ export async function create(name: string) {
 
 	await fs.appendFile(
 		path.join(migrationsPath, "index.ts"),
-		[
-			"",
-			"// biome-ignore lint/performance/noBarrelFile: migrations",
-			"// biome-ignore lint/performance/noReExportAll: migrations",
-			`export * as ${name} from "./${fileName}";`,
-		].join("\n"),
+		["", `export * as ${name} from "./${fileName}";`].join("\n"),
 	);
 
 	await launchEditor(filePath);
@@ -74,14 +69,10 @@ async function getInstances(): Promise<{
 	const migrator = await getMigrator({ database });
 
 	migrator.on("reverting", ({ name }) => {
-		// biome-ignore lint/suspicious/noConsoleLog: script
-		// biome-ignore lint/suspicious/noConsole: script
 		console.log(`🐘 reverting ${name}`);
 	});
 
 	migrator.on("migrating", ({ name }) => {
-		// biome-ignore lint/suspicious/noConsoleLog: script
-		// biome-ignore lint/suspicious/noConsole: script
 		console.log(`🐘 migrating ${name}`);
 	});
 
@@ -95,8 +86,6 @@ export async function up() {
 	await migrator.up();
 	await database.end();
 
-	// biome-ignore lint/suspicious/noConsoleLog: script
-	// biome-ignore lint/suspicious/noConsole: script
 	console.log(`✅ up in ${Date.now() - time}ms`);
 }
 
@@ -107,8 +96,6 @@ export async function down(step?: number) {
 	await migrator.down(step !== undefined ? { step } : undefined);
 	await database.end();
 
-	// biome-ignore lint/suspicious/noConsoleLog: script
-	// biome-ignore lint/suspicious/noConsole: script
 	console.log(`✅ down in ${Date.now() - time}ms`);
 }
 
@@ -122,8 +109,6 @@ if (isMain(import.meta)) {
 			const nameResult = z.string().safeParse(process.argv.at(3));
 
 			if (nameResult.success === false) {
-				// biome-ignore lint/suspicious/noConsoleLog: script
-				// biome-ignore lint/suspicious/noConsole: script
 				console.log("usage: node --run migrate:create -- <name>");
 				process.exit(1);
 			}

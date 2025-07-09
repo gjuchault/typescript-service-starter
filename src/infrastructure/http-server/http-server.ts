@@ -11,7 +11,7 @@ import rateLimit from "@fastify/rate-limit";
 import session from "@fastify/session";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
-import { SpanKind, context, propagation } from "@opentelemetry/api";
+import { context, propagation, SpanKind } from "@opentelemetry/api";
 import { RedisStore } from "connect-redis";
 import {
 	type FastifyBaseLogger,
@@ -21,9 +21,9 @@ import {
 	fastify,
 } from "fastify";
 import {
-	type ZodTypeProvider,
 	serializerCompiler,
 	validatorCompiler,
+	type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import yamlJs from "yamljs";
 import { bindUserRoutes } from "../../contexts/user/presentation/http/index.ts";

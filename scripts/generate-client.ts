@@ -41,8 +41,6 @@ export async function generateClient(): Promise<void> {
 		fs.writeFile(path.join(process.cwd(), "client/schema.d.ts"), ts),
 	]);
 
-	// biome-ignore lint/suspicious/noConsoleLog: script
-	// biome-ignore lint/suspicious/noConsole: script
 	console.log(`✅ client generated in ${Date.now() - time}ms`);
 }
 

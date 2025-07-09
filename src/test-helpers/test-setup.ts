@@ -22,8 +22,6 @@ export async function setup(): Promise<SetupResult> {
 		.substring(0, 8);
 	const testDbName = `${templateDbName}-${uniqueDbId}`;
 
-	// biome-ignore lint/suspicious/noConsoleLog: CLI
-	// biome-ignore lint/suspicious/noConsole: CLI
 	console.log(
 		`creating database ${testDbName} with template ${templateDbName}`,
 	);
@@ -34,8 +32,6 @@ export async function setup(): Promise<SetupResult> {
 
 	const database = await getDatabase(testDbName);
 
-	// biome-ignore lint/suspicious/noConsoleLog: CLI
-	// biome-ignore lint/suspicious/noConsole: CLI
 	console.log(`created database ${testDbName}`);
 
 	const { httpServer, appShutdown } = await startApp({
@@ -57,8 +53,6 @@ export async function setup(): Promise<SetupResult> {
 		);
 		await dbInstance.end();
 
-		// biome-ignore lint/suspicious/noConsoleLog: CLI
-		// biome-ignore lint/suspicious/noConsole: CLI
 		console.log(`dropped database ${testDbName}`);
 	}
 

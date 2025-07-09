@@ -4,12 +4,13 @@ import { z } from "zod";
 
 import type { Database } from "./database.ts";
 
-// biome-ignore lint/style/noNamespaceImport: migrations
 import * as allMigrations from "./migrations/index.ts";
 
 async function ensureTable({
 	database,
-}: { database: Database }): Promise<void> {
+}: {
+	database: Database;
+}): Promise<void> {
 	await database.query(sql.type(z.unknown())`
 		create table if not exists "public"."migrations" (
 			"name" varchar, primary key ("name")
@@ -19,7 +20,9 @@ async function ensureTable({
 
 async function executed({
 	database,
-}: { database: Database }): Promise<string[]> {
+}: {
+	database: Database;
+}): Promise<string[]> {
 	await ensureTable({ database });
 	const migrations = await database.anyFirst(sql.type(
 		z.object({ name: z.string() }),
@@ -54,11 +57,7 @@ async function unlogMigration(
 	`);
 }
 
-export function getMigrator({
-	database,
-}: {
-	database: Database;
-}) {
+export function getMigrator({ database }: { database: Database }) {
 	return new Umzug<Record<never, never>>({
 		migrations: Object.entries(allMigrations).map(([name, migration]) => ({
 			name,

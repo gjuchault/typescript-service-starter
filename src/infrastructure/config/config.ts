@@ -4,33 +4,19 @@ import { z } from "zod";
 
 const env = z
 	.object({
-		// biome-ignore lint/style/useNamingConvention: env variable
 		LOG_LEVEL: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_ADDRESS: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		PORT: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_PORT: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_REQUEST_TIMEOUT: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_COOKIE_SIGNING_SECRET: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_URL: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_MAXIMUM_POOL_SIZE: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_IDLE_TIMEOUT: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_STATEMENT_TIMEOUT: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		REDIS_URL: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		TRACING_SAMPLING: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		OTLP_TRACE_ENDPOINT: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		OTLP_METRICS_ENDPOINT: z.string().optional(),
 	})
 	.parse(process.env);

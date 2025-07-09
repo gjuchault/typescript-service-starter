@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import process from "node:process";
 import type { Meter } from "@opentelemetry/api";
 import type { MonitorOptions } from "./index.ts";
+
 const PROCESS_OPEN_FDS = "process_open_fds";
 
 export function monitorProcessOpenFileDescriptors(

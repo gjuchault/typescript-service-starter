@@ -3,6 +3,7 @@ import type { Meter } from "@opentelemetry/api";
 import { safeMemoryUsage } from "./helpers/safe-memory-usage.ts";
 import type { MonitorOptions } from "./index.ts";
 import { monitorOsMemoryHeapLinux } from "./os-memory-heap-linux.ts";
+
 const PROCESS_RESIDENT_MEMORY = "process_resident_memory_bytes";
 
 function monitorOsMemoryHeapNotLinux(
