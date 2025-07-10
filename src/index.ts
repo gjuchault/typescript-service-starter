@@ -46,13 +46,10 @@ export async function startApp({
 				config,
 				packageJson,
 			});
-			const taskScheduling =
-				cache !== undefined
-					? await createTaskScheduling(
-							{ queueName: "jobs" },
-							{ telemetry, config, cache, packageJson },
-						)
-					: undefined;
+			const taskScheduling = await createTaskScheduling(
+				{ queueName: "jobs" },
+				{ telemetry, config, packageJson },
+			);
 
 			const httpServer = await createHttpServer({
 				telemetry,
@@ -60,12 +57,12 @@ export async function startApp({
 				cache,
 				config,
 				packageJson,
+				taskScheduling,
 			});
 
 			async function appShutdown() {
 				await shutdown({
 					httpServer,
-					worker: undefined,
 					telemetry,
 					cache,
 					taskScheduling,

@@ -9,7 +9,7 @@ import {
 	DB_SYSTEM_VALUE_POSTGRESQL,
 } from "@opentelemetry/semantic-conventions/incubating";
 import { type CommonQueryMethods, createPool, sql } from "slonik";
-import { z } from "zod";
+import * as z from "zod";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";

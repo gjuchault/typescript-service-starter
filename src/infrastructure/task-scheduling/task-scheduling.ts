@@ -1,34 +1,33 @@
-import { Queue } from "bullmq";
-
-import ms from "ms";
+import PgBoss from "pg-boss";
+import { type CommonQueryMethods, sql } from "slonik";
+import * as z from "zod";
 import type { PackageJson } from "../../packageJson.ts";
-import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
 import type { Telemetry } from "../telemetry/telemetry.ts";
 
-export type TaskScheduling<
-	DataTypeOrJob = unknown,
-	DefaultResultType = unknown,
-> = Queue<DataTypeOrJob, DefaultResultType>;
+const rawQueryType = sql.unsafe`select 1`.type;
 
-export async function createTaskScheduling<
-	DataTypeOrJob = unknown,
-	DefaultResultType = unknown,
->(
+export type TaskScheduling = PgBoss & {
+	sendInTransaction(
+		tx: CommonQueryMethods,
+		data: object,
+		options: PgBoss.SendOptions,
+	): Promise<void>;
+} & {};
+
+export async function createTaskScheduling(
 	{ queueName }: { queueName: string },
 	{
 		telemetry,
 		packageJson,
 		config,
-		cache,
 	}: {
 		telemetry: Telemetry;
-		config: Pick<Config, "logLevel">;
+		config: Pick<Config, "logLevel" | "databaseUrl">;
 		packageJson: Pick<PackageJson, "name">;
-		cache: Cache;
 	},
-): Promise<TaskScheduling<DataTypeOrJob, DefaultResultType>> {
+): Promise<TaskScheduling> {
 	const span = telemetry.startSpan({
 		spanName:
 			"infrastructure/task-scheduling/task-scheduling@createTaskScheduling",
@@ -38,41 +37,52 @@ export async function createTaskScheduling<
 
 	const name = `${packageJson.name}-task-scheduling-${queueName}`;
 
-	logger.debug("creating queue...", {
-		queueName: name,
-	});
+	logger.debug("creating queue...", { queueName: name });
 
-	const queueConnection = cache.duplicate({ maxRetriesPerRequest: null });
-	const queue = new Queue<DataTypeOrJob, DefaultResultType>(name, {
-		connection: queueConnection,
-		defaultJobOptions: {
-			removeOnComplete: {
-				age: ms("7days"),
-				count: 1000,
-			},
-			removeOnFail: {
-				count: 50_000,
-			},
-		},
-	});
+	const boss = new PgBoss({ connectionString: config.databaseUrl });
 
-	await queue.waitUntilReady();
+	boss.on("error", (error) => logger.error("error", error));
+	boss.on("stopped", () =>
+		logger.debug("task scheduling stopped", { queueName: name }),
+	);
 
-	const originalClose = queue.close.bind(queue);
+	await boss.start();
 
-	// given a custom connection, bullmq will not close it
-	// to ease the process, we override the queue close method since we duplicate
-	// the connection — so it is used by the queue only
-	queue.close = async () => {
-		logger.debug("closing queue...", { queueName: name });
-		await originalClose();
-		logger.debug("closing queue connection...", { queueName: name });
-		await queueConnection.quit();
-	};
+	await boss.createQueue(name);
 
 	logger.info("created queue", { queueName: name });
 
 	span.end();
 
-	return queue;
+	Object.defineProperty(boss, "sendInTransaction", {
+		configurable: false,
+		enumerable: true,
+		writable: false,
+		value: async function sendInTransaction(
+			tx: CommonQueryMethods,
+			data: object,
+			options: PgBoss.SendOptions,
+		) {
+			await boss.send(name, data, {
+				...options,
+				db: {
+					async executeSql(sql, values) {
+						logger.info("inserting job in transaction", { name, data });
+						const rows = await tx.any({
+							parser: z.any(),
+							// biome-ignore lint/suspicious/noExplicitAny: we are creating a raw query
+							type: rawQueryType as any,
+							sql,
+							values,
+						});
+
+						// convert from readonly to mutable array
+						return { rows: [...rows] };
+					},
+				},
+			});
+		},
+	});
+
+	return boss as TaskScheduling;
 }

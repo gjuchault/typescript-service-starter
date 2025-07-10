@@ -1,4 +1,3 @@
-import type { Worker } from "bullmq";
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
@@ -14,16 +13,15 @@ import type { Telemetry } from "../telemetry/telemetry.ts";
 let isShuttingDown = false;
 const gracefulShutdownTimeout = ms("20s");
 
-export async function shutdown(
-	dependencies: {
-		database: Database | undefined;
-		telemetry: Telemetry | undefined;
-		taskScheduling: TaskScheduling | undefined;
-		cache: Cache | undefined;
-		config: Pick<Config, "logLevel">;
-		packageJson: Pick<PackageJson, "name" | "version">;
-	} & ({ httpServer: HttpServer } | { worker: Worker }),
-) {
+export async function shutdown(dependencies: {
+	database: Database | undefined;
+	telemetry: Telemetry | undefined;
+	httpServer?: HttpServer;
+	taskScheduling: TaskScheduling;
+	cache: Cache | undefined;
+	config: Pick<Config, "logLevel">;
+	packageJson: Pick<PackageJson, "name" | "version">;
+}) {
 	if (isShuttingDown) {
 		return;
 	}
@@ -50,10 +48,8 @@ export async function shutdown(
 	}
 
 	async function gracefulShutdown(): Promise<boolean> {
-		if ("worker" in dependencies && dependencies.worker !== undefined) {
-			await dependencies.worker.close();
-			logger.debug("worker shut down");
-		}
+		await dependencies.taskScheduling.stop();
+		logger.debug("task scheduling shut down");
 
 		if (httpTerminator !== undefined) {
 			await httpTerminator.terminate();
@@ -63,11 +59,6 @@ export async function shutdown(
 		if (dependencies.database !== undefined) {
 			await dependencies.database.end();
 			logger.debug("database shut down");
-		}
-
-		if (dependencies.taskScheduling !== undefined) {
-			await dependencies.taskScheduling.close();
-			logger.debug("task scheduling down");
 		}
 
 		if (dependencies.cache !== undefined) {

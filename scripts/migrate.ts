@@ -4,7 +4,7 @@ import url from "node:url";
 import { isMain } from "is-main";
 import launchEditor from "launch-editor";
 import type { Umzug } from "umzug";
-import { z } from "zod";
+import * as z from "zod";
 import { switchGuard } from "../src/helpers/switch-guard.ts";
 import { config } from "../src/infrastructure/config/config.ts";
 import {

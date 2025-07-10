@@ -1,5 +1,5 @@
 import { SlonikError, sql } from "slonik";
-import { z } from "zod";
+import * as z from "zod";
 
 import type { SqlError, UnknownError } from "../../../helpers/errors.ts";
 import { prepareBulkInsert } from "../../../helpers/prepare-bulk-insert.ts";

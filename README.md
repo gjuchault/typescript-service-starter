@@ -59,7 +59,7 @@ Commands:
 
 ### Databases
 
-It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), [umzug](https://github.com/sequelize/umzug) for migrations, Redis (or compatible like [KeyDB](https://docs.keydb.dev) or [Dragonfly](https://www.dragonflydb.io)) as a cache through [ioredis](https://github.com/luin/ioredis).
+It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), [umzug](https://github.com/sequelize/umzug) for migrations, Redis (or compatible like [KeyDB](https://docs.keydb.dev) or [Dragonfly](https://www.dragonflydb.io)) as a cache through [redis](https://github.com/redis/node-redis).
 
 Commands:
 

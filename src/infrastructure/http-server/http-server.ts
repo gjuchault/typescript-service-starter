@@ -32,6 +32,7 @@ import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
 import type { Span, Telemetry } from "../telemetry/telemetry.ts";
 
 export type HttpServer = FastifyInstance<
@@ -50,6 +51,7 @@ export async function createHttpServer({
 	telemetry,
 	database,
 	cache,
+	taskScheduling,
 	config,
 	packageJson,
 }: {
@@ -57,6 +59,7 @@ export async function createHttpServer({
 	database: Database;
 	cache: Cache | undefined;
 	config: Config;
+	taskScheduling: Pick<TaskScheduling, "sendInTransaction">;
 	packageJson: Pick<
 		PackageJson,
 		"name" | "version" | "author" | "description" | "license"
@@ -222,7 +225,7 @@ export async function createHttpServer({
 		return reply.send(httpServer.swagger());
 	});
 
-	bindUserRoutes({ database, httpServer, telemetry });
+	bindUserRoutes({ database, httpServer, telemetry, taskScheduling });
 
 	httpServer.addHook("onListen", () => {
 		logger.info(

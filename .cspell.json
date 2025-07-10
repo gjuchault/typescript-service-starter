@@ -2,7 +2,6 @@
 	"version": "0.2",
 	"language": "en",
 	"words": [
-		"bullmq",
 		"bytea",
 		"datname",
 		"eventloop",
@@ -14,13 +13,11 @@
 		"nonpositive",
 		"octocat",
 		"slonik",
-		"Slonik",
 		"tcpsocketwrap",
 		"timestamptz",
 		"tlswrap",
 		"traceparent",
 		"umzug",
-		"Umzug",
 		"unlog",
 		"weakcb"
 	],

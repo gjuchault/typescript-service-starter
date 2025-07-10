@@ -4,7 +4,7 @@ import {
 	sql,
 	type UnnestSqlToken,
 } from "slonik";
-import { z } from "zod";
+import * as z from "zod";
 import { validDateTimeSchema } from "./date-time.ts";
 import type { JsonValue } from "./json-type.ts";
 

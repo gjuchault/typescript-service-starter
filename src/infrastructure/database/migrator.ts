@@ -1,6 +1,6 @@
 import { sql } from "slonik";
 import { Umzug } from "umzug";
-import { z } from "zod";
+import * as z from "zod";
 
 import type { Database } from "./database.ts";
 

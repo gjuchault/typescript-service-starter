@@ -1,6 +1,6 @@
 import process from "node:process";
 import ms from "ms";
-import { z } from "zod";
+import * as z from "zod";
 
 const env = z
 	.object({

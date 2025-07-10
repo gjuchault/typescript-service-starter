@@ -1,7 +1,8 @@
-import { z } from "zod";
+import * as z from "zod";
 import { config } from "../../../../infrastructure/config/config.ts";
 import type { Database } from "../../../../infrastructure/database/database.ts";
 import type { HttpServer } from "../../../../infrastructure/http-server/http-server.ts";
+import type { TaskScheduling } from "../../../../infrastructure/task-scheduling/task-scheduling.ts";
 import type { Telemetry } from "../../../../infrastructure/telemetry/telemetry.ts";
 import { packageJson } from "../../../../packageJson.ts";
 import { userService } from "../../application/index.ts";
@@ -12,10 +13,12 @@ export function bindUserRoutes({
 	telemetry,
 	database,
 	httpServer,
+	taskScheduling,
 }: {
 	telemetry: Telemetry;
 	database: Database;
 	httpServer: HttpServer;
+	taskScheduling: Pick<TaskScheduling, "sendInTransaction">;
 }) {
 	httpServer.route({
 		method: "GET",
@@ -28,9 +31,10 @@ export function bindUserRoutes({
 							// ?ids=1
 							z.coerce.number(),
 							// ?ids=1&ids=2
-							z
-								.array(z.coerce.number().pipe(userIdSchema))
-								.nonempty(),
+							z.tuple(
+								[z.coerce.number().pipe(userIdSchema)],
+								z.coerce.number().pipe(userIdSchema),
+							),
 						])
 						.optional(),
 				})
@@ -50,7 +54,14 @@ export function bindUserRoutes({
 								? parseIdsResult.data.ids
 								: [parseIdsResult.data.ids],
 				},
-				{ database, userRepository, config, packageJson, telemetry },
+				{
+					database,
+					userRepository,
+					config,
+					packageJson,
+					telemetry,
+					taskScheduling,
+				},
 			);
 
 			if (users.ok === false) {

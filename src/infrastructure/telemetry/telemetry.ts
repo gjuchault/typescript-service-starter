@@ -8,13 +8,12 @@ import {
 } from "@opentelemetry/api";
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-proto";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { dockerCGroupV1Detector } from "@opentelemetry/resource-detector-docker";
+import { containerDetector } from "@opentelemetry/resource-detector-container";
 import {
 	envDetector,
 	hostDetector,
 	osDetector,
 	processDetector,
-	type ResourceDetector,
 	serviceInstanceIdDetector,
 } from "@opentelemetry/resources";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
@@ -101,8 +100,7 @@ export function createTelemetry({
 		resourceDetectors: [
 			envDetector,
 			processDetector,
-			// FIXME: drop cast when detector upgrades
-			dockerCGroupV1Detector as ResourceDetector,
+			containerDetector,
 			osDetector,
 			hostDetector,
 			serviceInstanceIdDetector,

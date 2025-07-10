@@ -29,7 +29,11 @@ await test("GET /api/users", async (ctx) => {
 			url: "/api/users",
 		});
 
-		equal(result.statusCode, 400);
+		equal(result.statusCode, 200);
+		deepEqual(result.json(), [
+			{ id: 1, name: "Alice", email: "alice@gmail.com" },
+			{ id: 2, name: "Bob", email: "bob@gmail.com" },
+		]);
 	});
 
 	await test("when called with a single id", async () => {

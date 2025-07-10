@@ -1,5 +1,5 @@
-import { Redis } from "ioredis";
 import ms from "ms";
+import { createClient } from "redis";
 
 import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
 import type { PackageJson } from "../../packageJson.ts";
@@ -13,7 +13,7 @@ interface Dependencies {
 	packageJson: Pick<PackageJson, "name">;
 }
 
-export type Cache = Redis;
+export type Cache = ReturnType<typeof createClient>;
 
 export async function createCacheStorage({
 	telemetry,
@@ -31,23 +31,23 @@ export async function createCacheStorage({
 		return undefined;
 	}
 
-	const redis = new Redis(config.redisUrl, {
-		connectTimeout: 500,
-		maxRetriesPerRequest: 1,
-	});
+	const redis = await createClient({
+		url: config.redisUrl,
+		socket: { connectTimeout: 500 },
+	})
+		.on("error", (error) => {
+			if (!isRedisError(error)) {
+				throw new Error(error);
+			}
 
-	redis.on("error", (error) => {
-		if (!isRedisError(error)) {
-			throw new Error(error);
-		}
+			// these will be spamming quite a log stderr
+			if (isRedisConnRefusedError(error)) {
+				return;
+			}
 
-		// these will be spamming quite a log stderr
-		if (isRedisConnRefusedError(error)) {
-			return;
-		}
-
-		logger.error("redis error", { error });
-	});
+			logger.error("redis error", { error });
+		})
+		.connect();
 
 	logger.debug("connecting to redis...");
 
