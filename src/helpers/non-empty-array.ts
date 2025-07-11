@@ -1,9 +1,15 @@
-import { none, type Option, some } from "./option.ts";
-
 export type NonEmptyArray<T> = [T, ...T[]];
 
-export function toNonEmptyArray<T>(input: T[]): Option<NonEmptyArray<T>> {
-	return isNonEmptyArray(input) ? some(input) : none();
+export function toNonEmptyArray<T>(
+	input: readonly [T, ...T[]],
+): NonEmptyArray<T>;
+export function toNonEmptyArray<T>(
+	input: readonly T[],
+): NonEmptyArray<T> | undefined;
+export function toNonEmptyArray<T>(
+	input: readonly T[],
+): NonEmptyArray<T> | undefined {
+	return isNonEmptyArray(input) ? (input as NonEmptyArray<T>) : undefined;
 }
 
 export function isNonEmptyArray<T>(
@@ -37,7 +43,7 @@ export function concat<T>(
 export function filter<T>(
 	input: NonEmptyArray<T>,
 	predicate: (value: T, index: number, array: T[]) => boolean,
-): Option<NonEmptyArray<T>> {
+): NonEmptyArray<T> | undefined {
 	return toNonEmptyArray(
 		input.filter((value, index, array) => predicate(value, index, array)),
 	);
@@ -111,6 +117,6 @@ export function slice<T>(
 	input: NonEmptyArray<T>,
 	start?: number,
 	end?: number,
-): Option<NonEmptyArray<T>> {
+): NonEmptyArray<T> | undefined {
 	return toNonEmptyArray(input.slice(start, end));
 }
