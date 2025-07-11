@@ -71,6 +71,11 @@ export async function createHttpServer({
 
 	const logger = createLogger("http-server", { config, packageJson });
 
+	logger.info("creating http server", {
+		address: config.httpAddress,
+		port: config.httpPort,
+	});
+
 	const spanByRequestId = new Map<string, Span>();
 
 	const httpServer = fastify({
@@ -232,6 +237,10 @@ export async function createHttpServer({
 			`http server listening on ${config.httpAddress}:${config.httpPort}`,
 		);
 	});
+
+	await httpServer.ready();
+
+	logger.info("http server ready");
 
 	span.end();
 

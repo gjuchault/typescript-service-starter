@@ -97,17 +97,8 @@ export const config: Config = {
 
 	redisUrl: z.string().url().optional().parse(env.REDIS_URL),
 
-	tracingSampling: z.coerce
-		.number()
-		.finite()
-		.min(0)
-		.max(1)
-		.parse(env.TRACING_SAMPLING),
+	tracingSampling: z.coerce.number().min(0).max(1).parse(env.TRACING_SAMPLING),
 
 	otlpTraceEndpoint: z.string().url().optional().parse(env.OTLP_TRACE_ENDPOINT),
-	otlpMetricsEndpoint: z
-		.string()
-		.url()
-		.optional()
-		.parse(env.OTLP_METRICS_ENDPOINT),
+	otlpMetricsEndpoint: z.url().optional().parse(env.OTLP_METRICS_ENDPOINT),
 };

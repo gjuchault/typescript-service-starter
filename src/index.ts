@@ -1,6 +1,7 @@
 import { asyncExitHook } from "exit-hook";
 import { isMain } from "is-main";
 import ms from "ms";
+import { promiseWithTimeout } from "./helpers/promise-with-timeout.ts";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createDatabase } from "./infrastructure/database/database.ts";
@@ -35,45 +36,46 @@ export async function startApp({
 			spanName: "index@startApp",
 			options: { root: true },
 		},
-		async () => {
-			const cache = await createCacheStorage({
-				telemetry,
-				config,
-				packageJson,
-			});
-			const database = await createDatabase({
-				telemetry,
-				config,
-				packageJson,
-			});
-			const taskScheduling = await createTaskScheduling(
-				{ queueName: "jobs" },
-				{ telemetry, config, packageJson },
-			);
-
-			const httpServer = await createHttpServer({
-				telemetry,
-				database,
-				cache,
-				config,
-				packageJson,
-				taskScheduling,
-			});
-
-			async function appShutdown() {
-				await shutdown({
-					httpServer,
+		() =>
+			promiseWithTimeout(ms("10s"), async () => {
+				const cache = await createCacheStorage({
 					telemetry,
-					cache,
-					taskScheduling,
-					database,
 					config,
 					packageJson,
 				});
-			}
+				const database = await createDatabase({
+					telemetry,
+					config,
+					packageJson,
+				});
+				const taskScheduling = await createTaskScheduling(
+					{ queueName: "jobs" },
+					{ telemetry, config, packageJson },
+				);
 
-			return { httpServer, logger, appShutdown };
-		},
+				const httpServer = await createHttpServer({
+					telemetry,
+					database,
+					cache,
+					config,
+					packageJson,
+					taskScheduling,
+				});
+
+				async function appShutdown() {
+					await shutdown({
+						httpServer,
+						telemetry,
+						cache,
+						taskScheduling,
+						database,
+						config,
+						packageJson,
+					});
+				}
+
+				return { httpServer, logger, appShutdown };
+			}),
 	);
 }
 

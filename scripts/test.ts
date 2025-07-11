@@ -20,20 +20,26 @@ async function runTests({
 	await initialSetup();
 
 	return new Promise((resolve, reject) => {
-		const nodeProcess = spawn(
-			program,
-			[
-				...programOptions,
-				"--disable-warning=ExperimentalWarning",
-				"--experimental-strip-types",
-				"--env-file=.env",
-				"--env-file-if-exists=.env.local",
-				"--test",
-				...nodeOptions,
-				filesFilter !== "" ? filesFilter : "src/**/*.test.ts",
-			],
-			{ stdio: "inherit", env: { ...process.env, ...env } },
-		);
+		const options = [
+			...programOptions,
+			"--disable-warning=ExperimentalWarning",
+			"--experimental-strip-types",
+			"--env-file=.env",
+			"--env-file-if-exists=.env.local",
+			"--test",
+			...nodeOptions,
+			filesFilter !== "" ? filesFilter : "src/**/*.test.ts",
+		];
+
+		const envStr = Object.entries(env)
+			.map(([key, value]) => `${key}=${value}`)
+			.join(" ");
+
+		console.log(`${envStr} ${program} ${options.join(" ")}`);
+		const nodeProcess = spawn(program, options, {
+			stdio: "inherit",
+			env: { ...process.env, ...env },
+		});
 
 		nodeProcess.on("close", (code) => {
 			if (code === 0) {

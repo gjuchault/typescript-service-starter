@@ -15,46 +15,54 @@ export type SetupResult = {
 };
 
 export async function setup(): Promise<SetupResult> {
-	const postgresInstance = await getDatabase("postgres");
+	try {
+		const postgresInstance = await getDatabase("postgres");
 
-	const uniqueDbId = BigInt(`0x${randomUUID().replaceAll("-", "")}`)
-		.toString(36)
-		.substring(0, 8);
-	const testDbName = `${templateDbName}-${uniqueDbId}`;
+		const uniqueDbId = BigInt(`0x${randomUUID().replaceAll("-", "")}`)
+			.toString(36)
+			.substring(0, 8);
+		const testDbName = `${templateDbName}-${uniqueDbId}`;
 
-	console.log(
-		`creating database ${testDbName} with template ${templateDbName}`,
-	);
-	await postgresInstance.query(
-		sql.unsafe`create database ${sql.identifier([testDbName])} template ${sql.identifier([templateDbName])}`,
-	);
-	await postgresInstance.end();
-
-	const database = await getDatabase(testDbName);
-
-	console.log(`created database ${testDbName}`);
-
-	const { httpServer, appShutdown } = await startApp({
-		config: {
-			...config,
-			databaseUrl: replaceDatabaseInUrl(config.databaseUrl, testDbName),
-			logLevel: "warn",
-		},
-		packageJson,
-	});
-
-	async function cleanup() {
-		await database.end();
-		await appShutdown();
-
-		const dbInstance = await getDatabase("postgres");
-		await dbInstance.query(
-			sql.unsafe`drop database if exists ${sql.identifier([testDbName])}`,
+		console.log(
+			`creating database ${testDbName} with template ${templateDbName}`,
 		);
-		await dbInstance.end();
+		await postgresInstance.query(
+			sql.unsafe`create database ${sql.identifier([testDbName])} template ${sql.identifier([templateDbName])}`,
+		);
+		await postgresInstance.end();
 
-		console.log(`dropped database ${testDbName}`);
+		const database = await getDatabase(testDbName);
+
+		console.log(`created database ${testDbName}`);
+
+		const { httpServer, appShutdown } = await startApp({
+			config: {
+				...config,
+				databaseUrl: replaceDatabaseInUrl(config.databaseUrl, testDbName),
+				logLevel: "warn",
+			},
+			packageJson,
+		});
+
+		// Wait for the server to be ready
+		await httpServer.ready();
+
+		async function cleanup() {
+			await database.end();
+			await appShutdown();
+
+			const dbInstance = await getDatabase("postgres");
+			await dbInstance.query(
+				sql.unsafe`drop database if exists ${sql.identifier([testDbName])}`,
+			);
+			await dbInstance.end();
+
+			console.log(`dropped database ${testDbName}`);
+		}
+
+		return { database, httpServer, cleanup };
+	} catch (error) {
+		console.error("test setup failed", error);
+		process.exit(1);
 	}
-
-	return { database, httpServer, cleanup };
 }

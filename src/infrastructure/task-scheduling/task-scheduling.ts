@@ -84,5 +84,7 @@ export async function createTaskScheduling(
 		},
 	});
 
+	logger.info("task scheduling created", { queueName: name });
+
 	return boss as TaskScheduling;
 }
