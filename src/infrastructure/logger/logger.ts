@@ -23,9 +23,6 @@ export function createLogger(
 		packageJson: Pick<PackageJson, "name">;
 	},
 ): Logger {
-	if (process.env["CI"]?.length ?? 0) {
-		return console as unknown as Logger;
-	}
 	const logger = pino({
 		name: packageJson.name,
 		level: config.logLevel,

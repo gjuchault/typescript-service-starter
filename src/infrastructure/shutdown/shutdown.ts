@@ -62,7 +62,7 @@ export async function shutdown(dependencies: {
 		}
 
 		if (dependencies.cache !== undefined) {
-			await dependencies.cache.quit();
+			await dependencies.cache.close();
 			logger.debug("cache shut down");
 		}
 

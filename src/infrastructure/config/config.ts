@@ -14,7 +14,7 @@ const env = z
 		DATABASE_MAXIMUM_POOL_SIZE: z.string(),
 		DATABASE_IDLE_TIMEOUT: z.string(),
 		DATABASE_STATEMENT_TIMEOUT: z.string(),
-		REDIS_URL: z.string().optional(),
+		VALKEY_URL: z.string().optional(),
 		TRACING_SAMPLING: z.string(),
 		OTLP_TRACE_ENDPOINT: z.string().optional(),
 		OTLP_METRICS_ENDPOINT: z.string().optional(),
@@ -31,7 +31,7 @@ export type Config = {
 	databaseMaximumPoolSize: number;
 	databaseIdleTimeout: number;
 	databaseStatementTimeout: number;
-	redisUrl: string | undefined;
+	valkeyUrl: string | undefined;
 	tracingSampling: number;
 	otlpTraceEndpoint: string | undefined;
 	otlpMetricsEndpoint: string | undefined;
@@ -95,10 +95,10 @@ export const config: Config = {
 		.transform(transformMs)
 		.parse(env.DATABASE_STATEMENT_TIMEOUT),
 
-	redisUrl: z.string().url().optional().parse(env.REDIS_URL),
+	valkeyUrl: z.url().optional().parse(env.VALKEY_URL),
 
 	tracingSampling: z.coerce.number().min(0).max(1).parse(env.TRACING_SAMPLING),
 
-	otlpTraceEndpoint: z.string().url().optional().parse(env.OTLP_TRACE_ENDPOINT),
+	otlpTraceEndpoint: z.url().optional().parse(env.OTLP_TRACE_ENDPOINT),
 	otlpMetricsEndpoint: z.url().optional().parse(env.OTLP_METRICS_ENDPOINT),
 };

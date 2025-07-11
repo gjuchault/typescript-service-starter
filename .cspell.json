@@ -12,6 +12,8 @@
 		"Millis",
 		"nonpositive",
 		"octocat",
+		"pexpire",
+		"pttl",
 		"slonik",
 		"tcpsocketwrap",
 		"timestamptz",
@@ -19,6 +21,7 @@
 		"traceparent",
 		"umzug",
 		"unlog",
+		"valkey",
 		"weakcb"
 	],
 	"flagWords": [],

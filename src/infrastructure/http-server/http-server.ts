@@ -12,7 +12,7 @@ import session from "@fastify/session";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
 import { context, propagation, SpanKind } from "@opentelemetry/api";
-import { RedisStore } from "connect-redis";
+import { ValkeyStore } from "connect-valkey";
 import {
 	type FastifyBaseLogger,
 	type FastifyInstance,
@@ -34,6 +34,7 @@ import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";
 import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
 import type { Span, Telemetry } from "../telemetry/telemetry.ts";
+import { RateLimitValkeyStore } from "./rate-limit-valkey.ts";
 
 export type HttpServer = FastifyInstance<
 	Server,
@@ -137,16 +138,21 @@ export async function createHttpServer({
 	await httpServer.register(formBody);
 	await httpServer.register(helmet);
 	await httpServer.register(multipart);
-	await httpServer.register(rateLimit, {
-		redis: cache ?? null,
-	});
+
+	if (cache !== undefined) {
+		RateLimitValkeyStore.setClient(cache);
+		await httpServer.register(rateLimit, {
+			store: RateLimitValkeyStore,
+		});
+	} else {
+		await httpServer.register(rateLimit, { max: 100, timeWindow: "1 minute" });
+	}
+
 	await httpServer.register(cookie);
 	await httpServer.register(session, {
 		secret: [config.httpCookieSigningSecret],
 		...(cache !== undefined
-			? {
-					store: new RedisStore({ client: cache }),
-				}
+			? { store: new ValkeyStore({ client: cache }) }
 			: {}),
 	});
 	await httpServer.register(underPressure);

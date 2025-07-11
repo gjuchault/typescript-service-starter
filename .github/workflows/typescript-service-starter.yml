@@ -90,11 +90,16 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis
+      valkey:
+        image: valkey/valkey:8-alpine
         ports:
           - 6379:6379
-        options: --entrypoint redis-server
+        options: >-
+          --health-cmd "valkey-cli -h 127.0.0.1 -p 6379 ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -105,7 +110,7 @@ jobs:
       - name: Build environment
         run: |
           echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
-          echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
+          echo "VALKEY_URL=valkey://localhost:${{ job.services.valkey.ports[6379] }}" >> $GITHUB_ENV
           echo "HTTP_COOKIE_SIGNING_SECRET=$(node --run generate-secret)" >> $GITHUB_ENV
       - name: ⚡ Tests
         run: node --run test:coverage
@@ -142,11 +147,17 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      redis:
-        image: redis
+
+      valkey:
+        image: valkey/valkey:8-alpine
         ports:
           - 6379:6379
-        options: --entrypoint redis-server
+        options: >-
+          --health-cmd "valkey-cli -h 127.0.0.1 -p 6379 ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -157,7 +168,7 @@ jobs:
       - name: Build environment
         run: |
           echo "DATABASE_URL=postgres://user:pwd@localhost:${{ job.services.postgres.ports[5432] }}/db" >> $GITHUB_ENV
-          echo "REDIS_URL=redis://localhost:${{ job.services.redis.ports[6379] }}" >> $GITHUB_ENV
+          echo "VALKEY_URL=valkey://localhost:${{ job.services.valkey.ports[6379] }}" >> $GITHUB_ENV
           echo "HTTP_COOKIE_SIGNING_SECRET=$(node --run generate-secret)" >> $GITHUB_ENV
       - name: 📦 Generate client
         run: node --run generate-client
