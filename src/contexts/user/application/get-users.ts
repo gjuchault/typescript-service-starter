@@ -1,6 +1,7 @@
 import type { ExtendResult } from "../../../helpers/result.ts";
 import type { Config } from "../../../infrastructure/config/config.ts";
 import type { Database } from "../../../infrastructure/database/database.ts";
+import type { TaskScheduling } from "../../../infrastructure/task-scheduling/task-scheduling.ts";
 import type { Telemetry } from "../../../infrastructure/telemetry/telemetry.ts";
 import type { PackageJson } from "../../../packageJson.ts";
 import type { GetUsersFilters } from "../repository/get-by-ids.ts";
@@ -14,6 +15,7 @@ export type GetUsersDependencies = {
 	telemetry: Telemetry;
 	userRepository: Pick<UserRepository, "getByIds">;
 	database: Database;
+	taskScheduling: Pick<TaskScheduling, "sendInTransaction">;
 	config: Pick<Config, "logLevel">;
 	packageJson: Pick<PackageJson, "name">;
 };
@@ -24,6 +26,7 @@ export async function getUsers(
 		telemetry,
 		userRepository,
 		database,
+		taskScheduling,
 		config,
 		packageJson,
 	}: GetUsersDependencies,
@@ -33,7 +36,7 @@ export async function getUsers(
 		async () => {
 			const users = await userRepository.getByIds(
 				{ ids },
-				{ telemetry, database, config, packageJson },
+				{ telemetry, database, config, packageJson, taskScheduling },
 			);
 
 			return users;

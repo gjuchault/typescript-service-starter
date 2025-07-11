@@ -35,8 +35,6 @@ async function bundle() {
 		},
 	});
 
-	// biome-ignore lint/suspicious/noConsoleLog: script
-	// biome-ignore lint/suspicious/noConsole: script
 	console.log(`📦 bundled in ${Date.now() - startTime}ms`);
 }
 

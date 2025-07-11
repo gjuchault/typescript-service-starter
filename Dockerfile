@@ -1,4 +1,4 @@
-FROM node:23.5.0-alpine
+FROM node:24.3.0-alpine
 
 HEALTHCHECK \
 	--interval=60s \
@@ -17,4 +17,10 @@ ENV NODE_OPTIONS="--enable-source-maps"
 
 COPY build/ /app/build/
 
-CMD node --env-file=.env --env-file-if-exists=.env.local ./build/migrate.js up ; node --env-file=.env --env-file-if-exists=.env.local ./build/index.js
+COPY --chmod=755 <<EOT /app/entrypoint.sh
+#!/usr/bin/env sh
+set -e
+node --env-file=.env --env-file-if-exists=.env.local ./build/migrate.js up
+exec node --env-file=.env --env-file-if-exists=.env.local ./build/index.js
+EOT
+CMD ["/app/entrypoint.sh"]

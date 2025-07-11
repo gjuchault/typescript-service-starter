@@ -66,8 +66,6 @@ async function setup() {
 	const userMail = input.userMail?.trim();
 
 	if (!(packageName !== "" && githubUserName !== "")) {
-		// biome-ignore lint/suspicious/noConsole: script
-		// biome-ignore lint/suspicious/noConsoleLog: script
 		console.log("User input missing. Exiting");
 		process.exit(1);
 	}
@@ -90,8 +88,6 @@ export async function run({
 
 	await commitAll("chore: typescript-service-starter");
 
-	// biome-ignore lint/suspicious/noConsole: script
-	// biome-ignore lint/suspicious/noConsoleLog: script
 	console.log("Ready to go 🚀");
 }
 
@@ -275,12 +271,12 @@ async function logAsyncTask<Resolve>(
 	message: string,
 	promise: Promise<Resolve>,
 ) {
-	process.stdout.write(message);
+	if ("write" in process.stdout && typeof process.stdout.write === "function") {
+		process.stdout.write(message);
+	}
 
 	const output = await promise;
 
-	// biome-ignore lint/suspicious/noConsole: script
-	// biome-ignore lint/suspicious/noConsoleLog: script
 	console.log(" ✅");
 
 	return output;

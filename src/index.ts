@@ -1,14 +1,15 @@
 import { asyncExitHook } from "exit-hook";
 import { isMain } from "is-main";
 import ms from "ms";
+import { promiseWithTimeout } from "./helpers/promise-with-timeout.ts";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createDatabase } from "./infrastructure/database/database.ts";
 import {
-	type HttpServer,
 	createHttpServer,
+	type HttpServer,
 } from "./infrastructure/http-server/http-server.ts";
-import { type Logger, createLogger } from "./infrastructure/logger/logger.ts";
+import { createLogger, type Logger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
 import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
@@ -17,7 +18,10 @@ import { type PackageJson, packageJson } from "./packageJson.ts";
 export async function startApp({
 	config,
 	packageJson,
-}: { config: Config; packageJson: PackageJson }): Promise<{
+}: {
+	config: Config;
+	packageJson: PackageJson;
+}): Promise<{
 	appShutdown(): Promise<void>;
 	httpServer: HttpServer;
 	logger: Logger;
@@ -32,48 +36,46 @@ export async function startApp({
 			spanName: "index@startApp",
 			options: { root: true },
 		},
-		async () => {
-			const cache = await createCacheStorage({
-				telemetry,
-				config,
-				packageJson,
-			});
-			const database = await createDatabase({
-				telemetry,
-				config,
-				packageJson,
-			});
-			const taskScheduling =
-				cache !== undefined
-					? await createTaskScheduling(
-							{ queueName: "jobs" },
-							{ telemetry, config, cache, packageJson },
-						)
-					: undefined;
-
-			const httpServer = await createHttpServer({
-				telemetry,
-				database,
-				cache,
-				config,
-				packageJson,
-			});
-
-			async function appShutdown() {
-				await shutdown({
-					httpServer,
-					worker: undefined,
+		() =>
+			promiseWithTimeout(ms("10s"), async () => {
+				const cache = await createCacheStorage({
 					telemetry,
-					cache,
-					taskScheduling,
-					database,
 					config,
 					packageJson,
 				});
-			}
+				const database = await createDatabase({
+					telemetry,
+					config,
+					packageJson,
+				});
+				const taskScheduling = await createTaskScheduling(
+					{ queueName: "jobs" },
+					{ telemetry, config, packageJson },
+				);
 
-			return { httpServer, logger, appShutdown };
-		},
+				const httpServer = await createHttpServer({
+					telemetry,
+					database,
+					cache,
+					config,
+					packageJson,
+					taskScheduling,
+				});
+
+				async function appShutdown() {
+					await shutdown({
+						httpServer,
+						telemetry,
+						cache,
+						taskScheduling,
+						database,
+						config,
+						packageJson,
+					});
+				}
+
+				return { httpServer, logger, appShutdown };
+			}),
 	);
 }
 

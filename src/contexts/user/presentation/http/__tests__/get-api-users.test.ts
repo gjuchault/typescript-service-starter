@@ -1,15 +1,15 @@
 import { deepEqual, equal } from "node:assert/strict";
-import { test } from "node:test";
+import { after, before, describe, it } from "node:test";
 import { sql } from "slonik";
 import {
 	type SetupResult,
 	setup,
 } from "../../../../../test-helpers/test-setup.ts";
 
-await test("GET /api/users", async (ctx) => {
+await describe("GET /api/users", async () => {
 	let setupResult: SetupResult;
 
-	ctx.before(async () => {
+	await before(async () => {
 		setupResult = await setup();
 
 		await setupResult.database.query(sql.unsafe`
@@ -19,20 +19,24 @@ await test("GET /api/users", async (ctx) => {
 		`);
 	});
 
-	ctx.after(async () => {
+	await after(async () => {
 		await setupResult.cleanup();
 	});
 
-	await test("when called with no ids", async () => {
+	await it("returns every user when called with no ids", async () => {
 		const result = await setupResult.httpServer.inject({
 			method: "GET",
 			url: "/api/users",
 		});
 
-		equal(result.statusCode, 400);
+		equal(result.statusCode, 200);
+		deepEqual(result.json(), [
+			{ id: 1, name: "Alice", email: "alice@gmail.com" },
+			{ id: 2, name: "Bob", email: "bob@gmail.com" },
+		]);
 	});
 
-	await test("when called with a single id", async () => {
+	await it("return a single user when called with a single id", async () => {
 		const result = await setupResult.httpServer.inject({
 			method: "GET",
 			url: "/api/users",
@@ -45,7 +49,7 @@ await test("GET /api/users", async (ctx) => {
 		]);
 	});
 
-	await test("when called with multiple id", async () => {
+	await it("returns multiple users when called with multiple id", async () => {
 		const result = await setupResult.httpServer.inject({
 			method: "GET",
 			url: "/api/users",

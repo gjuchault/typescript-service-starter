@@ -3,13 +3,13 @@ import {
 	ATTR_DB_NAMESPACE,
 	ATTR_DB_OPERATION_NAME,
 	ATTR_DB_QUERY_TEXT,
-	ATTR_DB_SYSTEM,
+	ATTR_DB_SYSTEM_NAME,
 	ATTR_SERVER_ADDRESS,
 	ATTR_SERVER_PORT,
-	DB_SYSTEM_VALUE_POSTGRESQL,
-} from "@opentelemetry/semantic-conventions/incubating";
+} from "@opentelemetry/semantic-conventions";
+import { DB_SYSTEM_VALUE_POSTGRESQL } from "@opentelemetry/semantic-conventions/incubating";
 import { type CommonQueryMethods, createPool, sql } from "slonik";
-import { z } from "zod";
+import * as z from "zod";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
@@ -50,6 +50,7 @@ export async function createDatabase({
 				maximumPoolSize: config.databaseMaximumPoolSize,
 				interceptors: [
 					{
+						name: "telemetry",
 						beforeQueryExecution(queryContext, query) {
 							const span = telemetry.startSpan({
 								spanName: "infrastructure/database/database@query",
@@ -102,7 +103,7 @@ function getCommonSpanOptions(databaseUrlAsString: string) {
 	databaseUrl.password = "";
 
 	return {
-		[ATTR_DB_SYSTEM]: DB_SYSTEM_VALUE_POSTGRESQL,
+		[ATTR_DB_SYSTEM_NAME]: DB_SYSTEM_VALUE_POSTGRESQL,
 		[ATTR_DB_NAMESPACE]: databaseUrl.pathname.slice(1),
 		[ATTR_SERVER_ADDRESS]: databaseUrl.hostname,
 		[ATTR_SERVER_PORT]: databaseUrl.port,

@@ -14,7 +14,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      valkey:
         condition: service_healthy
       prometheus:
         condition: service_healthy
@@ -25,7 +25,7 @@ services:
       - .env.local
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/typescript-service-starter
-      REDIS_URL: redis://redis:6379
+      VALKEY_URL: valkey://valkey:6379
       HTTP_ADDRESS: 0.0.0.0
       HTTP_PORT: 3000
       OTLP_TRACE_ENDPOINT: http://jaeger:4318
@@ -48,13 +48,13 @@ services:
       start_interval: 5s
       retries: 5
 
-  redis:
-    container_name: redis
-    image: eqalpha/keydb
+  valkey:
+    container_name: valkey
+    image: valkey/valkey:8-alpine
     ports:
       - 6379:6379
     healthcheck:
-      test: keydb-cli -h 127.0.0.1 -p 6379 ping
+      test: valkey-cli -h 127.0.0.1 -p 6379 ping
       interval: 30s
       timeout: 5s
       start_period: 15s

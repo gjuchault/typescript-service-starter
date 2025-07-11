@@ -20,25 +20,29 @@ async function runTests({
 	await initialSetup();
 
 	return new Promise((resolve, reject) => {
-		const nodeProcess = spawn(
-			program,
-			[
-				...programOptions,
-				"--disable-warning=ExperimentalWarning",
-				"--experimental-strip-types",
-				"--env-file=.env",
-				"--env-file-if-exists=.env.local",
-				"--test",
-				...nodeOptions,
-				filesFilter !== "" ? filesFilter : "src/**/*.test.ts",
-			],
-			{ stdio: "inherit", env: { ...process.env, ...env } },
-		);
+		const options = [
+			...programOptions,
+			"--disable-warning=ExperimentalWarning",
+			"--experimental-strip-types",
+			"--env-file=.env",
+			"--env-file-if-exists=.env.local",
+			"--test",
+			...nodeOptions,
+			filesFilter !== "" ? filesFilter : "src/**/*.test.ts",
+		];
+
+		const envStr = Object.entries(env)
+			.map(([key, value]) => `${key}=${value}`)
+			.join(" ");
+
+		console.log(`${envStr} ${program} ${options.join(" ")}`);
+		const nodeProcess = spawn(program, options, {
+			stdio: "inherit",
+			env: { ...process.env, ...env },
+		});
 
 		nodeProcess.on("close", (code) => {
 			if (code === 0) {
-				// biome-ignore lint/suspicious/noConsole: script file
-				// biome-ignore lint/suspicious/noConsoleLog: script file
 				console.log(`🚀 ran tests in ${Date.now() - time}ms`);
 
 				resolve();
@@ -70,7 +74,6 @@ if (isMain(import.meta)) {
 			program: "c8",
 			programOptions: ["-r", "html", "node"],
 			env: {
-				// biome-ignore lint/style/useNamingConvention: node options
 				NODE_V8_COVERAGE: "./coverage",
 			},
 		});

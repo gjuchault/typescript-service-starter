@@ -1,6 +1,6 @@
 // TODO: investigate using Temporal instead
 
-import { z } from "zod";
+import * as z from "zod";
 
 export const validDateTimeSchema = z
 	.union([z.string(), z.date(), z.number()])

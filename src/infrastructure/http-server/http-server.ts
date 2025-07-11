@@ -11,8 +11,8 @@ import rateLimit from "@fastify/rate-limit";
 import session from "@fastify/session";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
-import { SpanKind, context, propagation } from "@opentelemetry/api";
-import { RedisStore } from "connect-redis";
+import { context, propagation, SpanKind } from "@opentelemetry/api";
+import { ValkeyStore } from "connect-valkey";
 import {
 	type FastifyBaseLogger,
 	type FastifyInstance,
@@ -21,9 +21,9 @@ import {
 	fastify,
 } from "fastify";
 import {
-	type ZodTypeProvider,
 	serializerCompiler,
 	validatorCompiler,
+	type ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import yamlJs from "yamljs";
 import { bindUserRoutes } from "../../contexts/user/presentation/http/index.ts";
@@ -32,7 +32,9 @@ import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
 import type { Span, Telemetry } from "../telemetry/telemetry.ts";
+import { RateLimitValkeyStore } from "./rate-limit-valkey.ts";
 
 export type HttpServer = FastifyInstance<
 	Server,
@@ -50,6 +52,7 @@ export async function createHttpServer({
 	telemetry,
 	database,
 	cache,
+	taskScheduling,
 	config,
 	packageJson,
 }: {
@@ -57,6 +60,7 @@ export async function createHttpServer({
 	database: Database;
 	cache: Cache | undefined;
 	config: Config;
+	taskScheduling: Pick<TaskScheduling, "sendInTransaction">;
 	packageJson: Pick<
 		PackageJson,
 		"name" | "version" | "author" | "description" | "license"
@@ -67,6 +71,11 @@ export async function createHttpServer({
 	});
 
 	const logger = createLogger("http-server", { config, packageJson });
+
+	logger.info("creating http server", {
+		address: config.httpAddress,
+		port: config.httpPort,
+	});
 
 	const spanByRequestId = new Map<string, Span>();
 
@@ -129,13 +138,22 @@ export async function createHttpServer({
 	await httpServer.register(formBody);
 	await httpServer.register(helmet);
 	await httpServer.register(multipart);
-	await httpServer.register(rateLimit, {
-		redis: cache,
-	});
+
+	if (cache !== undefined) {
+		RateLimitValkeyStore.setClient(cache);
+		await httpServer.register(rateLimit, {
+			store: RateLimitValkeyStore,
+		});
+	} else {
+		await httpServer.register(rateLimit, { max: 100, timeWindow: "1 minute" });
+	}
+
 	await httpServer.register(cookie);
 	await httpServer.register(session, {
 		secret: [config.httpCookieSigningSecret],
-		store: new RedisStore({ client: cache }),
+		...(cache !== undefined
+			? { store: new ValkeyStore({ client: cache }) }
+			: {}),
 	});
 	await httpServer.register(underPressure);
 	await httpServer.register(swagger, {
@@ -211,20 +229,24 @@ export async function createHttpServer({
 	});
 
 	httpServer.get("/api/healthcheck", (_request, reply) => {
-		return reply.status(204).send();
+		return reply.status(200).send();
 	});
 
 	httpServer.get("/api/docs", (_request, reply) => {
 		return reply.send(httpServer.swagger());
 	});
 
-	bindUserRoutes({ database, httpServer, telemetry });
+	bindUserRoutes({ database, httpServer, telemetry, taskScheduling });
 
 	httpServer.addHook("onListen", () => {
 		logger.info(
 			`http server listening on ${config.httpAddress}:${config.httpPort}`,
 		);
 	});
+
+	await httpServer.ready();
+
+	logger.info("http server ready");
 
 	span.end();
 

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const userIdSchema = z.number().brand<"UserId">();
 export const userNameSchema = z.string().brand<"UserName">();
