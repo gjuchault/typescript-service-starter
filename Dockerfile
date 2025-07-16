@@ -12,6 +12,8 @@ WORKDIR /app
 COPY package.json /app/
 COPY .env .env.local /app/
 
+RUN npm install @valkey/valkey-glide
+
 ENV NODE_ENV=production
 ENV NODE_OPTIONS="--enable-source-maps"
 

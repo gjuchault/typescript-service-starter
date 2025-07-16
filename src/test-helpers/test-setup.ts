@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "slonik";
+import { gen, never } from "ts-flowgen";
+import * as z from "zod";
+import { flowOrThrow } from "../helpers/result.ts";
 import { startApp } from "../index.ts";
 import { config } from "../infrastructure/config/config.ts";
 import type { Database } from "../infrastructure/database/database.ts";
@@ -11,58 +14,83 @@ import { getDatabase, replaceDatabaseInUrl } from "./get-database.ts";
 export type SetupResult = {
 	database: Database;
 	httpServer: HttpServer;
-	cleanup: () => Promise<void>;
+	cleanup: () => AsyncGenerator<unknown, void>;
 };
 
-export async function setup(): Promise<SetupResult> {
-	try {
-		const postgresInstance = await getDatabase("postgres");
+async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
+	const postgresInstance = yield* getDatabase("postgres");
 
-		const uniqueDbId = BigInt(`0x${randomUUID().replaceAll("-", "")}`)
-			.toString(36)
-			.substring(0, 8);
-		const testDbName = `${templateDbName}-${uniqueDbId}`;
+	const uniqueDbId = BigInt(`0x${randomUUID().replaceAll("-", "")}`)
+		.toString(36)
+		.substring(0, 8);
+	const testDbName = `${templateDbName}-${uniqueDbId}`;
 
-		console.log(
-			`creating database ${testDbName} with template ${templateDbName}`,
+	console.log(
+		`creating database ${testDbName} with template ${templateDbName}`,
+	);
+	yield* postgresInstance.query(
+		sql.type(
+			z.unknown(),
+		)`create database ${sql.identifier([testDbName])} template ${sql.identifier([templateDbName])}`,
+	);
+
+	if (postgresInstance.end === undefined) {
+		yield new Error(
+			"postgresInstance.end is undefined - did you pass a transaction?",
 		);
-		await postgresInstance.query(
-			sql.unsafe`create database ${sql.identifier([testDbName])} template ${sql.identifier([templateDbName])}`,
-		);
-		await postgresInstance.end();
+		return never();
+	}
 
-		const database = await getDatabase(testDbName);
+	yield* postgresInstance.end();
 
-		console.log(`created database ${testDbName}`);
+	const database = yield* getDatabase(testDbName);
 
-		const { httpServer, appShutdown } = await startApp({
-			config: {
-				...config,
-				databaseUrl: replaceDatabaseInUrl(config.databaseUrl, testDbName),
-				logLevel: "warn",
-			},
-			packageJson,
-		});
+	console.log(`created database ${testDbName}`);
 
-		// Wait for the server to be ready
-		await httpServer.ready();
+	const { httpServer, appShutdown } = yield* startApp({
+		config: {
+			...config,
+			databaseUrl: replaceDatabaseInUrl(config.databaseUrl, testDbName),
+			logLevel: "warn",
+		},
+		packageJson,
+	});
+	console.log("app started");
 
-		async function cleanup() {
-			await database.end();
-			await appShutdown();
+	// Wait for the server to be ready
+	yield* gen(async () => await httpServer.ready())();
 
-			const dbInstance = await getDatabase("postgres");
-			await dbInstance.query(
-				sql.unsafe`drop database if exists ${sql.identifier([testDbName])}`,
+	console.log("server ready");
+
+	async function* cleanup() {
+		if (database.end === undefined) {
+			yield new Error(
+				"database.end is undefined - did you pass a transaction?",
 			);
-			await dbInstance.end();
-
-			console.log(`dropped database ${testDbName}`);
+			return never();
 		}
 
-		return { database, httpServer, cleanup };
-	} catch (error) {
-		console.error("test setup failed", error);
-		process.exit(1);
+		yield* database.end();
+		yield* appShutdown();
+
+		const dbInstance = yield* getDatabase("postgres");
+		yield* dbInstance.query(
+			sql.type(
+				z.unknown(),
+			)`drop database if exists ${sql.identifier([testDbName])}`,
+		);
+		if (dbInstance.end === undefined) {
+			yield new Error(
+				"postgresInstance.end is undefined - did you pass a transaction?",
+			);
+			return never();
+		}
+		yield* dbInstance.end();
+
+		console.log(`dropped database ${testDbName}`);
 	}
+
+	return { database, httpServer, cleanup };
 }
+
+export const setup = () => flowOrThrow(setupGen);

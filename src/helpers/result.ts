@@ -1,25 +1,79 @@
-export type Err<_, E> = { readonly ok: false; readonly error: E };
-export type Ok<T, _> = { readonly ok: true; readonly value: T };
+import { flow, gen } from "ts-flowgen";
 
-export type GetOk<T> = T extends Ok<infer R, infer _> ? R : never;
-export type GetErr<T> = T extends Err<infer _, infer R> ? R : never;
+export type WrappedObjectMethods<Object, Error> = {
+	[K in keyof Object]: Object[K] extends (...args: infer Args) => infer Return
+		? (
+				...args: Args
+			) => Return extends Promise<infer P>
+				? AsyncGenerator<Error, P>
+				: AsyncGenerator<Error, Return>
+		: Object[K];
+} & { unwrapped: Object };
 
-export type Result<T, E> = Ok<T, E> | Err<T, E>;
+export function wrapObjectMethods<Object, Error>(
+	obj: Object,
+	unhandledError: (err: unknown) => Error,
+): WrappedObjectMethods<Object, Error> {
+	const wrappedObj = {} as WrappedObjectMethods<Object, Error>;
 
-type IsNever<T> = [T] extends [never] ? true : false;
-export type ExtendResult<R, E2 = never, T2 = never> = R extends Result<
-	infer T,
-	infer E
->
-	? IsNever<T2> extends true
-		? Result<T, E | E2>
-		: Result<T2, E | E2>
-	: never;
+	if (typeof obj !== "object" || obj === null) {
+		return obj as WrappedObjectMethods<Object, Error>;
+	}
 
-export function ok<T, E = never>(value: T): Ok<T, E> {
-	return { ok: true, value };
+	for (const [key, value] of Object.entries(obj)) {
+		Object.defineProperty(wrappedObj, key, {
+			value:
+				typeof value === "function"
+					? gen(value.bind(obj), unhandledError)
+					: value,
+			writable: true,
+			enumerable: true,
+			configurable: true,
+		});
+	}
+
+	if (obj.constructor !== Object) {
+		for (const key of getInstanceMethods(obj)) {
+			Object.defineProperty(wrappedObj, key, {
+				value:
+					typeof obj[key] === "function"
+						? gen(obj[key].bind(obj), unhandledError)
+						: obj[key],
+				writable: true,
+				enumerable: true,
+				configurable: true,
+			});
+		}
+	}
+
+	return { ...wrappedObj, unwrapped: obj };
 }
 
-export function err<T = never, E = unknown>(error: E): Err<T, E> {
-	return { ok: false, error };
+function getInstanceMethods<Object>(instance: Object): (keyof Object)[] {
+	return Object.getOwnPropertyNames(Object.getPrototypeOf(instance)).filter(
+		(key) => key !== "constructor",
+	) as (keyof Object)[];
+}
+
+export async function* noop(): AsyncGenerator<never, void> {}
+
+export async function* noopReturn<T>(value: T): AsyncGenerator<never, T> {
+	yield* noop();
+	return value;
+}
+
+export function unwrap<Value>(
+	result: { ok: true; value: Value } | { ok: false; error: unknown },
+): Value {
+	if (result.ok === false) {
+		throw new Error("Unwrapping error", { cause: result.error });
+	}
+
+	return result.value;
+}
+
+export async function flowOrThrow<Value>(
+	callback: () => AsyncGenerator<unknown, Value>,
+): Promise<Value> {
+	return unwrap(await flow(callback));
 }

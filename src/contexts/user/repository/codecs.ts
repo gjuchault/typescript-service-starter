@@ -22,4 +22,4 @@ export const databaseUserToUserSchema = userInDatabaseSchema
 		name: userNameSchema.parse(user.name),
 		email: userEmailSchema.parse(user.email),
 	}))
-	.transform((_) => userInDatabaseSchema.parse(_));
+	.transform((_) => userSchema.parse(_));

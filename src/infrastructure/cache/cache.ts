@@ -1,6 +1,10 @@
 import { GlideClient } from "@valkey/valkey-glide";
 import ms from "ms";
-import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
+import { gen, timeout } from "ts-flowgen";
+import {
+	type WrappedObjectMethods,
+	wrapObjectMethods,
+} from "../../helpers/result.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
@@ -12,13 +16,20 @@ interface Dependencies {
 	packageJson: Pick<PackageJson, "name">;
 }
 
-export type Cache = GlideClient;
+export interface ValkeyError {
+	name: "valkeyError";
+	error: unknown;
+}
 
-export async function createCacheStorage({
+export type Cache = WrappedObjectMethods<GlideClient, ValkeyError> & {
+	unwrapped: GlideClient;
+};
+
+export async function* createCacheStorage({
 	telemetry,
 	config,
 	packageJson,
-}: Dependencies): Promise<Cache | undefined> {
+}: Dependencies) {
 	const span = telemetry.startSpan({
 		spanName: "infrastructure/cache/cache@createCacheStorage",
 	});
@@ -34,10 +45,8 @@ export async function createCacheStorage({
 
 	logger.debug("connecting to valkey...");
 
-	let valkey: GlideClient;
-
-	try {
-		valkey = await GlideClient.createClient({
+	async function connectToValkey(): Promise<GlideClient> {
+		return await GlideClient.createClient({
 			addresses: [
 				{
 					host: url.hostname,
@@ -49,16 +58,16 @@ export async function createCacheStorage({
 				connectionTimeout: 500,
 			},
 		});
-
-		await promiseWithTimeout(ms("2s"), () => valkey.echo("1"));
-	} catch (error) {
-		logger.error("valkey connection error", { error });
-		throw error;
 	}
+
+	const valkey = yield* timeout(ms("2s"), gen(connectToValkey)())();
 
 	logger.info("connected to valkey");
 
 	span.end();
 
-	return valkey;
+	return wrapObjectMethods(
+		valkey,
+		(error) => ({ name: "valkeyError", error }) satisfies ValkeyError,
+	);
 }

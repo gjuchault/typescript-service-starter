@@ -17,7 +17,7 @@ async function bundle() {
 		target: "node23",
 		format: "esm",
 		sourcemap: true,
-		external: ["pg-native"],
+		external: ["pg-native", "@valkey/valkey-glide"],
 		bundle: true,
 		banner: {
 			js: [

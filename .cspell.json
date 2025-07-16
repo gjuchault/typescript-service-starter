@@ -5,6 +5,7 @@
 		"bytea",
 		"datname",
 		"eventloop",
+		"flowgen",
 		"formbody",
 		"fsreqcallback",
 		"gjuchault",

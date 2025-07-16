@@ -18,6 +18,7 @@ import {
 } from "@opentelemetry/resources";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
+import { flow, type GenError, gen } from "ts-flowgen";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
@@ -36,12 +37,12 @@ export interface SpanPayload {
 }
 
 export type Telemetry = {
-	shutdown(): Promise<void>;
+	shutdown(): AsyncGenerator<unknown, void>;
 	startSpan(payload: SpanPayload & { forceActive?: boolean }): Span;
-	startSpanWith<Output>(
+	startSpanWith<Output, Err>(
 		payload: SpanPayload,
-		callback: (span: Span) => Promise<Output>,
-	): Promise<Output>;
+		callback: (span: Span) => AsyncGenerator<Err, Output>,
+	): AsyncGenerator<Err, Output>;
 };
 
 export const mockSpan: Span = {
@@ -57,14 +58,14 @@ export const mockSpan: Span = {
 };
 
 export const mockTelemetry: Telemetry = {
-	shutdown: async () => {
+	shutdown: async function* () {
 		/* no-op */
 	},
 	startSpan(_: SpanPayload): Span {
 		return mockSpan;
 	},
-	async startSpanWith(_, callback) {
-		return await callback(mockSpan);
+	startSpanWith(_, callback) {
+		return callback(mockSpan);
 	},
 };
 
@@ -127,13 +128,14 @@ export function createTelemetry({
 	const tracer = trace.getTracer(packageJson.name, packageJson.version);
 
 	return {
-		shutdown: () => sdk.shutdown(),
+		shutdown: gen(() => sdk.shutdown()),
 		startSpan(payload) {
 			const span = tracer.startSpan(payload.spanName, payload.options);
 
 			return span;
 		},
-		async startSpanWith(payload, callback) {
+		startSpanWith(payload, callback) {
+			console.log("startSpanWith", payload);
 			const parentContext = payload.context ?? context.active();
 			const span = tracer.startSpan(
 				payload.spanName,
@@ -143,15 +145,15 @@ export function createTelemetry({
 
 			const contextWithSpanSet = trace.setSpan(parentContext, span);
 
-			return await context.with(
-				contextWithSpanSet,
-				async function subCallback() {
-					try {
-						const result = await callback(span);
-						span.setStatus({ code: SpanStatusCode.OK });
+			async function wrapper() {
+				return await context.with(contextWithSpanSet, async () => {
+					const result = await flow(async function* () {
+						const data = yield* callback(span);
+						return data;
+					});
 
-						return result;
-					} catch (err) {
+					if (result.ok === false) {
+						const err = result.error;
 						span.setStatus({
 							code: SpanStatusCode.ERROR,
 							message:
@@ -159,14 +161,22 @@ export function createTelemetry({
 									? String(err.message)
 									: String(err),
 						});
-						throw err;
-					} finally {
 						span.end();
+
+						throw err;
+					} else {
+						span.setStatus({ code: SpanStatusCode.OK });
+						span.end();
+
+						return result.value;
 					}
-				},
-				undefined,
-				span,
-			);
+				});
+			}
+
+			return gen(
+				wrapper,
+				(err) => err as GenError<ReturnType<typeof callback>>,
+			)();
 		},
 	};
 }

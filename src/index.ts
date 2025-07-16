@@ -1,59 +1,54 @@
 import { asyncExitHook } from "exit-hook";
 import { isMain } from "is-main";
 import ms from "ms";
-import { promiseWithTimeout } from "./helpers/promise-with-timeout.ts";
+import { timeout } from "ts-flowgen";
+import { flowOrThrow } from "./helpers/result.ts";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createDatabase } from "./infrastructure/database/database.ts";
-import {
-	createHttpServer,
-	type HttpServer,
-} from "./infrastructure/http-server/http-server.ts";
-import { createLogger, type Logger } from "./infrastructure/logger/logger.ts";
+import { createHttpServer } from "./infrastructure/http-server/http-server.ts";
+import { createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
 import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
 import { type PackageJson, packageJson } from "./packageJson.ts";
 
-export async function startApp({
+export async function* startApp({
 	config,
 	packageJson,
 }: {
 	config: Config;
 	packageJson: PackageJson;
-}): Promise<{
-	appShutdown(): Promise<void>;
-	httpServer: HttpServer;
-	logger: Logger;
-}> {
+}) {
 	const logger = createLogger("app", { config, packageJson });
 	logger.info("starting app...");
 
 	const telemetry = createTelemetry({ config, packageJson });
 
-	return await telemetry.startSpanWith(
+	return yield* telemetry.startSpanWith(
 		{
 			spanName: "index@startApp",
 			options: { root: true },
 		},
-		() =>
-			promiseWithTimeout(ms("10s"), async () => {
-				const cache = await createCacheStorage({
+		timeout(
+			ms("10s"),
+			(async function* () {
+				const cache = yield* createCacheStorage({
 					telemetry,
 					config,
 					packageJson,
 				});
-				const database = await createDatabase({
+				const database = yield* createDatabase({
 					telemetry,
 					config,
 					packageJson,
 				});
-				const taskScheduling = await createTaskScheduling(
+				const taskScheduling = yield* createTaskScheduling(
 					{ queueName: "jobs" },
 					{ telemetry, config, packageJson },
 				);
 
-				const httpServer = await createHttpServer({
+				const httpServer = yield* createHttpServer({
 					telemetry,
 					database,
 					cache,
@@ -62,8 +57,8 @@ export async function startApp({
 					taskScheduling,
 				});
 
-				async function appShutdown() {
-					await shutdown({
+				async function* appShutdown() {
+					return yield* shutdown({
 						httpServer,
 						telemetry,
 						cache,
@@ -75,23 +70,28 @@ export async function startApp({
 				}
 
 				return { httpServer, logger, appShutdown };
-			}),
+			})(),
+		),
 	);
 }
 
 if (isMain(import.meta)) {
-	const { httpServer, appShutdown } = await startApp({
-		config,
-		packageJson,
-	});
+	const { httpServer, appShutdown } = await flowOrThrow(() =>
+		startApp({
+			config,
+			packageJson,
+		}),
+	);
 
 	await httpServer.listen({
 		host: config.httpAddress,
 		port: config.httpPort,
 	});
 
-	asyncExitHook(async () => await appShutdown(), { wait: ms("5s") });
+	const shutdown = () => flowOrThrow(() => appShutdown());
+
+	asyncExitHook(shutdown, { wait: ms("5s") });
 	// docker custom
-	process.on("SIGINT", async () => await appShutdown());
-	process.on("SIGTERM", async () => await appShutdown());
+	process.on("SIGINT", shutdown);
+	process.on("SIGTERM", shutdown);
 }

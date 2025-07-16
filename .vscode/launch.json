@@ -15,7 +15,52 @@
 				"test:inspect"
 			],
 			"smartStep": true,
-			"console": "integratedTerminal"
+			"console": "integratedTerminal",
+			"presentation": {
+				"clear": true,
+				"showReuseMessage": false,
+				"echo": false
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Server",
+			"autoAttachChildProcesses": true,
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+			"program": "./src/index.ts",
+			"runtimeArgs": [
+				"--env-file=.env",
+				"--env-file-if-exists=.env.local",
+				"./src/index.ts"
+			],
+			"smartStep": true,
+			"console": "integratedTerminal",
+			"presentation": {
+				"clear": true,
+				"showReuseMessage": false,
+				"echo": false
+			}
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Debug Worker",
+			"autoAttachChildProcesses": true,
+			"skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+			"program": "./src/index.ts",
+			"runtimeArgs": [
+				"--env-file=.env",
+				"--env-file-if-exists=.env.local",
+				"./src/worker.ts"
+			],
+			"smartStep": true,
+			"console": "integratedTerminal",
+			"presentation": {
+				"clear": true,
+				"showReuseMessage": false,
+				"echo": false
+			}
 		}
 	]
 }

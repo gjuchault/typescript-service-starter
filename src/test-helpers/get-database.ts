@@ -1,13 +1,10 @@
 import { config } from "../infrastructure/config/config.ts";
-import {
-	createDatabase,
-	type Database,
-} from "../infrastructure/database/database.ts";
+import { createDatabase } from "../infrastructure/database/database.ts";
 import { mockTelemetry } from "../infrastructure/telemetry/telemetry.ts";
 import { packageJson } from "../packageJson.ts";
 
-export async function getDatabase(overrideDbName: string): Promise<Database> {
-	return await createDatabase({
+export async function* getDatabase(overrideDbName: string) {
+	return yield* createDatabase({
 		config: {
 			...config,
 			logLevel: "warn",
