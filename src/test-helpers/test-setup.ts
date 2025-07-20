@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "slonik";
-import { gen, never, unsafeFlowOrThrow } from "ts-flowgen";
+import { gen, never } from "ts-flowgen";
 import * as z from "zod";
 import { startApp } from "../index.ts";
 import { config } from "../infrastructure/config/config.ts";
@@ -16,7 +16,7 @@ export type SetupResult = {
 	cleanup: () => AsyncGenerator<unknown, void>;
 };
 
-async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
+export async function* setup(): AsyncGenerator<unknown, SetupResult> {
 	const postgresInstance = yield* getDatabase("postgres");
 
 	const uniqueDbId = BigInt(`0x${randomUUID().replaceAll("-", "")}`)
@@ -24,9 +24,6 @@ async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
 		.substring(0, 8);
 	const testDbName = `${templateDbName}-${uniqueDbId}`;
 
-	console.log(
-		`creating database ${testDbName} with template ${templateDbName}`,
-	);
 	yield* postgresInstance.query(
 		sql.type(
 			z.unknown(),
@@ -44,8 +41,6 @@ async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
 
 	const database = yield* getDatabase(testDbName);
 
-	console.log(`created database ${testDbName}`);
-
 	const { httpServer, appShutdown } = yield* startApp({
 		config: {
 			...config,
@@ -54,12 +49,9 @@ async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
 		},
 		packageJson,
 	});
-	console.log("app started");
 
 	// Wait for the server to be ready
 	yield* gen(async () => await httpServer.ready())();
-
-	console.log("server ready");
 
 	async function* cleanup() {
 		if (database.end === undefined) {
@@ -85,11 +77,7 @@ async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
 			return never();
 		}
 		yield* dbInstance.end();
-
-		console.log(`dropped database ${testDbName}`);
 	}
 
 	return { database, httpServer, cleanup };
 }
-
-export const setup = () => unsafeFlowOrThrow(setupGen);

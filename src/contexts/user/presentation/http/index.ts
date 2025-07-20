@@ -23,7 +23,6 @@ export function bindUserRoutes({
 		method: "GET",
 		url: "/api/users",
 		handler: async (request, reply) => {
-			console.log("handler");
 			const parseIdsResult = z
 				.object({
 					ids: z
@@ -45,7 +44,6 @@ export function bindUserRoutes({
 				return;
 			}
 
-			console.log("before users service call");
 			const users = await flow(() =>
 				userService.getUsers(
 					{
@@ -64,7 +62,6 @@ export function bindUserRoutes({
 					},
 				),
 			);
-			console.log("after users service call");
 
 			if (users.ok === false) {
 				reply.code(500).send(users.error);

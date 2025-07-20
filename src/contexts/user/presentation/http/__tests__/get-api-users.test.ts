@@ -1,6 +1,7 @@
 import { deepEqual, equal } from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
 import { sql } from "slonik";
+import { unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
 import {
 	type SetupResult,
@@ -11,36 +12,26 @@ await describe("GET /api/users", async () => {
 	let setupResult: SetupResult;
 
 	await before(async () => {
-		try {
-			setupResult = await setup();
+		setupResult = await unsafeFlowOrThrow(setup);
 
-			await setupResult.database.query(sql.type(z.unknown())`
+		await unsafeFlowOrThrow(() =>
+			setupResult.database.query(sql.type(z.unknown())`
 				insert into users (id, name, email) values
 					(1, 'Alice', 'alice@gmail.com'),
 					(2, 'Bob', 'bob@gmail.com');
-			`);
-			console.log("before ends");
-		} catch (err) {
-			console.log("setup error", err);
-			throw err;
-		}
+			`),
+		);
 	});
 
 	await after(async () => {
-		try {
-			await setupResult.cleanup();
-		} catch (err: unknown) {
-			console.log("after fails", err);
-		}
+		await unsafeFlowOrThrow(setupResult.cleanup);
 	});
 
 	await it("returns every user when called with no ids", async () => {
-		console.log("before inject");
 		const result = await setupResult.httpServer.inject({
 			method: "GET",
 			url: "/api/users",
 		});
-		console.log("after inject");
 
 		equal(result.statusCode, 200);
 		deepEqual(result.json(), [

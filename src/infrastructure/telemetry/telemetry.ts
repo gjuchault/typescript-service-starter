@@ -135,7 +135,6 @@ export function createTelemetry({
 			return span;
 		},
 		startSpanWith(payload, callback) {
-			console.log("startSpanWith", payload);
 			const parentContext = payload.context ?? context.active();
 			const span = tracer.startSpan(
 				payload.spanName,
