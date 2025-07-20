@@ -1,7 +1,6 @@
 import { deepEqual, equal } from "node:assert/strict";
 import { describe, it, mock } from "node:test";
-import { flow } from "ts-flowgen";
-import { noopReturn } from "../../../../helpers/result.ts";
+import { flow, identity } from "ts-flowgen";
 import { mockTelemetry } from "../../../../infrastructure/telemetry/telemetry.ts";
 import { mockDependencies } from "../../../../test-helpers/mock-object.ts";
 import { createMockUser } from "../../domain/user.ts";
@@ -13,7 +12,7 @@ await describe("getUsers()", async () => {
 			telemetry: mockTelemetry,
 			userRepository: {
 				getByIds: mock.fn(async function* () {
-					return yield* noopReturn([createMockUser()]);
+					return yield* identity([createMockUser()]);
 				}),
 			},
 		});

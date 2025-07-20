@@ -1,8 +1,7 @@
 import { asyncExitHook } from "exit-hook";
 import { isMain } from "is-main";
 import ms from "ms";
-import { timeout } from "ts-flowgen";
-import { flowOrThrow } from "./helpers/result.ts";
+import { timeout, unsafeFlowOrThrow } from "ts-flowgen";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createDatabase } from "./infrastructure/database/database.ts";
@@ -25,58 +24,59 @@ export async function* startApp({
 
 	const telemetry = createTelemetry({ config, packageJson });
 
+	async function* app() {
+		const cache = yield* createCacheStorage({
+			telemetry,
+			config,
+			packageJson,
+		});
+
+		const database = yield* createDatabase({
+			telemetry,
+			config,
+			packageJson,
+		});
+
+		const taskScheduling = yield* createTaskScheduling(
+			{ queueName: "jobs" },
+			{ telemetry, config, packageJson },
+		);
+
+		const httpServer = yield* createHttpServer({
+			telemetry,
+			database,
+			cache,
+			config,
+			packageJson,
+			taskScheduling,
+		});
+
+		async function* appShutdown() {
+			return yield* shutdown({
+				httpServer,
+				telemetry,
+				cache,
+				taskScheduling,
+				database,
+				config,
+				packageJson,
+			});
+		}
+
+		return { httpServer, logger, appShutdown };
+	}
+
 	return yield* telemetry.startSpanWith(
 		{
 			spanName: "index@startApp",
 			options: { root: true },
 		},
-		timeout(
-			ms("10s"),
-			(async function* () {
-				const cache = yield* createCacheStorage({
-					telemetry,
-					config,
-					packageJson,
-				});
-				const database = yield* createDatabase({
-					telemetry,
-					config,
-					packageJson,
-				});
-				const taskScheduling = yield* createTaskScheduling(
-					{ queueName: "jobs" },
-					{ telemetry, config, packageJson },
-				);
-
-				const httpServer = yield* createHttpServer({
-					telemetry,
-					database,
-					cache,
-					config,
-					packageJson,
-					taskScheduling,
-				});
-
-				async function* appShutdown() {
-					return yield* shutdown({
-						httpServer,
-						telemetry,
-						cache,
-						taskScheduling,
-						database,
-						config,
-						packageJson,
-					});
-				}
-
-				return { httpServer, logger, appShutdown };
-			})(),
-		),
+		() => timeout(ms("10s"), app()),
 	);
 }
 
 if (isMain(import.meta)) {
-	const { httpServer, appShutdown } = await flowOrThrow(() =>
+	const { httpServer, appShutdown } = await unsafeFlowOrThrow(() =>
 		startApp({
 			config,
 			packageJson,
@@ -88,7 +88,7 @@ if (isMain(import.meta)) {
 		port: config.httpPort,
 	});
 
-	const shutdown = () => flowOrThrow(() => appShutdown());
+	const shutdown = () => unsafeFlowOrThrow(() => appShutdown());
 
 	asyncExitHook(shutdown, { wait: ms("5s") });
 	// docker custom

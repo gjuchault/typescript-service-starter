@@ -1,7 +1,7 @@
 import { sql } from "slonik";
+import { unsafeFlowOrThrow } from "ts-flowgen";
 import { Umzug } from "umzug";
 import * as z from "zod";
-import { flowOrThrow } from "../../helpers/result.ts";
 import type { Database } from "./database.ts";
 import * as allMigrations from "./migrations/index.ts";
 
@@ -61,23 +61,27 @@ export function getMigrator({ database }: { database: Database }) {
 		migrations: Object.entries(allMigrations).map(([name, migration]) => ({
 			name,
 			async up() {
-				await flowOrThrow(() => migration.up(database));
+				await unsafeFlowOrThrow(() => migration.up(database));
 			},
 			async down() {
-				await flowOrThrow(() => migration.down(database));
+				await unsafeFlowOrThrow(() => migration.down(database));
 			},
 		})),
 		logger: undefined,
 		context: database,
 		storage: {
 			async executed(): Promise<string[]> {
-				return await flowOrThrow(() => executed({ database }));
+				return await unsafeFlowOrThrow(() => executed({ database }));
 			},
 			async logMigration({ name }): Promise<void> {
-				return await flowOrThrow(() => logMigration({ name }, { database }));
+				return await unsafeFlowOrThrow(() =>
+					logMigration({ name }, { database }),
+				);
 			},
 			async unlogMigration({ name }): Promise<void> {
-				return await flowOrThrow(() => unlogMigration({ name }, { database }));
+				return await unsafeFlowOrThrow(() =>
+					unlogMigration({ name }, { database }),
+				);
 			},
 		},
 	});

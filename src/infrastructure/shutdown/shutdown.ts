@@ -82,7 +82,7 @@ export async function* shutdown(dependencies: {
 	}
 
 	try {
-		yield* timeout(gracefulShutdownTimeout, gracefulShutdown())();
+		yield* timeout(gracefulShutdownTimeout, gracefulShutdown());
 
 		logger.info(
 			`gracefully shut down service ${dependencies.packageJson.name}`,

@@ -1,8 +1,7 @@
 import PgBoss from "pg-boss";
 import { sql } from "slonik";
-import { flow, gen } from "ts-flowgen";
+import { gen, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
-import { flowOrThrow, unwrap } from "../../helpers/result.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
@@ -86,7 +85,7 @@ export async function* createTaskScheduling(
 			return yield* gen(() =>
 				boss.work(name, {}, async (jobs) => {
 					for (const job of jobs) {
-						await flowOrThrow(() =>
+						await unsafeFlowOrThrow(() =>
 							handler({ ...job, data: schema.parse(job.data) }),
 						);
 					}
@@ -105,7 +104,7 @@ export async function* createTaskScheduling(
 						db: {
 							async executeSql(sql, values) {
 								logger.info("inserting job in transaction", { name, data });
-								const rows = await flowOrThrow(() =>
+								const rows = await unsafeFlowOrThrow(() =>
 									tx.any({
 										parser: z.any(),
 										// biome-ignore lint/suspicious/noExplicitAny: we are creating a raw query

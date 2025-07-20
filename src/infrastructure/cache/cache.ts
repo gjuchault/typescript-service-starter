@@ -60,7 +60,7 @@ export async function* createCacheStorage({
 		});
 	}
 
-	const valkey = yield* timeout(ms("2s"), gen(connectToValkey)())();
+	const valkey = yield* timeout(ms("2s"), gen(connectToValkey)());
 
 	logger.info("connected to valkey");
 

@@ -3,7 +3,7 @@ import * as z from "zod";
 import type { Database } from "../database.ts";
 
 export async function* up(tx: Database) {
-	yield tx.any(
+	yield* tx.any(
 		sql.type(z.unknown())`
 				create table if not exists users (
 					id serial primary key,
@@ -15,7 +15,7 @@ export async function* up(tx: Database) {
 }
 
 export async function* down(tx: Database) {
-	yield tx.any(
+	yield* tx.any(
 		sql.type(z.unknown())`
 				drop table if exists users;
 			`,

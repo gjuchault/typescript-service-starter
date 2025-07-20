@@ -2,8 +2,8 @@ import { pid } from "node:process";
 import { asyncExitHook } from "exit-hook";
 import isMain from "is-main";
 import ms from "ms";
+import { noop, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
-import { flowOrThrow, noop } from "./helpers/result.ts";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
@@ -63,7 +63,7 @@ async function* startWorker(
 }
 
 if (isMain(import.meta)) {
-	const { workerShutdown } = await flowOrThrow(() =>
+	const { workerShutdown } = await unsafeFlowOrThrow(() =>
 		startWorker(
 			{ queueName: "jobs" },
 			{
@@ -73,7 +73,7 @@ if (isMain(import.meta)) {
 		),
 	);
 
-	const shutdown = () => flowOrThrow(() => workerShutdown());
+	const shutdown = () => unsafeFlowOrThrow(() => workerShutdown());
 
 	asyncExitHook(shutdown, { wait: ms("5s") });
 	// docker custom

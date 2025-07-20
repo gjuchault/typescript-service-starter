@@ -1,8 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "slonik";
-import { gen, never } from "ts-flowgen";
+import { gen, never, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
-import { flowOrThrow } from "../helpers/result.ts";
 import { startApp } from "../index.ts";
 import { config } from "../infrastructure/config/config.ts";
 import type { Database } from "../infrastructure/database/database.ts";
@@ -93,4 +92,4 @@ async function* setupGen(): AsyncGenerator<unknown, SetupResult> {
 	return { database, httpServer, cleanup };
 }
 
-export const setup = () => flowOrThrow(setupGen);
+export const setup = () => unsafeFlowOrThrow(setupGen);

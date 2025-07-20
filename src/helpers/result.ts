@@ -1,4 +1,4 @@
-import { flow, gen } from "ts-flowgen";
+import { gen } from "ts-flowgen";
 
 export type WrappedObjectMethods<Object, Error> = {
 	[K in keyof Object]: Object[K] extends (...args: infer Args) => infer Return
@@ -53,27 +53,4 @@ function getInstanceMethods<Object>(instance: Object): (keyof Object)[] {
 	return Object.getOwnPropertyNames(Object.getPrototypeOf(instance)).filter(
 		(key) => key !== "constructor",
 	) as (keyof Object)[];
-}
-
-export async function* noop(): AsyncGenerator<never, void> {}
-
-export async function* noopReturn<T>(value: T): AsyncGenerator<never, T> {
-	yield* noop();
-	return value;
-}
-
-export function unwrap<Value>(
-	result: { ok: true; value: Value } | { ok: false; error: unknown },
-): Value {
-	if (result.ok === false) {
-		throw new Error("Unwrapping error", { cause: result.error });
-	}
-
-	return result.value;
-}
-
-export async function flowOrThrow<Value>(
-	callback: () => AsyncGenerator<unknown, Value>,
-): Promise<Value> {
-	return unwrap(await flow(callback));
 }

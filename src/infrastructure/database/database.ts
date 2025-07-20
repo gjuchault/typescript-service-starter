@@ -17,9 +17,8 @@ import {
 	sql,
 } from "slonik";
 import type { StreamHandler, StreamResult } from "slonik/dist/types.js";
-import { gen } from "ts-flowgen";
+import { gen, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
-import { flowOrThrow } from "../../helpers/result.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
@@ -208,7 +207,7 @@ function poolWrapper(
 			return yield* gen(
 				pool.transaction.bind(pool),
 				databaseError,
-			)(async (db) => await flowOrThrow(() => handler(poolWrapper(db))));
+			)(async (db) => await unsafeFlowOrThrow(() => handler(poolWrapper(db))));
 		},
 		end: pool.end ? gen(() => pool.end?.(), databaseError) : undefined,
 	};

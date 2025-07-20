@@ -29,8 +29,8 @@ await describe("GET /api/users", async () => {
 	await after(async () => {
 		try {
 			await setupResult.cleanup();
-		} catch (err) {
-			console.log("after fails");
+		} catch (err: unknown) {
+			console.log("after fails", err);
 		}
 	});
 

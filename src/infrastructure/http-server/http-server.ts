@@ -25,10 +25,9 @@ import {
 	validatorCompiler,
 	type ZodTypeProvider,
 } from "fastify-type-provider-zod";
-import { gen } from "ts-flowgen";
+import { gen, noop, unsafeFlowOrThrow } from "ts-flowgen";
 import yamlJs from "yamljs";
 import { bindUserRoutes } from "../../contexts/user/presentation/http/index.ts";
-import { flowOrThrow, noop } from "../../helpers/result.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
@@ -100,7 +99,7 @@ export async function* createHttpServer({
 	httpServer.setSerializerCompiler(serializerCompiler);
 
 	httpServer.addHook("onRequest", async (request, _response) => {
-		await flowOrThrow(() =>
+		await unsafeFlowOrThrow(() =>
 			telemetry.startSpanWith(
 				{
 					spanName: "infrastructure/http-server/http-server@onRequest",
