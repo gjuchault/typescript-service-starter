@@ -49,8 +49,28 @@ export function wrapObjectMethods<Object, Error>(
 	return { ...wrappedObj, unwrapped: obj };
 }
 
-function getInstanceMethods<Object>(instance: Object): (keyof Object)[] {
-	return Object.getOwnPropertyNames(Object.getPrototypeOf(instance)).filter(
-		(key) => key !== "constructor",
+function getInstanceMethods<Object extends object>(
+	instance: Object,
+): (keyof Object)[] {
+	const methods = new Set<string | symbol>();
+
+	let obj: object = instance;
+	do {
+		const keys = Reflect.ownKeys(obj);
+		keys.forEach((k) => methods.add(k));
+		const nextObj = Reflect.getPrototypeOf(obj);
+
+		if (nextObj === null) {
+			break;
+		}
+
+		obj = nextObj;
+	} while (obj !== undefined && obj !== null);
+
+	return Array.from(methods).filter(
+		(method): method is string =>
+			typeof method === "string" &&
+			method !== "constructor" &&
+			typeof (instance as Record<string, unknown>)[method] === "function",
 	) as (keyof Object)[];
 }
