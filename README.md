@@ -38,7 +38,7 @@ To enable deployment, you will need to:
 
 ### HTTP Server and typed client
 
-This template is based on Fastify with some nice defaults (circuit breaker, redis rate limit, etc.). [openapi-typescript](https://openapi-ts.dev) is used to have nice routes & automatic client generation with zod and TypeScript.
+This template is based on Fastify with some nice defaults (circuit breaker, valkey rate limit, etc.). [openapi-typescript](https://openapi-ts.dev) is used to have nice routes & automatic client generation with zod and TypeScript.
 
 Client should be published when this package is released. You can use openapi-fetch easily with it:
 
@@ -59,7 +59,7 @@ Commands:
 
 ### Databases
 
-It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), [umzug](https://github.com/sequelize/umzug) for migrations, Redis (or compatible like [KeyDB](https://docs.keydb.dev) or [Dragonfly](https://www.dragonflydb.io)) as a cache through [ioredis](https://github.com/luin/ioredis).
+It leverages PostgreSQL as a storage (through [slonik](https://github.com/gajus/slonik)), [umzug](https://github.com/sequelize/umzug) for migrations, Valkey (or compatible like [KeyDB](https://docs.keydb.dev) or [Dragonfly](https://www.dragonflydb.io)) as a cache through [valkey](https://github.com/valkey-io/valkey-glide).
 
 Commands:
 

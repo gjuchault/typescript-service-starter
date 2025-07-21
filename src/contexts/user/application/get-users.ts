@@ -1,39 +1,26 @@
-import type { ExtendResult } from "../../../helpers/result.ts";
-import type { Config } from "../../../infrastructure/config/config.ts";
 import type { Database } from "../../../infrastructure/database/database.ts";
+import type { TaskScheduling } from "../../../infrastructure/task-scheduling/task-scheduling.ts";
 import type { Telemetry } from "../../../infrastructure/telemetry/telemetry.ts";
-import type { PackageJson } from "../../../packageJson.ts";
 import type { GetUsersFilters } from "../repository/get-by-ids.ts";
 import type { UserRepository } from "../repository/index.ts";
-
-export type GetUsersResult = ExtendResult<
-	Awaited<ReturnType<UserRepository["getByIds"]>>
->;
 
 export type GetUsersDependencies = {
 	telemetry: Telemetry;
 	userRepository: Pick<UserRepository, "getByIds">;
 	database: Database;
-	config: Pick<Config, "logLevel">;
-	packageJson: Pick<PackageJson, "name">;
+	taskScheduling: Pick<TaskScheduling, "sendInTransaction">;
 };
 
-export async function getUsers(
+export async function* getUsers(
 	{ ids }: GetUsersFilters,
-	{
-		telemetry,
-		userRepository,
-		database,
-		config,
-		packageJson,
-	}: GetUsersDependencies,
-): Promise<GetUsersResult> {
-	return await telemetry.startSpanWith(
-		{ spanName: "contexts/users/application/get-users@getUsers" },
-		async () => {
-			const users = await userRepository.getByIds(
+	{ telemetry, userRepository, database, taskScheduling }: GetUsersDependencies,
+) {
+	return yield* telemetry.startSpanWith(
+		{ spanName: "contexts/user/application/get-users@getUsers" },
+		async function* () {
+			const users = yield* userRepository.getByIds(
 				{ ids },
-				{ telemetry, database, config, packageJson },
+				{ telemetry, database, taskScheduling },
 			);
 
 			return users;

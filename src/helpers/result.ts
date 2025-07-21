@@ -1,25 +1,76 @@
-export type Err<_, E> = { readonly ok: false; readonly error: E };
-export type Ok<T, _> = { readonly ok: true; readonly value: T };
+import { gen } from "ts-flowgen";
 
-export type GetOk<T> = T extends Ok<infer R, infer _> ? R : never;
-export type GetErr<T> = T extends Err<infer _, infer R> ? R : never;
+export type WrappedObjectMethods<Object, Error> = {
+	[K in keyof Object]: Object[K] extends (...args: infer Args) => infer Return
+		? (
+				...args: Args
+			) => Return extends Promise<infer P>
+				? AsyncGenerator<Error, P>
+				: AsyncGenerator<Error, Return>
+		: Object[K];
+} & { unwrapped: Object };
 
-export type Result<T, E> = Ok<T, E> | Err<T, E>;
+export function wrapObjectMethods<Object, Error>(
+	obj: Object,
+	unhandledError: (err: unknown) => Error,
+): WrappedObjectMethods<Object, Error> {
+	const wrappedObj = {} as WrappedObjectMethods<Object, Error>;
 
-type IsNever<T> = [T] extends [never] ? true : false;
-export type ExtendResult<R, E2 = never, T2 = never> = R extends Result<
-	infer T,
-	infer E
->
-	? IsNever<T2> extends true
-		? Result<T, E | E2>
-		: Result<T2, E | E2>
-	: never;
+	if (typeof obj !== "object" || obj === null) {
+		return obj as WrappedObjectMethods<Object, Error>;
+	}
 
-export function ok<T, E = never>(value: T): Ok<T, E> {
-	return { ok: true, value };
+	for (const [key, value] of Object.entries(obj)) {
+		Object.defineProperty(wrappedObj, key, {
+			value:
+				typeof value === "function"
+					? gen(value.bind(obj), unhandledError)
+					: value,
+			writable: true,
+			enumerable: true,
+			configurable: true,
+		});
+	}
+
+	if (obj.constructor !== Object) {
+		for (const key of getInstanceMethods(obj)) {
+			Object.defineProperty(wrappedObj, key, {
+				value:
+					typeof obj[key] === "function"
+						? gen(obj[key].bind(obj), unhandledError)
+						: obj[key],
+				writable: true,
+				enumerable: true,
+				configurable: true,
+			});
+		}
+	}
+
+	return { ...wrappedObj, unwrapped: obj };
 }
 
-export function err<T = never, E = unknown>(error: E): Err<T, E> {
-	return { ok: false, error };
+function getInstanceMethods<Object extends object>(
+	instance: Object,
+): (keyof Object)[] {
+	const methods = new Set<string | symbol>();
+
+	let obj: object = instance;
+	do {
+		const keys = Reflect.ownKeys(obj);
+		keys.forEach((k) => methods.add(k));
+		const nextObj = Reflect.getPrototypeOf(obj);
+
+		if (nextObj === null) {
+			break;
+		}
+
+		obj = nextObj;
+	} while (obj !== undefined && obj !== null);
+
+	return Array.from(methods).filter(
+		(method): method is string =>
+			typeof method === "string" &&
+			method !== "constructor" &&
+			typeof (instance as Record<string, unknown>)[method] === "function",
+	) as (keyof Object)[];
 }

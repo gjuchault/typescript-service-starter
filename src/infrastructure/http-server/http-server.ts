@@ -11,8 +11,8 @@ import rateLimit from "@fastify/rate-limit";
 import session from "@fastify/session";
 import swagger from "@fastify/swagger";
 import underPressure from "@fastify/under-pressure";
-import { SpanKind, context, propagation } from "@opentelemetry/api";
-import { RedisStore } from "connect-redis";
+import { context, propagation, SpanKind } from "@opentelemetry/api";
+import { ValkeyStore } from "connect-valkey";
 import {
 	type FastifyBaseLogger,
 	type FastifyInstance,
@@ -21,10 +21,11 @@ import {
 	fastify,
 } from "fastify";
 import {
-	type ZodTypeProvider,
 	serializerCompiler,
 	validatorCompiler,
+	type ZodTypeProvider,
 } from "fastify-type-provider-zod";
+import { gen, noop, unsafeFlowOrThrow } from "ts-flowgen";
 import yamlJs from "yamljs";
 import { bindUserRoutes } from "../../contexts/user/presentation/http/index.ts";
 import type { PackageJson } from "../../packageJson.ts";
@@ -32,7 +33,9 @@ import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";
+import type { TaskScheduling } from "../task-scheduling/task-scheduling.ts";
 import type { Span, Telemetry } from "../telemetry/telemetry.ts";
+import { RateLimitValkeyStore } from "./rate-limit-valkey.ts";
 
 export type HttpServer = FastifyInstance<
 	Server,
@@ -44,12 +47,18 @@ export type HttpServer = FastifyInstance<
 export type HttpRequest = FastifyRequest;
 export type HttpReply = FastifyReply;
 
+type HttpServerSetupError = { name: "httpServerSetupError"; error: unknown };
+function httpServerSetupError(error: unknown): HttpServerSetupError {
+	return { name: "httpServerSetupError", error };
+}
+
 const yamlMime = /^application\/yaml$/;
 
-export async function createHttpServer({
+export async function* createHttpServer({
 	telemetry,
 	database,
 	cache,
+	taskScheduling,
 	config,
 	packageJson,
 }: {
@@ -57,16 +66,22 @@ export async function createHttpServer({
 	database: Database;
 	cache: Cache | undefined;
 	config: Config;
+	taskScheduling: Pick<TaskScheduling, "sendInTransaction">;
 	packageJson: Pick<
 		PackageJson,
 		"name" | "version" | "author" | "description" | "license"
 	>;
-}): Promise<HttpServer> {
+}): AsyncGenerator<HttpServerSetupError, HttpServer> {
 	const span = telemetry.startSpan({
 		spanName: "infrastructure/http-server/http-server@createHttpServer",
 	});
 
 	const logger = createLogger("http-server", { config, packageJson });
+
+	logger.info("creating http server", {
+		address: config.httpAddress,
+		port: config.httpPort,
+	});
 
 	const spanByRequestId = new Map<string, Span>();
 
@@ -83,75 +98,104 @@ export async function createHttpServer({
 	httpServer.setValidatorCompiler(validatorCompiler);
 	httpServer.setSerializerCompiler(serializerCompiler);
 
-	httpServer.addHook("onRequest", (request, _response, done) => {
-		telemetry.startSpanWith(
-			{
-				spanName: "infrastructure/http-server/http-server@onRequest",
-				context: propagation.extract(context.active(), request.headers),
-				options: {
-					kind: SpanKind.SERVER,
-					attributes: {
-						"req.id": request.id,
-						"req.method": request.raw.method,
-						"req.url": request.raw.url,
+	httpServer.addHook("onRequest", async (request, _response) => {
+		await unsafeFlowOrThrow(() =>
+			telemetry.startSpanWith(
+				{
+					spanName: "infrastructure/http-server/http-server@onRequest",
+					context: propagation.extract(context.active(), request.headers),
+					options: {
+						kind: SpanKind.SERVER,
+						attributes: {
+							"req.id": request.id,
+							"req.method": request.raw.method,
+							"req.url": request.raw.url,
+						},
 					},
 				},
-			},
-			async (span) => {
-				spanByRequestId.set(request.id, span);
+				async function* (span) {
+					spanByRequestId.set(request.id, span);
 
-				logger.debug(`http request: ${request.method} ${request.url}`, {
-					requestId: getRequestId(request),
-					method: request.method,
-					url: request.url,
-					route: request.routeOptions.url,
-					userAgent: request.headers["user-agent"],
-				});
+					logger.debug(`http request: ${request.method} ${request.url}`, {
+						requestId: getRequestId(request),
+						method: request.method,
+						url: request.url,
+						route: request.routeOptions.url,
+						userAgent: request.headers["user-agent"],
+					});
 
-				await Promise.resolve();
-
-				done();
-			},
+					yield* noop();
+				},
+			),
 		);
 	});
 
-	await httpServer.register(acceptsSerializer, {
-		serializers: [
-			{
-				regex: yamlMime,
-				serializer: (body: unknown) => yamlJs.stringify(body),
-			},
-		],
-		default: "application/json",
-	});
-	await httpServer.register(circuitBreaker);
-	await httpServer.register(cors);
-	await httpServer.register(formBody);
-	await httpServer.register(helmet);
-	await httpServer.register(multipart);
-	await httpServer.register(rateLimit, {
-		redis: cache,
-	});
-	await httpServer.register(cookie);
-	await httpServer.register(session, {
-		secret: [config.httpCookieSigningSecret],
-		store: new RedisStore({ client: cache }),
-	});
-	await httpServer.register(underPressure);
-	await httpServer.register(swagger, {
-		openapi: {
-			openapi: "3.1.1",
-			info: {
-				title: packageJson.name,
-				description: packageJson.description,
-				version: packageJson.version,
-				contact: packageJson.author,
-				license: {
-					name: packageJson.license,
+	yield* gen(
+		() =>
+			httpServer.register(acceptsSerializer, {
+				serializers: [
+					{
+						regex: yamlMime,
+						serializer: (body: unknown) => yamlJs.stringify(body),
+					},
+				],
+				default: "application/json",
+			}),
+		httpServerSetupError,
+	)();
+	yield* gen(() => httpServer.register(circuitBreaker), httpServerSetupError)();
+	yield* gen(() => httpServer.register(cors), httpServerSetupError)();
+	yield* gen(() => httpServer.register(formBody), httpServerSetupError)();
+	yield* gen(() => httpServer.register(helmet), httpServerSetupError)();
+	yield* gen(() => httpServer.register(multipart), httpServerSetupError)();
+
+	if (cache !== undefined) {
+		RateLimitValkeyStore.setClient(cache);
+		yield* gen(
+			() =>
+				httpServer.register(rateLimit, {
+					store: RateLimitValkeyStore,
+				}),
+			httpServerSetupError,
+		)();
+	} else {
+		yield* gen(
+			() =>
+				httpServer.register(rateLimit, { max: 100, timeWindow: "1 minute" }),
+			httpServerSetupError,
+		)();
+	}
+
+	yield* gen(() => httpServer.register(cookie), httpServerSetupError)();
+	yield* gen(
+		() =>
+			httpServer.register(session, {
+				secret: [config.httpCookieSigningSecret],
+				...(cache !== undefined
+					? { store: new ValkeyStore({ client: cache.unwrapped }) }
+					: {}),
+			}),
+		httpServerSetupError,
+	)();
+	yield* gen(() => httpServer.register(underPressure), httpServerSetupError)();
+	yield* gen(
+		() =>
+			httpServer.register(swagger, {
+				openapi: {
+					openapi: "3.1.1",
+					info: {
+						title: packageJson.name,
+						description: packageJson.description,
+						version: packageJson.version,
+						contact: packageJson.author,
+						license: {
+							name: packageJson.license,
+						},
+					},
 				},
-			},
-		},
-	});
+			}),
+		httpServerSetupError,
+	)();
 
 	httpServer.setNotFoundHandler(
 		{
@@ -211,20 +255,24 @@ export async function createHttpServer({
 	});
 
 	httpServer.get("/api/healthcheck", (_request, reply) => {
-		return reply.status(204).send();
+		return reply.status(200).send();
 	});
 
 	httpServer.get("/api/docs", (_request, reply) => {
 		return reply.send(httpServer.swagger());
 	});
 
-	bindUserRoutes({ database, httpServer, telemetry });
+	bindUserRoutes({ database, httpServer, telemetry, taskScheduling });
 
 	httpServer.addHook("onListen", () => {
 		logger.info(
 			`http server listening on ${config.httpAddress}:${config.httpPort}`,
 		);
 	});
+
+	yield* gen(() => httpServer.ready(), httpServerSetupError)();
+
+	logger.info("http server ready", httpServer.printRoutes());
 
 	span.end();
 

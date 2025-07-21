@@ -1,7 +1,10 @@
-import { Redis } from "ioredis";
+import { GlideClient } from "@valkey/valkey-glide";
 import ms from "ms";
-
-import { promiseWithTimeout } from "../../helpers/promise-with-timeout.ts";
+import { gen, timeout } from "ts-flowgen";
+import {
+	type WrappedObjectMethods,
+	wrapObjectMethods,
+} from "../../helpers/result.ts";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
@@ -9,70 +12,62 @@ import type { Telemetry } from "../telemetry/telemetry.ts";
 
 interface Dependencies {
 	telemetry: Telemetry;
-	config: Pick<Config, "redisUrl" | "logLevel">;
+	config: Pick<Config, "valkeyUrl" | "logLevel">;
 	packageJson: Pick<PackageJson, "name">;
 }
 
-export type Cache = Redis;
+export interface ValkeyError {
+	name: "valkeyError";
+	error: unknown;
+}
 
-export async function createCacheStorage({
+export type Cache = WrappedObjectMethods<GlideClient, ValkeyError> & {
+	unwrapped: GlideClient;
+};
+
+export async function* createCacheStorage({
 	telemetry,
 	config,
 	packageJson,
-}: Dependencies): Promise<Cache | undefined> {
+}: Dependencies) {
 	const span = telemetry.startSpan({
 		spanName: "infrastructure/cache/cache@createCacheStorage",
 	});
 
-	const logger = createLogger("redis", { config, packageJson });
+	const logger = createLogger("valkey", { config, packageJson });
 
-	if (config.redisUrl === undefined) {
+	if (config.valkeyUrl === undefined) {
 		logger.info("skipping cache connection");
 		return undefined;
 	}
 
-	const redis = new Redis(config.redisUrl, {
-		connectTimeout: 500,
-		maxRetriesPerRequest: 1,
-	});
+	const url = new URL(config.valkeyUrl);
 
-	redis.on("error", (error) => {
-		if (!isRedisError(error)) {
-			throw new Error(error);
-		}
+	logger.debug("connecting to valkey...");
 
-		// these will be spamming quite a log stderr
-		if (isRedisConnRefusedError(error)) {
-			return;
-		}
-
-		logger.error("redis error", { error });
-	});
-
-	logger.debug("connecting to redis...");
-
-	try {
-		await promiseWithTimeout(ms("2s"), () => redis.echo("1"));
-	} catch (error) {
-		logger.error("redis connection error", { error });
-		throw error;
+	async function connectToValkey(): Promise<GlideClient> {
+		return await GlideClient.createClient({
+			addresses: [
+				{
+					host: url.hostname,
+					port: url.port?.length > 0 ? Number(url.port) : 6379,
+				},
+			],
+			requestTimeout: 500,
+			advancedConfiguration: {
+				connectionTimeout: 500,
+			},
+		});
 	}
 
-	logger.info("connected to redis");
+	const valkey = yield* timeout(ms("2s"), gen(connectToValkey)());
+
+	logger.info("connected to valkey");
 
 	span.end();
 
-	return redis;
-}
-
-function isRedisError(error: unknown): error is object {
-	return typeof error === "object" && error !== null;
-}
-
-function isRedisConnRefusedError(error: object): error is { code: string } {
-	if ("code" in error) {
-		return (error as { code: string }).code === "ECONNREFUSED";
-	}
-
-	return false;
+	return wrapObjectMethods(
+		valkey,
+		(error) => ({ name: "valkeyError", error }) satisfies ValkeyError,
+	);
 }

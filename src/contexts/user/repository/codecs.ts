@@ -1,4 +1,4 @@
-import { z } from "zod";
+import * as z from "zod";
 import {
 	userEmailSchema,
 	userIdSchema,
@@ -14,7 +14,7 @@ const userInDatabaseSchema = z.object({
 
 export const userToDatabaseUserSchema = userSchema
 	.transform((user) => user)
-	.pipe(userInDatabaseSchema);
+	.transform((_) => userInDatabaseSchema.parse(_));
 
 export const databaseUserToUserSchema = userInDatabaseSchema
 	.transform((user) => ({
@@ -22,4 +22,4 @@ export const databaseUserToUserSchema = userInDatabaseSchema
 		name: userNameSchema.parse(user.name),
 		email: userEmailSchema.parse(user.email),
 	}))
-	.pipe(userSchema);
+	.transform((_) => userSchema.parse(_));

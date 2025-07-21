@@ -1,12 +1,16 @@
 import {
 	type ListSqlToken,
 	type PrimitiveValueExpression,
-	type UnnestSqlToken,
 	sql,
+	type UnnestSqlToken,
 } from "slonik";
-import { z } from "zod";
-import { validDateTimeSchema } from "./date-time.ts";
+import * as z from "zod";
 import type { JsonValue } from "./json-type.ts";
+import {
+	databaseTimestampToInstant,
+	instantToDatabaseTimestamp,
+	isValidDatabaseTimestamp,
+} from "./temporal.ts";
 
 // Similar to slonik's TypeNameIdentifier without string
 type TypeNameIdentifier =
@@ -78,10 +82,12 @@ export function prepareBulkInsert<
 			if (columnType === "timestamptz") {
 				const date = z
 					.union([z.date(), z.number(), z.string()])
-					.pipe(validDateTimeSchema)
+					.refine(isValidDatabaseTimestamp)
 					.parse(databaseRecord[columnName]);
 
-				columns.push(date);
+				columns.push(
+					instantToDatabaseTimestamp(databaseTimestampToInstant(date)),
+				);
 				continue;
 			}
 

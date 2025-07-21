@@ -17,7 +17,7 @@ async function bundle() {
 		target: "node23",
 		format: "esm",
 		sourcemap: true,
-		external: ["pg-native"],
+		external: ["pg-native", "@valkey/valkey-glide"],
 		bundle: true,
 		banner: {
 			js: [
@@ -35,8 +35,6 @@ async function bundle() {
 		},
 	});
 
-	// biome-ignore lint/suspicious/noConsoleLog: script
-	// biome-ignore lint/suspicious/noConsole: script
 	console.log(`📦 bundled in ${Date.now() - startTime}ms`);
 }
 

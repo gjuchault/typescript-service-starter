@@ -1,36 +1,22 @@
 import process from "node:process";
 import ms from "ms";
-import { z } from "zod";
+import * as z from "zod";
 
 const env = z
 	.object({
-		// biome-ignore lint/style/useNamingConvention: env variable
 		LOG_LEVEL: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_ADDRESS: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		PORT: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_PORT: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_REQUEST_TIMEOUT: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		HTTP_COOKIE_SIGNING_SECRET: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_URL: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_MAXIMUM_POOL_SIZE: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_IDLE_TIMEOUT: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		DATABASE_STATEMENT_TIMEOUT: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
-		REDIS_URL: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
+		VALKEY_URL: z.string().optional(),
 		TRACING_SAMPLING: z.string(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		OTLP_TRACE_ENDPOINT: z.string().optional(),
-		// biome-ignore lint/style/useNamingConvention: env variable
 		OTLP_METRICS_ENDPOINT: z.string().optional(),
 	})
 	.parse(process.env);
@@ -45,7 +31,7 @@ export type Config = {
 	databaseMaximumPoolSize: number;
 	databaseIdleTimeout: number;
 	databaseStatementTimeout: number;
-	redisUrl: string | undefined;
+	valkeyUrl: string | undefined;
 	tracingSampling: number;
 	otlpTraceEndpoint: string | undefined;
 	otlpMetricsEndpoint: string | undefined;
@@ -109,19 +95,10 @@ export const config: Config = {
 		.transform(transformMs)
 		.parse(env.DATABASE_STATEMENT_TIMEOUT),
 
-	redisUrl: z.string().url().optional().parse(env.REDIS_URL),
+	valkeyUrl: z.url().optional().parse(env.VALKEY_URL),
 
-	tracingSampling: z.coerce
-		.number()
-		.finite()
-		.min(0)
-		.max(1)
-		.parse(env.TRACING_SAMPLING),
+	tracingSampling: z.coerce.number().min(0).max(1).parse(env.TRACING_SAMPLING),
 
-	otlpTraceEndpoint: z.string().url().optional().parse(env.OTLP_TRACE_ENDPOINT),
-	otlpMetricsEndpoint: z
-		.string()
-		.url()
-		.optional()
-		.parse(env.OTLP_METRICS_ENDPOINT),
+	otlpTraceEndpoint: z.url().optional().parse(env.OTLP_TRACE_ENDPOINT),
+	otlpMetricsEndpoint: z.url().optional().parse(env.OTLP_METRICS_ENDPOINT),
 };
