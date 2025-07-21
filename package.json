@@ -106,6 +106,7 @@
 		"pg-boss": "^10.3.2",
 		"pino": "^9.7.0",
 		"slonik": "^48.1.2",
+		"temporal-polyfill": "^0.3.0",
 		"ts-flowgen": "^2.0.0",
 		"umzug": "^3.8.2",
 		"yamljs": "^0.3.0",
