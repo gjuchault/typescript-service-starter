@@ -3,14 +3,15 @@ import path from "node:path";
 import process from "node:process";
 import isMain from "is-main";
 import openApiTs, { astToString, type OpenAPI3 } from "openapi-typescript";
+import { unsafeFlowOrThrow } from "ts-flowgen";
 import { startApp } from "../src/index.ts";
 import { config } from "../src/infrastructure/config/config.ts";
 import { packageJson } from "../src/packageJson.ts";
 
-export async function generateClient(): Promise<void> {
+export async function* generateClient(): AsyncGenerator<unknown, void, any> {
 	const time = Date.now();
 
-	const { httpServer, appShutdown } = await startApp({
+	const { httpServer, appShutdown } = yield* startApp({
 		config: {
 			...config,
 			logLevel: "warn",
@@ -25,7 +26,7 @@ export async function generateClient(): Promise<void> {
 	const ast = await openApiTs(openapi);
 	const ts = astToString(ast);
 
-	await appShutdown();
+	yield* appShutdown();
 
 	await fs.rm(path.join(process.cwd(), "client"), {
 		recursive: true,
@@ -45,5 +46,5 @@ export async function generateClient(): Promise<void> {
 }
 
 if (isMain(import.meta)) {
-	await generateClient();
+	await unsafeFlowOrThrow(generateClient);
 }
