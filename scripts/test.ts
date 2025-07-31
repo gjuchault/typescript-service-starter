@@ -25,7 +25,6 @@ async function* runTests({
 			new Promise((resolve, reject) => {
 				const options = [
 					...programOptions,
-					"--disable-warning=ExperimentalWarning",
 					"--env-file=.env",
 					"--env-file-if-exists=.env.local",
 					"--test",
