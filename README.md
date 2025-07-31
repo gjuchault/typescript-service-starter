@@ -73,10 +73,6 @@ For the logging & telemetry part, it uses [pino](https://github.com/pinojs/pino)
 
 You can find an example of a working fullstack telemetry in `docker-compose.yaml`, where this service directly pushes to prometheus and jaeger without the use of a collector.
 
-### Production build and Docker
-
-This template is not compiled and should be run with Node --strip-types option. This means you can _not_ leverage node_modules and file system at runtime: reading static files from node_modules, hooking `require`, etc. ill not be possible. This implies to be mindful on libraries (that would read static files from there older), or automatic instrumentation (that hook `require`). Yet it comes with super small Docker images hat are fast to deploy.
-
 ### Layers & folder structure
 
 ```
@@ -100,7 +96,7 @@ TypeScript Service Starter relies on [Volta](https://volta.sh/) to ensure Node.j
 
 ### TypeScript
 
-Leverages `--strip-types` to avoid build step, but keeps `tsc` to generate `.d.ts` files.
+Leverages node's type to avoid build step, but keeps `tsc` to generate `.d.ts` files.
 
 Commands:
 
@@ -109,15 +105,16 @@ Commands:
 - `worker`: starts the worker with `.env`, `.env.local` env files
 - `type:check`: validates types with `tsc`
 
-### Production build and worker build
+### Production build and Docker
 
-This library is providing a very small Docker image thanks to bundling and code-splitting.
+In development, the typescript code is run with node (--strip-types). However, the production build is _bundled_ with esbuild. This means you can _not_ leverage node_modules and file system at runtime: reading static files from node_modules, hooking `require`, etc. will not be possible. This implies to be mindful on libraries (that would read static files from there older), or automatic instrumentation (that hook `require`).
+
 Running `node --run bundle` will bundle all of the `src/` and `node_modules/` code into two files:
 
 - `build/index.js` which runs the server
 - `build/worker.js` which runs the task scheduler's worker
 
-This will drastically improve the Docker image size: it only contains alpine, node, env files and the bundle files — no node_modules; but comes with one cost: dependencies can not base their code on a file structure containing a `node_modules` folder (typically to find static files there)
+This results in super small Docker images that are fast to deploy: the production image only contains alpine, node, env files and the bundle files — no node_modules folder. The one tradeoff is that dependencies cannot base their code on a file structure containing a `node_modules` folder (typically used to find static files).
 
 Commands:
 

@@ -26,7 +26,6 @@ async function* runTests({
 				const options = [
 					...programOptions,
 					"--disable-warning=ExperimentalWarning",
-					"--experimental-strip-types",
 					"--env-file=.env",
 					"--env-file-if-exists=.env.local",
 					"--test",
