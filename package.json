@@ -55,7 +55,7 @@
 		"@semantic-release/commit-analyzer": "^13.0.1",
 		"@semantic-release/github": "^11.0.5",
 		"@semantic-release/npm": "^12.0.2",
-		"@semantic-release/release-notes-generator": "^14.0.3",
+		"@semantic-release/release-notes-generator": "^14.1.0",
 		"@types/ms": "^2.1.0",
 		"@types/node": "^24.3.1",
 		"@types/prompts": "^2.4.9",
