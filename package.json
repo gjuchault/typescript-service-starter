@@ -96,7 +96,7 @@
 		"@opentelemetry/sdk-node": "^0.203.0",
 		"@opentelemetry/sdk-trace-node": "^2.1.0",
 		"@opentelemetry/semantic-conventions": "^1.37.0",
-		"@valkey/valkey-glide": "^2.0.1",
+		"@valkey/valkey-glide": "^2.1.0",
 		"connect-valkey": "^1.0.0",
 		"exit-hook": "^4.0.0",
 		"fastify": "^5.6.0",
