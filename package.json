@@ -48,7 +48,7 @@
 		"test:setup": "node ./scripts/test-setup.ts"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.1.4",
+		"@biomejs/biome": "^2.3.1",
 		"@ryansonshine/commitizen": "^4.2.8",
 		"@ryansonshine/cz-conventional-changelog": "^3.3.4",
 		"@semantic-release/changelog": "^6.0.3",
