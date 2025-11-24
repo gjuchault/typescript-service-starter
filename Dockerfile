@@ -1,4 +1,4 @@
-FROM node:24.3.0-alpine
+FROM node:25.2.1-alpine
 
 HEALTHCHECK \
 	--interval=60s \
