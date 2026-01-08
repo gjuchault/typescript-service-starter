@@ -1,5 +1,5 @@
-import PgBoss from "pg-boss";
-import { sql } from "slonik";
+import { type Job, PgBoss, type SendOptions } from "pg-boss";
+import { type PrimitiveValueExpression, sql } from "slonik";
 import { gen, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
 import type { PackageJson } from "../../packageJson.ts";
@@ -31,12 +31,12 @@ export interface TaskScheduling {
 	work<Payload>(
 		name: string,
 		schema: z.ZodType<Payload>,
-		handler: (job: PgBoss.Job<Payload>) => AsyncGenerator<unknown, void>,
+		handler: (job: Job<Payload>) => AsyncGenerator<unknown, void>,
 	): AsyncGenerator<unknown, string>;
 	sendInTransaction(
 		tx: Database,
 		data: object,
-		options: PgBoss.SendOptions,
+		options: SendOptions,
 	): AsyncGenerator<TaskSchedulingSendError, void>;
 }
 
@@ -61,23 +61,23 @@ export async function* createTaskScheduling(
 
 	const name = `${packageJson.name}-task-scheduling-${queueName}`;
 
-	logger.debug("creating queue...", { queueName: name });
+	logger.debug({ queueName: name }, "creating queue...");
 
 	const boss = new PgBoss({ connectionString: config.databaseUrl });
 
-	boss.on("error", (error) => logger.error("error", error));
+	boss.on("error", (error) => logger.error(error, "error"));
 	boss.on("stopped", () =>
-		logger.debug("task scheduling stopped", { queueName: name }),
+		logger.debug({ queueName: name }, "task scheduling stopped"),
 	);
 
 	yield* gen(() => boss.start(), taskSchedulingSetupError)();
 	yield* gen(() => boss.createQueue(name), taskSchedulingSetupError)();
 
-	logger.info("created queue", { queueName: name });
+	logger.info({ queueName: name }, "created queue");
 
 	span.end();
 
-	logger.info("task scheduling created", { queueName: name });
+	logger.info({ queueName: name }, "task scheduling created");
 
 	return {
 		stop: gen(() => boss.stop()),
@@ -95,7 +95,7 @@ export async function* createTaskScheduling(
 		sendInTransaction: async function* (
 			tx: Database,
 			data: object,
-			options: PgBoss.SendOptions,
+			options: SendOptions,
 		): AsyncGenerator<TaskSchedulingSendError, void> {
 			yield* gen(
 				() =>
@@ -103,14 +103,15 @@ export async function* createTaskScheduling(
 						...options,
 						db: {
 							async executeSql(sql, values) {
-								logger.info("inserting job in transaction", { name, data });
+								logger.info({ name, data }, "inserting job in transaction");
 								const rows = await unsafeFlowOrThrow(() =>
 									tx.any({
 										parser: z.any(),
 										// biome-ignore lint/suspicious/noExplicitAny: we are creating a raw query
 										type: rawQueryType as any,
 										sql,
-										values,
+										values: (values ??
+											[]) as readonly PrimitiveValueExpression[],
 									}),
 								);
 

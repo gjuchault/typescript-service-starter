@@ -33,18 +33,14 @@ async function* startWorker(
 	);
 
 	yield* taskScheduling.work(name, z.object({}), async function* (job) {
-		logger.debug(`process ${pid} starting job`, {
-			job,
-		});
+		logger.debug({ job }, `process ${pid} starting job`);
 
 		yield* noop();
 
-		logger.debug(`process ${pid} completed job`, {
-			job,
-		});
+		logger.debug({ job }, `process ${pid} completed job`);
 	});
 
-	logger.info("worker started", { queueName });
+	logger.info({ queueName }, "worker started");
 
 	async function* workerShutdown() {
 		return yield* shutdown({

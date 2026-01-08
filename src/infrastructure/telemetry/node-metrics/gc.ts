@@ -1,4 +1,8 @@
-import { constants, PerformanceObserver } from "node:perf_hooks";
+import {
+	constants,
+	PerformanceNodeEntry,
+	PerformanceObserver,
+} from "node:perf_hooks";
 import type { Meter } from "@opentelemetry/api";
 import type { MonitorOptions } from "./index.ts";
 
@@ -27,12 +31,8 @@ export function monitorGc(
 
 		if (
 			entry === undefined ||
-			!(
-				typeof entry.detail === "object" &&
-				entry.detail !== null &&
-				"kind" in entry.detail &&
-				typeof entry.detail.kind === "number"
-			)
+			entry.entryType !== "gc" ||
+			!(entry instanceof PerformanceNodeEntry)
 		) {
 			return;
 		}

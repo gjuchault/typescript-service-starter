@@ -85,17 +85,16 @@ export async function* shutdown(dependencies: {
 		yield* timeout(gracefulShutdownTimeout, gracefulShutdown());
 
 		logger.info(
-			`gracefully shut down service ${dependencies.packageJson.name}`,
 			{
 				version: dependencies.packageJson.version,
 				nodeVersion: process.version,
 				arch: process.arch,
 				platform: process.platform,
 			},
+			`gracefully shut down service ${dependencies.packageJson.name}`,
 		);
 	} catch (error) {
 		logger.fatal(
-			`could not gracefully shut down service ${dependencies.packageJson.name} after ${gracefulShutdownTimeout}`,
 			{
 				version: dependencies.packageJson.version,
 				nodeVersion: process.version,
@@ -103,6 +102,7 @@ export async function* shutdown(dependencies: {
 				platform: process.platform,
 				error,
 			},
+			`could not gracefully shut down service ${dependencies.packageJson.name} after ${gracefulShutdownTimeout}`,
 		);
 	}
 

@@ -78,10 +78,10 @@ export async function* createHttpServer({
 
 	const logger = createLogger("http-server", { config, packageJson });
 
-	logger.info("creating http server", {
-		address: config.httpAddress,
-		port: config.httpPort,
-	});
+	logger.info(
+		{ address: config.httpAddress, port: config.httpPort },
+		"creating http server",
+	);
 
 	const spanByRequestId = new Map<string, Span>();
 
@@ -116,13 +116,16 @@ export async function* createHttpServer({
 				async function* (span) {
 					spanByRequestId.set(request.id, span);
 
-					logger.debug(`http request: ${request.method} ${request.url}`, {
-						requestId: getRequestId(request),
-						method: request.method,
-						url: request.url,
-						route: request.routeOptions.url,
-						userAgent: request.headers["user-agent"],
-					});
+					logger.debug(
+						{
+							requestId: getRequestId(request),
+							method: request.method,
+							url: request.url,
+							route: request.routeOptions.url,
+							userAgent: request.headers["user-agent"],
+						},
+						`http request: ${request.method} ${request.url}`,
+					);
 
 					yield* noop();
 				},
@@ -219,7 +222,6 @@ export async function* createHttpServer({
 		}
 
 		logger.debug(
-			`http reply: ${request.method} ${request.url} ${reply.statusCode}`,
 			{
 				requestId: getRequestId(request),
 				method: request.method,
@@ -229,27 +231,31 @@ export async function* createHttpServer({
 				responseTime: Math.ceil(reply.elapsedTime),
 				httpStatusCode: reply.statusCode,
 			},
+			`http reply: ${request.method} ${request.url} ${reply.statusCode}`,
 		);
 
 		done();
 	});
 
 	httpServer.addHook("onError", (request, reply, error, done) => {
-		logger.error(`http error (${error.code}): ${error.name} ${error.message}`, {
-			requestId: getRequestId(request),
-			error: {
-				name: error.name,
-				message: error.message,
-				code: error.code,
-				stack: error.stack,
+		logger.error(
+			{
+				requestId: getRequestId(request),
+				error: {
+					name: error.name,
+					message: error.message,
+					code: error.code,
+					stack: error.stack,
+				},
+				method: request.method,
+				url: request.url,
+				route: request.routeOptions.url,
+				userAgent: request.headers["user-agent"],
+				responseTime: Math.ceil(reply.elapsedTime),
+				httpStatusCode: reply.statusCode,
 			},
-			method: request.method,
-			url: request.url,
-			route: request.routeOptions.url,
-			userAgent: request.headers["user-agent"],
-			responseTime: Math.ceil(reply.elapsedTime),
-			httpStatusCode: reply.statusCode,
-		});
+			`http error (${error.code}): ${error.name} ${error.message}`,
+		);
 
 		done();
 	});
@@ -272,7 +278,7 @@ export async function* createHttpServer({
 
 	yield* gen(() => httpServer.ready(), httpServerSetupError)();
 
-	logger.info("http server ready", httpServer.printRoutes());
+	logger.info({ routes: httpServer.printRoutes() }, "http server ready");
 
 	span.end();
 
