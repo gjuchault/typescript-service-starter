@@ -8,7 +8,11 @@ import { startApp } from "../src/index.ts";
 import { config } from "../src/infrastructure/config/config.ts";
 import { packageJson } from "../src/packageJson.ts";
 
-export async function* generateClient(): AsyncGenerator<unknown, void, any> {
+export async function* generateClient(): AsyncGenerator<
+	unknown,
+	void,
+	unknown
+> {
 	const time = Date.now();
 
 	const { httpServer, appShutdown } = yield* startApp({

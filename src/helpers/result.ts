@@ -57,7 +57,9 @@ function getInstanceMethods<Object extends object>(
 	let obj: object = instance;
 	do {
 		const keys = Reflect.ownKeys(obj);
-		keys.forEach((k) => methods.add(k));
+		keys.forEach((k) => {
+			methods.add(k);
+		});
 		const nextObj = Reflect.getPrototypeOf(obj);
 
 		if (nextObj === null) {
