@@ -2,6 +2,15 @@
 	"name": "@gjuchault/typescript-service-starter",
 	"version": "0.0.0-development",
 	"description": "Yet another typescript service starter template",
+	"keywords": [
+		"typescript",
+		"service",
+		"starter",
+		"template"
+	],
+	"homepage": "https://github.com/gjuchault/typescript-service-starter",
+	"bugs": "https://github.com/gjuchault/typescript-service-starter/issues",
+	"repository": "gjuchault/typescript-service-starter",
 	"author": {
 		"name": "Gabriel Juchault",
 		"email": "gabriel.juchault@gmail.com"
