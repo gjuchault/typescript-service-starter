@@ -12,7 +12,7 @@ await describe("GET /api/users", async () => {
 	let setupResult: SetupResult;
 
 	await before(async () => {
-		setupResult = await unsafeFlowOrThrow(setup);
+		setupResult = await setup();
 
 		await unsafeFlowOrThrow(() =>
 			setupResult.database.query(sql.type(z.unknown())`

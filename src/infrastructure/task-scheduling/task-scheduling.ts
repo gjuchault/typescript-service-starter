@@ -41,7 +41,7 @@ export interface TaskScheduling {
 }
 
 export async function* createTaskScheduling(
-	{ queueName }: { queueName: string },
+	{ queueName: rawQueueName }: { queueName: string },
 	{
 		telemetry,
 		packageJson,
@@ -59,9 +59,11 @@ export async function* createTaskScheduling(
 
 	const logger = createLogger("task-scheduling", { config, packageJson });
 
-	const name = `${packageJson.name}-task-scheduling-${queueName}`;
+	const packageName = z.string().slugify().parse(packageJson.name);
+	const queueName = z.string().slugify().parse(rawQueueName);
+	const name = `${packageName}-task-scheduling-${queueName}`;
 
-	logger.debug({ queueName: name }, "creating queue...");
+	logger.debug({ queueName }, "creating queue...");
 
 	const boss = new PgBoss({ connectionString: config.databaseUrl });
 
