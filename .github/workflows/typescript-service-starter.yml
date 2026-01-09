@@ -2,8 +2,9 @@ name: typescript-service-starter
 
 on: [push]
 
-env:
-  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+permissions:
+  id-token: write  # Required for OIDC
+  contents: write
 
 jobs:
   dependencies:
@@ -175,5 +176,4 @@ jobs:
       - name: 🚀 Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: node --run semantic-release

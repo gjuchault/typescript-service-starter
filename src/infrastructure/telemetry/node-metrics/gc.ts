@@ -1,4 +1,8 @@
-import { constants, PerformanceObserver } from "node:perf_hooks";
+import {
+	constants,
+	type PerformanceNodeEntry,
+	PerformanceObserver,
+} from "node:perf_hooks";
 import type { Meter } from "@opentelemetry/api";
 import type { MonitorOptions } from "./index.ts";
 
@@ -23,22 +27,19 @@ export function monitorGc(
 	kinds[constants.NODE_PERFORMANCE_GC_WEAKCB] = { ...labels, kind: "weakcb" };
 
 	const obs = new PerformanceObserver((list) => {
-		const entry = list.getEntries().at(0);
+		const performanceEntry = list.getEntries().at(0);
 
-		if (
-			entry === undefined ||
-			!(
-				typeof entry.detail === "object" &&
-				entry.detail !== null &&
-				"kind" in entry.detail &&
-				typeof entry.detail.kind === "number"
-			)
-		) {
+		if (performanceEntry === undefined || performanceEntry.entryType !== "gc") {
 			return;
 		}
 
+		const performanceNodeEntry = performanceEntry as PerformanceNodeEntry;
+
 		// Convert duration from milliseconds to seconds
-		histogram.record(entry.duration / 1000, kinds[entry.detail.kind]);
+		histogram.record(
+			performanceNodeEntry.duration / 1000,
+			kinds[performanceNodeEntry.detail.kind],
+		);
 	});
 
 	// We do not expect too many gc events per second, so we do not use buffering

@@ -159,10 +159,10 @@ export async function* createDatabase({
 								const span = spanByQueryId.get(queryContext.queryId);
 
 								if (span === undefined) {
-									logger.warn("missing span for query", {
-										queryContext,
-										query,
-									});
+									logger.warn(
+										{ queryContext, query },
+										"missing span for query",
+									);
 
 									return null;
 								}

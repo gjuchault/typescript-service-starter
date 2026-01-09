@@ -1,5 +1,5 @@
 import type { Logger as PinoLogger } from "pino";
-import { pino } from "pino";
+import { pino, stdSerializers, stdTimeFunctions } from "pino";
 import { type PackageJson, packageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
 
@@ -35,9 +35,9 @@ export function createLogger(
 			"key",
 		],
 		serializers: {
-			error: pino.stdSerializers.errWithCause,
-			err: pino.stdSerializers.errWithCause,
-			cause: pino.stdSerializers.errWithCause,
+			error: stdSerializers.errWithCause,
+			err: stdSerializers.errWithCause,
+			cause: stdSerializers.errWithCause,
 		},
 		formatters: {
 			// format level as string instead of number
@@ -45,26 +45,7 @@ export function createLogger(
 				return { level: label };
 			},
 		},
-		timestamp: pino.stdTimeFunctions.isoTime,
-		hooks: {
-			// reverse pino method so it goes logger.method(message, details) instead
-			// of logger.method(details, message)
-			logMethod(inputArguments: unknown[], method) {
-				if (inputArguments.length >= 2) {
-					const argument1 = inputArguments[0];
-					const argument2 = inputArguments[1];
-					Reflect.apply(method, this, [
-						argument2,
-						argument1,
-						...inputArguments.slice(2),
-					]);
-
-					return;
-				}
-
-				method.apply(this, inputArguments as [string, ...unknown[]]);
-			},
-		},
+		timestamp: stdTimeFunctions.isoTime,
 	});
 
 	return logger.child({
