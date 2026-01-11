@@ -2,7 +2,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { build as esbuild } from "esbuild";
-import { isMain } from "is-main";
 
 async function bundle() {
 	const startTime = Date.now();
@@ -38,6 +37,6 @@ async function bundle() {
 	console.log(`📦 bundled in ${Date.now() - startTime}ms`);
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	await bundle();
 }

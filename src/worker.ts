@@ -1,6 +1,5 @@
 import { pid } from "node:process";
 import { asyncExitHook } from "exit-hook";
-import isMain from "is-main";
 import ms from "ms";
 import { noop, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
@@ -58,7 +57,7 @@ async function* startWorker(
 	return { worker: taskScheduling, workerShutdown };
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	const { workerShutdown } = await unsafeFlowOrThrow(() =>
 		startWorker(
 			{ queueName: "jobs" },
