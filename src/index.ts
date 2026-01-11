@@ -9,7 +9,7 @@ import { createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
 import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
-import { type PackageJson, packageJson } from "./packageJson.ts";
+import { type PackageJson, packageJson } from "./package-json.ts";
 
 import "temporal-polyfill/global";
 

@@ -28,7 +28,7 @@ import {
 import { gen, noop, unsafeFlowOrThrow } from "ts-flowgen";
 import yamlJs from "yamljs";
 import { bindUserRoutes } from "../../contexts/user/presentation/http/index.ts";
-import type { PackageJson } from "../../packageJson.ts";
+import type { PackageJson } from "../../package-json.ts";
 import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";

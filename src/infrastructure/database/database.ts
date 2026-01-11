@@ -19,7 +19,7 @@ import {
 import type { StreamHandler, StreamResult } from "slonik/dist/types.js";
 import { gen, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
-import type { PackageJson } from "../../packageJson.ts";
+import type { PackageJson } from "../../package-json.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
 import type { Span, Telemetry } from "../telemetry/telemetry.ts";

@@ -1,7 +1,7 @@
 import { config } from "../infrastructure/config/config.ts";
 import { createDatabase } from "../infrastructure/database/database.ts";
 import { mockTelemetry } from "../infrastructure/telemetry/telemetry.ts";
-import { packageJson } from "../packageJson.ts";
+import { packageJson } from "../package-json.ts";
 
 export async function* getDatabase(overrideDbName: string) {
 	return yield* createDatabase({
