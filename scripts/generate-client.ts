@@ -1,12 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
-import isMain from "is-main";
 import openApiTs, { astToString, type OpenAPI3 } from "openapi-typescript";
 import { unsafeFlowOrThrow } from "ts-flowgen";
 import { startApp } from "../src/index.ts";
 import { config } from "../src/infrastructure/config/config.ts";
-import { packageJson } from "../src/packageJson.ts";
+import { packageJson } from "../src/package-json.ts";
 
 export async function* generateClient(): AsyncGenerator<
 	unknown,
@@ -49,6 +48,6 @@ export async function* generateClient(): AsyncGenerator<
 	console.log(`✅ client generated in ${Date.now() - time}ms`);
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	await unsafeFlowOrThrow(generateClient);
 }

@@ -5,7 +5,7 @@ import {
 	type WrappedObjectMethods,
 	wrapObjectMethods,
 } from "../../helpers/result.ts";
-import type { PackageJson } from "../../packageJson.ts";
+import type { PackageJson } from "../../package-json.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
 import type { Telemetry } from "../telemetry/telemetry.ts";

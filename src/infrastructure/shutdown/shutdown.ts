@@ -1,7 +1,7 @@
 import { createHttpTerminator } from "http-terminator";
 import ms from "ms";
 import { gen, never, timeout } from "ts-flowgen";
-import type { PackageJson } from "../../packageJson.ts";
+import type { PackageJson } from "../../package-json.ts";
 import type { Cache } from "../cache/cache.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";

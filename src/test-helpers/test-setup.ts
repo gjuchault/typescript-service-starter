@@ -6,7 +6,7 @@ import { startApp } from "../index.ts";
 import { config } from "../infrastructure/config/config.ts";
 import type { Database } from "../infrastructure/database/database.ts";
 import type { HttpServer } from "../infrastructure/http-server/http-server.ts";
-import { packageJson } from "../packageJson.ts";
+import { packageJson } from "../package-json.ts";
 import { templateDbName } from "./db-initial-setup.ts";
 import { getDatabase, replaceDatabaseInUrl } from "./get-database.ts";
 

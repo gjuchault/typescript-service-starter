@@ -3,7 +3,6 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import { promisify } from "node:util";
-import { isMain } from "is-main";
 import prompts from "prompts";
 import slugify from "slugify";
 
@@ -30,6 +29,7 @@ const issueConfigPath = path.join(
 	".github/ISSUE_TEMPLATE/config.yml",
 );
 const codeOfConductPath = path.join(rootPath, "CODE_OF_CONDUCT.md");
+const readmePath = path.join(rootPath, "README.md");
 
 interface Input {
 	packageName: string;
@@ -102,6 +102,8 @@ const authorRegexp =
 	/[^\n]+"author[^\n]+\n[^\n]+"name[^\n]+\n[^\n]+"email[^\n]+\n[^\n]+\}[^\n]+\n/;
 const repositoryRegexp = /[^\n]+"repository[^\n]+\n/;
 const setupRegexp = /[^\n]+"setup[^\n]+\n/;
+const packageTestSetupRegexp = /[^\n]+"test:setup[^\n]+\n/;
+
 async function applyPackageName({
 	packageName,
 	githubUserName,
@@ -196,6 +198,19 @@ async function applyPackageName({
 	);
 
 	await logAsyncTask(
+		"Editing README.md",
+		replaceInFile(
+			readmePath,
+			new Map([
+				[
+					"gjuchault/typescript-library-starter",
+					`${githubUserName}/${packageName}`,
+				],
+			]),
+		),
+	);
+
+	await logAsyncTask(
 		"Editing docker-compose.yml",
 		replaceInFile(
 			dockerComposePath,
@@ -225,6 +240,7 @@ async function applyPackageName({
 				[authorRegexp, ""],
 				[repositoryRegexp, ""],
 				[setupRegexp, ""],
+				[packageTestSetupRegexp, ""],
 			]),
 		),
 	);
@@ -233,7 +249,7 @@ async function applyPackageName({
 async function cleanup({ packageName }: { packageName: string }) {
 	await logAsyncTask(
 		"Removing dependencies",
-		exec("npm uninstall slugify prompts"),
+		exec("npm uninstall slugify prompts @types/prompts"),
 	);
 
 	await logAsyncTask(
@@ -271,17 +287,15 @@ async function logAsyncTask<Resolve>(
 	message: string,
 	promise: Promise<Resolve>,
 ) {
-	if ("write" in process.stdout && typeof process.stdout.write === "function") {
-		process.stdout.write(message);
-	}
+	process.stdout.write(message);
 
 	const output = await promise;
 
-	console.log(" ✅");
+	process.stdout.write(" ✅\n");
 
 	return output;
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	await setup();
 }

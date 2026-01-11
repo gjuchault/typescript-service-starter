@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import url from "node:url";
-import { isMain } from "is-main";
 import launchEditor from "launch-editor";
+import { unsafeFlowOrThrow } from "ts-flowgen";
 import type { Umzug } from "umzug";
 import * as z from "zod";
 import { switchGuard } from "../src/helpers/switch-guard.ts";
@@ -58,14 +58,16 @@ async function getInstances(): Promise<{
 	migrator: Umzug<Record<never, never>>;
 	database: Database;
 }> {
-	const database = await createDatabase({
-		config: {
-			...config,
-			logLevel: "warn",
-		},
-		packageJson,
-		telemetry: mockTelemetry,
-	});
+	const database = await unsafeFlowOrThrow(() =>
+		createDatabase({
+			config: {
+				...config,
+				logLevel: "warn",
+			},
+			packageJson,
+			telemetry: mockTelemetry,
+		}),
+	);
 	const migrator = await getMigrator({ database });
 
 	migrator.on("reverting", ({ name }) => {
@@ -84,7 +86,11 @@ export async function up() {
 	const { database, migrator } = await getInstances();
 
 	await migrator.up();
-	await database.end();
+	await unsafeFlowOrThrow(async function* () {
+		if (database.end !== undefined) {
+			yield* database.end();
+		}
+	});
 
 	console.log(`✅ up in ${Date.now() - time}ms`);
 }
@@ -94,12 +100,16 @@ export async function down(step?: number) {
 	const { database, migrator } = await getInstances();
 
 	await migrator.down(step !== undefined ? { step } : undefined);
-	await database.end();
+	await unsafeFlowOrThrow(async function* () {
+		if (database.end !== undefined) {
+			yield* database.end();
+		}
+	});
 
 	console.log(`✅ down in ${Date.now() - time}ms`);
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	const command = z
 		.union([z.literal("up"), z.literal("down"), z.literal("create")])
 		.parse(process.argv.at(2));
@@ -121,12 +131,7 @@ if (isMain(import.meta)) {
 			break;
 		}
 		case "down": {
-			const step = z.coerce
-				.number()
-				.safe()
-				.int()
-				.optional()
-				.parse(process.argv.at(3));
+			const step = z.coerce.number().int().optional().parse(process.argv.at(3));
 			await down(step);
 			break;
 		}
