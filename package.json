@@ -51,10 +51,10 @@
 		"test:watch": "node --env-file=.env --env-file-if-exists=.env.local --test-global-setup src/test-helpers/db-initial-setup.ts --test --watch src/**/*.test.ts",
 		"test:coverage": "c8 -r html node --env-file=.env --env-file-if-exists=.env.local --test-global-setup src/test-helpers/db-initial-setup.ts --test --experimental-test-coverage src/**/*.test.ts",
 		"spell:check": "cspell \"{README.md,CODE_OF_CONDUCT.md,CONTRIBUTING.md,.github/*.md,src/**/*.ts}\"",
-		"cz": "cz",
-		"semantic-release": "semantic-release",
 		"setup": "node ./scripts/setup.ts",
-		"test:setup": "node ./scripts/test-setup.ts"
+		"test:setup": "node ./scripts/test-setup.ts",
+		"cz": "cz",
+		"semantic-release": "semantic-release"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.11",
