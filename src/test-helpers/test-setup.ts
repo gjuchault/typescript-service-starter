@@ -85,6 +85,7 @@ export async function setup(): Promise<SetupResult> {
 		});
 	} catch (error) {
 		console.error("error when setting up test", error);
-		process.exit(1);
+		// process.exit(1);
+		throw error;
 	}
 }

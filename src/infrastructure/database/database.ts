@@ -209,7 +209,11 @@ function poolWrapper(
 				databaseError,
 			)(async (db) => await unsafeFlowOrThrow(() => handler(poolWrapper(db))));
 		},
-		end: pool.end ? gen(() => pool.end?.(), databaseError) : undefined,
+		end: pool.end
+			? gen(async () => {
+					await pool.end?.();
+				}, databaseError)
+			: undefined,
 	};
 }
 

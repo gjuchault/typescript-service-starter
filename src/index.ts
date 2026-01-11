@@ -1,7 +1,7 @@
 import { asyncExitHook } from "exit-hook";
 import { isMain } from "is-main";
 import ms from "ms";
-import { timeout, unsafeFlowOrThrow } from "ts-flowgen";
+import { errdefer, flow, timeout, unsafeFlowOrThrow } from "ts-flowgen";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
 import { type Config, config } from "./infrastructure/config/config.ts";
 import { createDatabase } from "./infrastructure/database/database.ts";
@@ -32,17 +32,30 @@ export async function* startApp({
 			config,
 			packageJson,
 		});
+		yield* errdefer(async () => {
+			if (cache !== undefined) {
+				await flow(cache?.close);
+			}
+		});
 
 		const database = yield* createDatabase({
 			telemetry,
 			config,
 			packageJson,
 		});
+		yield* errdefer(async () => {
+			if (database.end !== undefined) {
+				await flow(database.end);
+			}
+		});
 
 		const taskScheduling = yield* createTaskScheduling(
 			{ queueName: "jobs" },
 			{ telemetry, config, packageJson },
 		);
+		yield* errdefer(async () => {
+			await flow(taskScheduling.stop);
+		});
 
 		const httpServer = yield* createHttpServer({
 			telemetry,
@@ -51,6 +64,9 @@ export async function* startApp({
 			config,
 			packageJson,
 			taskScheduling,
+		});
+		yield* errdefer(async () => {
+			await httpServer.close();
 		});
 
 		async function* appShutdown() {

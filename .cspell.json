@@ -4,6 +4,7 @@
 	"words": [
 		"bytea",
 		"datname",
+		"errdefer",
 		"eventloop",
 		"flowgen",
 		"formbody",

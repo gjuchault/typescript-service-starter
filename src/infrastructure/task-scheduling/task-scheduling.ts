@@ -1,6 +1,6 @@
 import { type Job, PgBoss, type SendOptions } from "pg-boss";
 import { type PrimitiveValueExpression, sql } from "slonik";
-import { gen, unsafeFlowOrThrow } from "ts-flowgen";
+import { type Errdefer, errdefer, gen, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
 import type { PackageJson } from "../../packageJson.ts";
 import type { Config } from "../config/config.ts";
@@ -51,7 +51,10 @@ export async function* createTaskScheduling(
 		config: Pick<Config, "logLevel" | "databaseUrl">;
 		packageJson: Pick<PackageJson, "name">;
 	},
-): AsyncGenerator<TaskSchedulingSetupError, TaskScheduling> {
+): AsyncGenerator<
+	TaskSchedulingSetupError | Errdefer<unknown>,
+	TaskScheduling
+> {
 	const span = telemetry.startSpan({
 		spanName:
 			"infrastructure/task-scheduling/task-scheduling@createTaskScheduling",
@@ -66,6 +69,9 @@ export async function* createTaskScheduling(
 	logger.debug({ queueName }, "creating queue...");
 
 	const boss = new PgBoss({ connectionString: config.databaseUrl });
+	yield* errdefer(async () => {
+		await boss.stop();
+	});
 
 	boss.on("error", (error) => logger.error(error, "error"));
 	boss.on("stopped", () =>
