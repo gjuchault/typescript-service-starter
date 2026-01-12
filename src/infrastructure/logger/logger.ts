@@ -1,6 +1,6 @@
 import type { Logger as PinoLogger } from "pino";
 import { pino, stdSerializers, stdTimeFunctions } from "pino";
-import { type PackageJson, packageJson } from "../../packageJson.ts";
+import { type PackageJson, packageJson } from "../../package-json.ts";
 import type { Config } from "../config/config.ts";
 
 export type Logger = PinoLogger;

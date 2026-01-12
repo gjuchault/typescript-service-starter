@@ -2,7 +2,7 @@ import { type Job, PgBoss, type SendOptions } from "pg-boss";
 import { type PrimitiveValueExpression, sql } from "slonik";
 import { type Errdefer, errdefer, gen, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
-import type { PackageJson } from "../../packageJson.ts";
+import type { PackageJson } from "../../package-json.ts";
 import type { Config } from "../config/config.ts";
 import type { Database } from "../database/database.ts";
 import { createLogger } from "../logger/logger.ts";

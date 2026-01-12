@@ -1,6 +1,5 @@
 import { pid } from "node:process";
 import { asyncExitHook } from "exit-hook";
-import isMain from "is-main";
 import ms from "ms";
 import { noop, unsafeFlowOrThrow } from "ts-flowgen";
 import * as z from "zod";
@@ -9,7 +8,7 @@ import { createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
 import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
-import { type PackageJson, packageJson } from "./packageJson.ts";
+import { type PackageJson, packageJson } from "./package-json.ts";
 
 async function* startWorker(
 	{ queueName }: { queueName: string },
@@ -58,7 +57,7 @@ async function* startWorker(
 	return { worker: taskScheduling, workerShutdown };
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	const { workerShutdown } = await unsafeFlowOrThrow(() =>
 		startWorker(
 			{ queueName: "jobs" },

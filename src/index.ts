@@ -1,5 +1,4 @@
 import { asyncExitHook } from "exit-hook";
-import { isMain } from "is-main";
 import ms from "ms";
 import { errdefer, flow, timeout, unsafeFlowOrThrow } from "ts-flowgen";
 import { createCacheStorage } from "./infrastructure/cache/cache.ts";
@@ -10,7 +9,7 @@ import { createLogger } from "./infrastructure/logger/logger.ts";
 import { shutdown } from "./infrastructure/shutdown/shutdown.ts";
 import { createTaskScheduling } from "./infrastructure/task-scheduling/task-scheduling.ts";
 import { createTelemetry } from "./infrastructure/telemetry/telemetry.ts";
-import { type PackageJson, packageJson } from "./packageJson.ts";
+import { type PackageJson, packageJson } from "./package-json.ts";
 
 import "temporal-polyfill/global";
 
@@ -93,7 +92,7 @@ export async function* startApp({
 	);
 }
 
-if (isMain(import.meta)) {
+if (import.meta.main) {
 	const { httpServer, appShutdown } = await unsafeFlowOrThrow(() =>
 		startApp({
 			config,

@@ -19,7 +19,7 @@ import {
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { flow, type GenError, gen } from "ts-flowgen";
-import type { PackageJson } from "../../packageJson.ts";
+import type { PackageJson } from "../../package-json.ts";
 import type { Config } from "../config/config.ts";
 import { createLogger } from "../logger/logger.ts";
 import { createNodeMetrics } from "./node-metrics/index.ts";
