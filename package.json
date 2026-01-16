@@ -104,7 +104,7 @@
 		"@opentelemetry/resource-detector-container": "^0.8.0",
 		"@opentelemetry/resources": "^2.4.0",
 		"@opentelemetry/sdk-metrics": "^2.4.0",
-		"@opentelemetry/sdk-node": "^0.209.0",
+		"@opentelemetry/sdk-node": "^0.210.0",
 		"@opentelemetry/sdk-trace-node": "^2.4.0",
 		"@opentelemetry/semantic-conventions": "^1.38.0",
 		"@valkey/valkey-glide": "^2.2.5",
