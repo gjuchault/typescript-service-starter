@@ -106,7 +106,7 @@
 		"@opentelemetry/sdk-metrics": "^2.4.0",
 		"@opentelemetry/sdk-node": "^0.210.0",
 		"@opentelemetry/sdk-trace-node": "^2.4.0",
-		"@opentelemetry/semantic-conventions": "^1.38.0",
+		"@opentelemetry/semantic-conventions": "^1.39.0",
 		"@valkey/valkey-glide": "^2.2.5",
 		"connect-valkey": "^1.0.1",
 		"exit-hook": "^5.0.1",
