@@ -20,7 +20,7 @@
 	"types": "./client/schema.d.ts",
 	"license": "MIT",
 	"engines": {
-		"node": "^25.2.1",
+		"node": "^25.3.0",
 		"npm": "^11.6.2"
 	},
 	"volta": {
