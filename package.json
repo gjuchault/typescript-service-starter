@@ -87,7 +87,7 @@
 	},
 	"dependencies": {
 		"@autotelic/fastify-opentelemetry": "^0.23.0",
-		"@fastify/accepts-serializer": "^6.0.3",
+		"@fastify/accepts-serializer": "^6.0.4",
 		"@fastify/circuit-breaker": "^4.0.2",
 		"@fastify/cookie": "^11.0.2",
 		"@fastify/cors": "^11.2.0",
